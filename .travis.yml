@@ -1,0 +1,12 @@
+language: python
+python:
+  - "2.7"
+before_script:
+  - "pip install -r requirements.txt"
+  - "pip install -r test-requirements.txt"
+  - "pip install coveralls"
+script:
+  - "python manage.py test"
+  #- "python setup.py install"
+after_success:
+  coveralls

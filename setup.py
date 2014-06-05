@@ -35,6 +35,7 @@ setup(
     name='edx-submissions',
     version='0.0.1',
     author='edX',
+    description='An API for creating submissions and scores.',
     url='http://github.com/edx/submissions.git',
     license='AGPL',
     classifiers=[

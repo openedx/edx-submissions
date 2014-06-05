@@ -13,7 +13,7 @@ __ http://code.edx.org/
 edx-submissions
 ===============
 
-API for creating submissions and scores
+API for creating submissions and scores.
 
 
 Overview

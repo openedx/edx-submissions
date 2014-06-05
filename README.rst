@@ -2,8 +2,12 @@ Part of `edX code`__.
 
 __ http://code.edx.org/
 
-.. image:: https://travis-ci.org/edx/edx-ora2.png?branch=master
+.. image:: https://travis-ci.org/edx/edx-submissions.png?branch=master
     :alt: Travis build status
+
+.. image:: https://coveralls.io/repos/edx/edx-submissions/badge.png?branch=master
+    :target: https://coveralls.io/r/edx/edx-submissions?branch=master
+    :alt: Coverage badge
 
 
 edx-submissions

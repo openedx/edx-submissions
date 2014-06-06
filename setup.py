@@ -33,7 +33,7 @@ def load_requirements(*requirements_paths):
 
 setup(
     name='edx-submissions',
-    version='0.0.1',
+    version='0.0.2',
     author='edX',
     description='An API for creating submissions and scores.',
     url='http://github.com/edx/edx-submissions.git',
@@ -45,7 +45,7 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
     ],
-    packages=['submissions'],
+    packages=['submissions', 'submissions.migrations'],
     install_requires=load_requirements('requirements.txt'),
     tests_require=load_requirements('test-requirements.txt'),
 )

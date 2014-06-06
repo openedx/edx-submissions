@@ -61,8 +61,7 @@ class SubmissionRequestError(SubmissionError):
         self.field_errors = copy.deepcopy(field_errors)
 
 
-def create_submission(student_item_dict, answer, submitted_at=None,
-                      attempt_number=None):
+def create_submission(student_item_dict, answer, submitted_at=None, attempt_number=None):
     """Creates a submission for assessment.
 
     Generic means by which to submit an answer for assessment.
@@ -71,9 +70,12 @@ def create_submission(student_item_dict, answer, submitted_at=None,
         student_item_dict (dict): The student_item this
             submission is associated with. This is used to determine which
             course, student, and location this submission belongs to.
+
         answer (JSON-serializable): The answer given by the student to be assessed.
+
         submitted_at (datetime): The date in which this submission was submitted.
             If not specified, defaults to the current date.
+
         attempt_number (int): A student may be able to submit multiple attempts
             per question. This allows the designated attempt to be overridden.
             If the attempt is not specified, it will take the most recent
@@ -502,8 +504,7 @@ def set_score(submission_uuid, points_earned, points_possible):
     Args:
         submission_uuid (str): UUID for the submission (must exist).
         points_earned (int): The earned points for this submission.
-        points_possible (int): The total points possible for this particular
-            student item.
+        points_possible (int): The total points possible for this particular student item.
 
     Returns:
         None

@@ -8,5 +8,6 @@ before_script:
 script:
   - "python manage.py test"
   - "python setup.py install"
+  - "python setup.py build_sphinx"
 after_success:
   coveralls

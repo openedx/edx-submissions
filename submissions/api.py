@@ -6,6 +6,7 @@ import copy
 import logging
 import json
 
+from django.conf import settings
 from django.core.cache import cache
 from django.db import IntegrityError, DatabaseError
 from dogapi import dog_stats_api
@@ -161,11 +162,15 @@ def create_submission(student_item_dict, answer, submitted_at=None, attempt_numb
         raise SubmissionInternalError(error_message)
 
 
-def get_submission(submission_uuid):
+def get_submission(submission_uuid, read_replica=False):
     """Retrieves a single submission by uuid.
 
     Args:
         submission_uuid (str): Identifier for the submission.
+
+    Kwargs:
+        read_replica (bool): If true, attempt to use the read replica database.
+            If no read replica is available, use the default database.
 
     Raises:
         SubmissionNotFoundError: Raised if the submission does not exist.
@@ -202,7 +207,11 @@ def get_submission(submission_uuid):
         return cached_submission_data
 
     try:
-        submission = Submission.objects.get(uuid=submission_uuid)
+        submission_qs = Submission.objects
+        if read_replica:
+            submission_qs = _use_read_replica(submission_qs)
+
+        submission = submission_qs.get(uuid=submission_uuid)
         submission_data = SubmissionSerializer(submission).data
         cache.set(cache_key, submission_data)
     except Submission.DoesNotExist:
@@ -220,12 +229,16 @@ def get_submission(submission_uuid):
     return submission_data
 
 
-def get_submission_and_student(uuid):
+def get_submission_and_student(uuid, read_replica=False):
     """
     Retrieve a submission by its unique identifier, including the associated student item.
 
     Args:
         uuid (str): the unique identifier of the submission.
+
+    Kwargs:
+        read_replica (bool): If true, attempt to use the read replica database.
+            If no read replica is available, use the default database.
 
     Returns:
         Serialized Submission model (dict) containing a serialized StudentItem model
@@ -237,7 +250,7 @@ def get_submission_and_student(uuid):
 
     """
     # This may raise API exceptions
-    submission = get_submission(uuid)
+    submission = get_submission(uuid, read_replica=read_replica)
 
     # Retrieve the student item from the cache
     cache_key = "submissions.student_item.{}".format(submission['student_item'])
@@ -254,7 +267,11 @@ def get_submission_and_student(uuid):
     else:
         # There is probably a more idiomatic way to do this using the Django REST framework
         try:
-            student_item = StudentItem.objects.get(id=submission['student_item'])
+            student_item_qs = StudentItem.objects
+            if read_replica:
+                student_item_qs = _use_read_replica(student_item_qs)
+
+            student_item = student_item_qs.get(id=submission['student_item'])
             submission['student_item'] = StudentItemSerializer(student_item).data
             cache.set(cache_key, submission['student_item'])
         except Exception as ex:
@@ -425,21 +442,30 @@ def get_scores(course_id, student_id):
     return scores
 
 
-def get_latest_score_for_submission(submission_uuid):
+def get_latest_score_for_submission(submission_uuid, read_replica=False):
     """
     Retrieve the latest score for a particular submission.
 
     Args:
         submission_uuid (str): The UUID of the submission to retrieve.
 
+    Kwargs:
+        read_replica (bool): If true, attempt to use the read replica database.
+            If no read replica is available, use the default database.
+
     Returns:
         dict: The serialized score model, or None if no score is available.
 
     """
     try:
-        score = Score.objects.filter(
+        score_qs = Score.objects.filter(
             submission__uuid=submission_uuid
-        ).order_by("-id").select_related("submission")[0]
+        ).order_by("-id").select_related("submission")
+
+        if read_replica:
+            score_qs = _use_read_replica(score_qs)
+
+        score = score_qs[0]
         if score.is_hidden():
             return None
     except IndexError:
@@ -686,3 +712,21 @@ def _get_or_create_student_item(student_item_dict):
             student_item_dict)
         logger.exception(error_message)
         raise SubmissionInternalError(error_message)
+
+
+def _use_read_replica(queryset):
+    """
+    Use the read replica if it's available.
+
+    Args:
+        queryset (QuerySet)
+
+    Returns:
+        QuerySet
+
+    """
+    return (
+        queryset.using("read_replica")
+        if "read_replica" in settings.DATABASES
+        else queryset
+    )

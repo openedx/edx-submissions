@@ -17,6 +17,7 @@ from submissions.models import Submission, StudentItem, Score, ScoreSummary
 
 logger = logging.getLogger("submissions.api")
 
+MAX_TOP_SUBMISSIONS = 100
 
 class SubmissionError(Exception):
     """An error that occurs during submission actions.
@@ -329,7 +330,7 @@ def get_submissions(student_item_dict, limit=None):
     return SubmissionSerializer(submission_models, many=True).data
 
 
-def get_top_submissions(student_item, number_of_top_scores):
+def get_top_submissions(course_id, item_id, item_type, number_of_top_scores):
     """Get a number of top scores for an assessment based on a particular student item
 
     This function will return top scores for the piece of assessment.
@@ -337,9 +338,11 @@ def get_top_submissions(student_item, number_of_top_scores):
     a particular assessment module.
 
     Args:
-        student_item (dict): The dictionary representation of a student item.
-            Function returns the score related to this student item.
-        number_of_top_scores (int): The number of scores to return.
+        course_id (str): The course to retrieve for the top scores
+        item_id (str): The item within the course to retrieve for the top scores
+        item_type (str): The type of item to retrieve
+        number_of_top_scores (int): The number of scores to return, greater than 0 and no
+        more than 100.
 
     Returns:
         topscores (dict): The top scores for the assessment for the student item.
@@ -348,17 +351,16 @@ def get_top_submissions(student_item, number_of_top_scores):
     Raises:
         SubmissionNotFoundError: Raised when a submission cannot be found for
             the associated student item.
+        SubmissionRequestError: Raised when the number of top scores is higher than the
+            MAX_TOP_SUBMISSIONS constant.
 
     Examples:
-        >>> student_item = {
-        >>>     "student_id":"Tim",
-        >>>     "course_id":"TestCourse",
-        >>>     "item_id":"u_67",
-        >>>     "item_type":"openassessment"
-        >>> }
+        >>> course_id = "TestCourse"
+        >>> item_id = "u_67"
+        >>> item_type = "openassessment"
         >>> number_of_top_scores = 10
         >>>
-        >>> get_top_submissions(student_item, number_of_top_scores)
+        >>> get_top_submissions(course_id, item_id, item_type, number_of_top_scores)
         [{
             'score': 20,
             'content': "Platypus"
@@ -368,27 +370,29 @@ def get_top_submissions(student_item, number_of_top_scores):
         }]
 
     """
-    if "student_id" in student_item:
-        student_item.pop("student_id")
-    try:
-        student_item_models = StudentItem.objects.filter(**student_item)
-    except DatabaseError:
-        error_message = (
-            u"Error getting submission request for student item {}"
-            .format(student_item)
+    if number_of_top_scores < 1 or number_of_top_scores > MAX_TOP_SUBMISSIONS:
+        error_msg = (
+            u"Number of top scores must be a number between 1 and {}.".format(MAX_TOP_SUBMISSIONS)
         )
-        logger.exception(error_message)
-        raise SubmissionNotFoundError(error_message)
+        logger.exception(error_msg)
+        raise SubmissionRequestError(error_msg)
+    try:
+        student_item_models = StudentItem.objects.filter(
+            course_id=course_id,
+            item_id=item_id,
+            item_type=item_type
+        )
+    except DatabaseError:
+        msg = u"Could not fetch top scores for course {}, item {} of type {}".format(
+            course_id, item_id, item_type
+        )
+        logger.exception(msg)
+        raise SubmissionNotFoundError(msg)
     topsubmissions = []
     scores = Score.objects.filter(student_item=student_item_models).order_by("-points_earned")[:number_of_top_scores]
     for score in scores:
-        try:
-            content = json.loads(score.submission.raw_answer)
-            if 'text' in content:
-                content = content['text']
-        except ValueError:
-            content = score.submission.raw_answer
-        topsubmissions.append({'score': str(score.points_earned), 'content': content})
+        answer = SubmissionSerializer(score.submission).data['answer']
+        topsubmissions.append({'score': score.points_earned, 'content': answer})
     return topsubmissions
 
 

@@ -377,11 +377,11 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores):
         logger.exception(error_msg)
         raise SubmissionRequestError(error_msg)
     try:
-        student_item_models = StudentItem.objects.filter(
-            course_id=course_id,
-            item_id=item_id,
-            item_type=item_type
-        )
+        scores = Score.objects.filter(
+            student_item__course_id=course_id,
+            student_item__item_id=item_id,
+            student_item__item_type=item_type,
+        ).order_by("-points_earned")[:number_of_top_scores]
     except DatabaseError:
         msg = u"Could not fetch top scores for course {}, item {} of type {}".format(
             course_id, item_id, item_type
@@ -389,7 +389,6 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores):
         logger.exception(msg)
         raise SubmissionNotFoundError(msg)
     topsubmissions = []
-    scores = Score.objects.filter(student_item=student_item_models).order_by("-points_earned")[:number_of_top_scores]
     for score in scores:
         answer = SubmissionSerializer(score.submission).data['answer']
         topsubmissions.append({'score': score.points_earned, 'content': answer})

@@ -10,7 +10,7 @@ from mock import patch
 import pytz
 
 from submissions import api as api
-from submissions.models import ScoreSummary, Submission, StudentItem
+from submissions.models import ScoreSummary, Submission, StudentItem, Score
 from submissions.serializers import StudentItemSerializer
 
 STUDENT_ITEM = dict(
@@ -281,6 +281,111 @@ class TestSubmissionsApi(TestCase):
                     u"i4x://a/b/c/s3": (4, 4),
                 }
             )
+
+    def test_get_top_submissions(self):
+        student_item = copy.deepcopy(STUDENT_ITEM)
+
+        student_item["course_id"] = "get_scores_course"
+
+        student_item["item_id"] = "i4x://a/b/c/s1"
+
+        student_1 = api.create_submission(student_item, "Hello World")
+        student_2 = api.create_submission(student_item, "Hello World")
+        student_3 = api.create_submission(student_item, "Hello World")
+
+        api.set_score(student_1['uuid'], 8, 10)
+        api.set_score(student_2['uuid'], 4, 10)
+        api.set_score(student_3['uuid'], 2, 10)
+
+        #Get top scores works correctly
+        with self.assertNumQueries(4):
+            top_scores = api.get_top_submissions(student_item["course_id"], student_item["item_id"], "Peer_Submission", 3)
+            print top_scores
+            self.assertEqual(
+                top_scores,
+                [
+                    {
+                        'content': "Hello World",
+                        'score': 8
+                    },
+                    {
+                        'content': "Hello World",
+                        'score': 4
+                    },
+                    {
+                        'content': "Hello World",
+                        'score': 2
+                    },
+                ]
+            )
+
+        #Fewer top scores available than the number requested.
+        top_scores = api.get_top_submissions(student_item["course_id"], student_item["item_id"], "Peer_Submission", 10)
+        print top_scores
+        self.assertEqual(
+            top_scores,
+            [
+                {
+                    'content': "Hello World",
+                    'score': 8
+                },
+                {
+                    'content': "Hello World",
+                    'score': 4
+                },
+                {
+                    'content': "Hello World",
+                    'score': 2
+                },
+            ]
+        )
+
+        #More top scores available than the number requested.
+        top_scores = api.get_top_submissions(student_item["course_id"], student_item["item_id"], "Peer_Submission", 2)
+        print top_scores
+        self.assertEqual(
+            top_scores,
+            [
+                {
+                    'content': "Hello World",
+                    'score': 8
+                },
+                {
+                    'content': "Hello World",
+                    'score': 4
+                }
+            ]
+        )
+
+    @raises(api.SubmissionRequestError)
+    def test_error_on_get_top_submissions_too_few(self):
+        student_item = copy.deepcopy(STUDENT_ITEM)
+
+        student_item["course_id"] = "get_scores_course"
+
+        student_item["item_id"] = "i4x://a/b/c/s1"
+
+        api.get_top_submissions(student_item["course_id"], student_item["item_id"], "Peer_Submission", -1)
+
+
+    @raises(api.SubmissionRequestError)
+    def test_error_on_get_top_submissions_too_many(self):
+        student_item = copy.deepcopy(STUDENT_ITEM)
+
+        student_item["course_id"] = "get_scores_course"
+
+        student_item["item_id"] = "i4x://a/b/c/s1"
+
+        api.get_top_submissions(student_item["course_id"], student_item["item_id"], "Peer_Submission", api.MAX_TOP_SUBMISSIONS+1)
+
+
+    @patch.object(Score.objects, 'filter')
+    @raises(api.SubmissionInternalError)
+    def test_error_on_get_top_submissions_db_error(self, mock_filter):
+        mock_filter.side_effect = DatabaseError("Bad things happened")
+        student_item = copy.deepcopy(STUDENT_ITEM)
+        api.get_top_submissions(student_item["course_id"], student_item["item_id"], "Peer_Submission", 1)
+
 
     @patch.object(ScoreSummary.objects, 'filter')
     @raises(api.SubmissionInternalError)

@@ -387,7 +387,7 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores):
             course_id, item_id, item_type
         )
         logger.exception(msg)
-        raise SubmissionNotFoundError(msg)
+        raise SubmissionInternalError(msg)
     topsubmissions = []
     for score in scores:
         answer = SubmissionSerializer(score.submission).data['answer']

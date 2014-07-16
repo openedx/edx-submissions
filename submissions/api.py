@@ -18,6 +18,7 @@ from submissions.models import Submission, StudentItem, Score, ScoreSummary
 
 logger = logging.getLogger("submissions.api")
 
+MAX_TOP_SUBMISSIONS = 100
 
 class SubmissionError(Exception):
     """An error that occurs during submission actions.
@@ -344,6 +345,71 @@ def get_submissions(student_item_dict, limit=None):
         submission_models = submission_models[:limit]
 
     return SubmissionSerializer(submission_models, many=True).data
+
+
+def get_top_submissions(course_id, item_id, item_type, number_of_top_scores):
+    """Get a number of top scores for an assessment based on a particular student item
+
+    This function will return top scores for the piece of assessment.
+    A score is only calculated for a student item if it has completed the workflow for
+    a particular assessment module.
+
+    Args:
+        course_id (str): The course to retrieve for the top scores
+        item_id (str): The item within the course to retrieve for the top scores
+        item_type (str): The type of item to retrieve
+        number_of_top_scores (int): The number of scores to return, greater than 0 and no
+        more than 100.
+
+    Returns:
+        topscores (dict): The top scores for the assessment for the student item.
+            An empty array if there are no scores.
+
+    Raises:
+        SubmissionNotFoundError: Raised when a submission cannot be found for
+            the associated student item.
+        SubmissionRequestError: Raised when the number of top scores is higher than the
+            MAX_TOP_SUBMISSIONS constant.
+
+    Examples:
+        >>> course_id = "TestCourse"
+        >>> item_id = "u_67"
+        >>> item_type = "openassessment"
+        >>> number_of_top_scores = 10
+        >>>
+        >>> get_top_submissions(course_id, item_id, item_type, number_of_top_scores)
+        [{
+            'score': 20,
+            'content': "Platypus"
+        },{
+            'score': 16,
+            'content': "Frog"
+        }]
+
+    """
+    if number_of_top_scores < 1 or number_of_top_scores > MAX_TOP_SUBMISSIONS:
+        error_msg = (
+            u"Number of top scores must be a number between 1 and {}.".format(MAX_TOP_SUBMISSIONS)
+        )
+        logger.exception(error_msg)
+        raise SubmissionRequestError(error_msg)
+    try:
+        scores = Score.objects.filter(
+            student_item__course_id=course_id,
+            student_item__item_id=item_id,
+            student_item__item_type=item_type,
+        ).select_related("submission").order_by("-points_earned")[:number_of_top_scores]
+    except DatabaseError:
+        msg = u"Could not fetch top scores for course {}, item {} of type {}".format(
+            course_id, item_id, item_type
+        )
+        logger.exception(msg)
+        raise SubmissionInternalError(msg)
+    topsubmissions = []
+    for score in scores:
+        answer = SubmissionSerializer(score.submission).data['answer']
+        topsubmissions.append({'score': score.points_earned, 'content': answer})
+    return topsubmissions
 
 
 def get_score(student_item):

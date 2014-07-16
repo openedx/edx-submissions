@@ -298,9 +298,8 @@ class TestSubmissionsApi(TestCase):
         api.set_score(student_3['uuid'], 2, 10)
 
         #Get top scores works correctly
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(1):
             top_scores = api.get_top_submissions(student_item["course_id"], student_item["item_id"], "Peer_Submission", 3)
-            print top_scores
             self.assertEqual(
                 top_scores,
                 [
@@ -321,7 +320,6 @@ class TestSubmissionsApi(TestCase):
 
         #Fewer top scores available than the number requested.
         top_scores = api.get_top_submissions(student_item["course_id"], student_item["item_id"], "Peer_Submission", 10)
-        print top_scores
         self.assertEqual(
             top_scores,
             [
@@ -342,7 +340,6 @@ class TestSubmissionsApi(TestCase):
 
         #More top scores available than the number requested.
         top_scores = api.get_top_submissions(student_item["course_id"], student_item["item_id"], "Peer_Submission", 2)
-        print top_scores
         self.assertEqual(
             top_scores,
             [

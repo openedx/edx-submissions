@@ -381,7 +381,7 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores):
             student_item__course_id=course_id,
             student_item__item_id=item_id,
             student_item__item_type=item_type,
-        ).order_by("-points_earned")[:number_of_top_scores]
+        ).select_related("submission").order_by("-points_earned")[:number_of_top_scores]
     except DatabaseError:
         msg = u"Could not fetch top scores for course {}, item {} of type {}".format(
             course_id, item_id, item_type

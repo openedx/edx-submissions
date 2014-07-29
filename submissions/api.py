@@ -57,10 +57,29 @@ class SubmissionRequestError(SubmissionError):
     This error is reserved for problems specific to the use of the API.
 
     """
+    def __init__(self, msg="", field_errors=None):
+        """
+        Configure the submission request error.
 
-    def __init__(self, field_errors):
-        Exception.__init__(self, repr(field_errors))
-        self.field_errors = copy.deepcopy(field_errors)
+        Keyword Args:
+            msg (unicode): The error message.
+            field_errors (dict): A dictionary of errors (list of unicode)
+                specific to a fields provided in the request.
+
+        Example usage:
+
+        >>> raise SubmissionRequestError(
+        >>>     "An unexpected error occurred"
+        >>>     {"answer": ["Maximum answer length exceeded."]}
+        >>> )
+
+        """
+        super(SubmissionRequestError, self).__init__(msg)
+        self.field_errors = (
+            copy.deepcopy(field_errors)
+            if field_errors is not None
+            else {}
+        )
 
 
 def create_submission(student_item_dict, answer, submitted_at=None, attempt_number=None):
@@ -141,7 +160,7 @@ def create_submission(student_item_dict, answer, submitted_at=None, attempt_numb
     try:
         submission_serializer = SubmissionSerializer(data=model_kwargs)
         if not submission_serializer.is_valid():
-            raise SubmissionRequestError(submission_serializer.errors)
+            raise SubmissionRequestError(field_errors=submission_serializer.errors)
         submission_serializer.save()
 
         sub_data = submission_serializer.data
@@ -153,7 +172,7 @@ def create_submission(student_item_dict, answer, submitted_at=None, attempt_numb
         error_message = u"Could not serialize JSON field in submission {} for student item {}".format(
             model_kwargs, student_item_dict
         )
-        raise SubmissionRequestError(error_message)
+        raise SubmissionRequestError(msg=error_message)
     except DatabaseError:
         error_message = u"An error occurred while creating submission {} for student item: {}".format(
             model_kwargs,
@@ -191,7 +210,7 @@ def get_submission(submission_uuid, read_replica=False):
     """
     if not isinstance(submission_uuid, basestring):
         raise SubmissionRequestError(
-            "submission_uuid ({!r}) must be a string type".format(submission_uuid)
+            msg="submission_uuid ({!r}) must be a string type".format(submission_uuid)
         )
 
     cache_key = "submissions.submission.{}".format(submission_uuid)
@@ -392,7 +411,7 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores):
             u"Number of top scores must be a number between 1 and {}.".format(MAX_TOP_SUBMISSIONS)
         )
         logger.exception(error_msg)
-        raise SubmissionRequestError(error_msg)
+        raise SubmissionRequestError(msg=error_msg)
     try:
         scores = Score.objects.filter(
             student_item__course_id=course_id,
@@ -629,7 +648,7 @@ def set_score(submission_uuid, points_earned, points_possible):
             submission_uuid
         )
         logger.exception(error_msg)
-        raise SubmissionRequestError(error_msg)
+        raise SubmissionRequestError(msg=error_msg)
 
     score = ScoreSerializer(
         data={
@@ -771,7 +790,7 @@ def _get_or_create_student_item(student_item_dict):
             student_item_serializer = StudentItemSerializer(
                 data=student_item_dict)
             if not student_item_serializer.is_valid():
-                raise SubmissionRequestError(student_item_serializer.errors)
+                raise SubmissionRequestError(field_errors=student_item_serializer.errors)
             return student_item_serializer.save()
     except DatabaseError:
         error_message = u"An error occurred creating student item: {}".format(

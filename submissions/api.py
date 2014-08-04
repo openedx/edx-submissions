@@ -366,12 +366,16 @@ def get_submissions(student_item_dict, limit=None):
     return SubmissionSerializer(submission_models, many=True).data
 
 
-def get_top_submissions(course_id, item_id, item_type, number_of_top_scores):
+def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use_cache=True, read_replica=True):
     """Get a number of top scores for an assessment based on a particular student item
 
     This function will return top scores for the piece of assessment.
     A score is only calculated for a student item if it has completed the workflow for
     a particular assessment module.
+
+    In general, users of top submissions can tolerate some latency
+    in the search results, so by default this call uses
+    a cache and the read replica (if available).
 
     Args:
         course_id (str): The course to retrieve for the top scores
@@ -379,6 +383,11 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores):
         item_type (str): The type of item to retrieve
         number_of_top_scores (int): The number of scores to return, greater than 0 and no
         more than 100.
+
+    Kwargs:
+        use_cache (bool): If true, check the cache before retrieving querying the database.
+        read_replica (bool): If true, attempt to use the read replica database.
+            If no read replica is available, use the default database.
 
     Returns:
         topscores (dict): The top scores for the assessment for the student item.
@@ -412,23 +421,49 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores):
         )
         logger.exception(error_msg)
         raise SubmissionRequestError(msg=error_msg)
-    try:
-        scores = Score.objects.filter(
-            student_item__course_id=course_id,
-            student_item__item_id=item_id,
-            student_item__item_type=item_type,
-        ).select_related("submission").order_by("-points_earned")[:number_of_top_scores]
-    except DatabaseError:
-        msg = u"Could not fetch top scores for course {}, item {} of type {}".format(
-            course_id, item_id, item_type
-        )
-        logger.exception(msg)
-        raise SubmissionInternalError(msg)
-    topsubmissions = []
-    for score in scores:
-        answer = SubmissionSerializer(score.submission).data['answer']
-        topsubmissions.append({'score': score.points_earned, 'content': answer})
-    return topsubmissions
+
+    # First check the cache (unless caching is disabled)
+    cache_key = "submissions.top_submissions.{course}.{item}.{type}.{number}".format(
+        course=course_id,
+        item=item_id,
+        type=item_type,
+        number=number_of_top_scores
+    )
+    top_submissions = cache.get(cache_key) if use_cache else None
+
+    # If we can't find it in the cache (or caching is disabled), check the database
+    # By default, prefer the read-replica.
+    if top_submissions is None:
+        try:
+            query = Score.objects.filter(
+                student_item__course_id=course_id,
+                student_item__item_id=item_id,
+                student_item__item_type=item_type,
+            ).select_related("submission").order_by("-points_earned")
+
+            if read_replica:
+                query = _use_read_replica(query)
+            scores = query[:number_of_top_scores]
+        except DatabaseError:
+            msg = u"Could not fetch top scores for course {}, item {} of type {}".format(
+                course_id, item_id, item_type
+            )
+            logger.exception(msg)
+            raise SubmissionInternalError(msg)
+
+        # Retrieve the submission content for each top score
+        top_submissions = [
+            {
+                "score": score.points_earned,
+                "content": SubmissionSerializer(score.submission).data['answer']
+            }
+            for score in scores
+        ]
+
+    # Always store the retrieved list in the cache
+    cache.set(cache_key, top_submissions)
+
+    return top_submissions
 
 
 def get_score(student_item):

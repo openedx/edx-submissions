@@ -18,7 +18,14 @@ from submissions.models import Submission, StudentItem, Score, ScoreSummary
 
 logger = logging.getLogger("submissions.api")
 
+
+# By default, limit the number of top submissions
+# Anything above this limit will result in a request error
 MAX_TOP_SUBMISSIONS = 100
+
+# Set a relatively low cache timeout for top submissions.
+TOP_SUBMISSIONS_CACHE_TIMEOUT = 300
+
 
 class SubmissionError(Exception):
     """An error that occurs during submission actions.
@@ -461,7 +468,7 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use
         ]
 
     # Always store the retrieved list in the cache
-    cache.set(cache_key, top_submissions)
+    cache.set(cache_key, top_submissions, TOP_SUBMISSIONS_CACHE_TIMEOUT)
 
     return top_submissions
 

@@ -64,3 +64,5 @@ NOSE_ARGS = [
     '--cover-branches',
     '--cover-erase',
 ]
+
+SECRET_KEY = "1234"

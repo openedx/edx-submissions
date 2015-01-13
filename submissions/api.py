@@ -377,6 +377,7 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use
     """Get a number of top scores for an assessment based on a particular student item
 
     This function will return top scores for the piece of assessment.
+    It will ignore the submissions that have 0 score/points_earned.
     A score is only calculated for a student item if it has completed the workflow for
     a particular assessment module.
 
@@ -398,7 +399,7 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use
 
     Returns:
         topscores (dict): The top scores for the assessment for the student item.
-            An empty array if there are no scores.
+            An empty array if there are no scores or all scores are 0.
 
     Raises:
         SubmissionNotFoundError: Raised when a submission cannot be found for
@@ -446,6 +447,7 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use
                 student_item__course_id=course_id,
                 student_item__item_id=item_id,
                 student_item__item_type=item_type,
+                points_earned__gt=0
             ).select_related("submission").order_by("-points_earned")
 
             if read_replica:
@@ -467,8 +469,8 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use
             for score in scores
         ]
 
-    # Always store the retrieved list in the cache
-    cache.set(cache_key, top_submissions, TOP_SUBMISSIONS_CACHE_TIMEOUT)
+        # Always store the retrieved list in the cache
+        cache.set(cache_key, top_submissions, TOP_SUBMISSIONS_CACHE_TIMEOUT)
 
     return top_submissions
 

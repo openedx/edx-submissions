@@ -370,6 +370,42 @@ class TestSubmissionsApi(TestCase):
             ]
         )
 
+    def test_get_top_submissions_with_score_greater_than_zero(self):
+        student_item = copy.deepcopy(STUDENT_ITEM)
+        student_item["course_id"] = "get_scores_course"
+        student_item["item_id"] = "i4x://a/b/c/s1"
+
+        student_1 = api.create_submission(student_item, "Hello World")
+        student_2 = api.create_submission(student_item, "Hello World")
+        student_3 = api.create_submission(student_item, "Hello World")
+
+        api.set_score(student_1['uuid'], 8, 10)
+        api.set_score(student_2['uuid'], 4, 10)
+        api.set_score(student_3['uuid'], 0, 10)
+
+        # Get greater than 0 top scores works correctly
+        with self.assertNumQueries(1):
+            top_scores = api.get_top_submissions(
+                student_item["course_id"],
+                student_item["item_id"],
+                "Peer_Submission", 3,
+                use_cache=False,
+                read_replica=False,
+            )
+            self.assertEqual(
+                top_scores,
+                [
+                    {
+                        'content': "Hello World",
+                        'score': 8
+                    },
+                    {
+                        'content': "Hello World",
+                        'score': 4
+                    }
+                ]
+            )
+
     def test_get_top_submissions_from_cache(self):
         student_1 = api.create_submission(STUDENT_ITEM, "Hello World")
         student_2 = api.create_submission(STUDENT_ITEM, "Hello World")
@@ -403,6 +439,40 @@ class TestSubmissionsApi(TestCase):
                 read_replica=False
             )
             self.assertEqual(cached_scores, scores)
+
+    def test_get_top_submissions_from_cache_having_greater_than_0_score(self):
+        student_1 = api.create_submission(STUDENT_ITEM, "Hello World")
+        student_2 = api.create_submission(STUDENT_ITEM, "Hello World")
+        student_3 = api.create_submission(STUDENT_ITEM, "Hello World")
+
+        api.set_score(student_1['uuid'], 8, 10)
+        api.set_score(student_2['uuid'], 4, 10)
+        api.set_score(student_3['uuid'], 0, 10)
+
+        # The first call should hit the database
+        with self.assertNumQueries(1):
+            scores = api.get_top_submissions(
+                STUDENT_ITEM["course_id"],
+                STUDENT_ITEM["item_id"],
+                STUDENT_ITEM["item_type"], 3,
+                use_cache=True,
+                read_replica=False
+            )
+        self.assertEqual(scores, [
+            {"content": "Hello World", "score": 8},
+            {"content": "Hello World", "score": 4},
+        ])
+
+        # The second call should use the cache
+        with self.assertNumQueries(0):
+            cached_scores = api.get_top_submissions(
+                STUDENT_ITEM["course_id"],
+                STUDENT_ITEM["item_id"],
+                STUDENT_ITEM["item_type"], 3,
+                use_cache=True,
+                read_replica=False
+            )
+        self.assertEqual(cached_scores, scores)
 
     @raises(api.SubmissionRequestError)
     def test_error_on_get_top_submissions_too_few(self):

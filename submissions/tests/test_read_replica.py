@@ -42,9 +42,18 @@ class ReadReplicaTest(TransactionTestCase):
         self.assertEqual(retrieved['points_earned'], self.SCORE['points_earned'])
 
     def test_get_top_submissions(self):
-        student_1 = sub_api.create_submission(self.STUDENT_ITEM, "Hello World")
-        student_2 = sub_api.create_submission(self.STUDENT_ITEM, "Hello World")
-        student_3 = sub_api.create_submission(self.STUDENT_ITEM, "Hello World")
+        student_item_1 = copy.deepcopy(self.STUDENT_ITEM)
+        student_item_1['student_id'] = 'Tim'
+
+        student_item_2 = copy.deepcopy(self.STUDENT_ITEM)
+        student_item_2['student_id'] = 'Bob'
+
+        student_item_3 = copy.deepcopy(self.STUDENT_ITEM)
+        student_item_3['student_id'] = 'Li'
+
+        student_1 = sub_api.create_submission(student_item_1, "Hello World")
+        student_2 = sub_api.create_submission(student_item_2, "Hello World")
+        student_3 = sub_api.create_submission(student_item_3, "Hello World")
 
         sub_api.set_score(student_1['uuid'], 8, 10)
         sub_api.set_score(student_2['uuid'], 4, 10)

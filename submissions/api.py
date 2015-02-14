@@ -377,7 +377,7 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use
     """Get a number of top scores for an assessment based on a particular student item
 
     This function will return top scores for the piece of assessment.
-    It will ignore the submissions that have 0 score/points_earned.
+    It will consider only the latest and greater than 0 score for a piece of assessment.
     A score is only calculated for a student item if it has completed the workflow for
     a particular assessment module.
 
@@ -443,18 +443,18 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use
     # By default, prefer the read-replica.
     if top_submissions is None:
         try:
-            query = Score.objects.filter(
+            query = ScoreSummary.objects.filter(
                 student_item__course_id=course_id,
                 student_item__item_id=item_id,
                 student_item__item_type=item_type,
-                points_earned__gt=0
-            ).select_related("submission").order_by("-points_earned")
+                latest__points_earned__gt=0
+            ).select_related('latest', 'latest__submission').order_by("-latest__points_earned")
 
             if read_replica:
                 query = _use_read_replica(query)
-            scores = query[:number_of_top_scores]
+            score_summaries = query[:number_of_top_scores]
         except DatabaseError:
-            msg = u"Could not fetch top scores for course {}, item {} of type {}".format(
+            msg = u"Could not fetch top score summaries for course {}, item {} of type {}".format(
                 course_id, item_id, item_type
             )
             logger.exception(msg)
@@ -463,10 +463,10 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use
         # Retrieve the submission content for each top score
         top_submissions = [
             {
-                "score": score.points_earned,
-                "content": SubmissionSerializer(score.submission).data['answer']
+                "score": score_summary.latest.points_earned,
+                "content": SubmissionSerializer(score_summary.latest.submission).data['answer']
             }
-            for score in scores
+            for score_summary in score_summaries
         ]
 
         # Always store the retrieved list in the cache

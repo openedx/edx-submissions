@@ -283,13 +283,18 @@ class TestSubmissionsApi(TestCase):
             )
 
     def test_get_top_submissions(self):
-        student_item = copy.deepcopy(STUDENT_ITEM)
-        student_item["course_id"] = "get_scores_course"
-        student_item["item_id"] = "i4x://a/b/c/s1"
+        student_item_1 = copy.deepcopy(STUDENT_ITEM)
+        student_item_1['student_id'] = 'Tim'
 
-        student_1 = api.create_submission(student_item, "Hello World")
-        student_2 = api.create_submission(student_item, "Hello World")
-        student_3 = api.create_submission(student_item, "Hello World")
+        student_item_2 = copy.deepcopy(STUDENT_ITEM)
+        student_item_2['student_id'] = 'Bob'
+
+        student_item_3 = copy.deepcopy(STUDENT_ITEM)
+        student_item_3['student_id'] = 'Li'
+
+        student_1 = api.create_submission(student_item_1, "Hello World")
+        student_2 = api.create_submission(student_item_2, "Hello World")
+        student_3 = api.create_submission(student_item_3, "Hello World")
 
         api.set_score(student_1['uuid'], 8, 10)
         api.set_score(student_2['uuid'], 4, 10)
@@ -298,8 +303,8 @@ class TestSubmissionsApi(TestCase):
         # Get top scores works correctly
         with self.assertNumQueries(1):
             top_scores = api.get_top_submissions(
-                student_item["course_id"],
-                student_item["item_id"],
+                STUDENT_ITEM["course_id"],
+                STUDENT_ITEM["item_id"],
                 "Peer_Submission", 3,
                 use_cache=False,
                 read_replica=False,
@@ -324,8 +329,8 @@ class TestSubmissionsApi(TestCase):
 
         # Fewer top scores available than the number requested.
         top_scores = api.get_top_submissions(
-            student_item["course_id"],
-            student_item["item_id"],
+            STUDENT_ITEM["course_id"],
+            STUDENT_ITEM["item_id"],
             "Peer_Submission", 10,
             use_cache=False,
             read_replica=False
@@ -350,8 +355,8 @@ class TestSubmissionsApi(TestCase):
 
         # More top scores available than the number requested.
         top_scores = api.get_top_submissions(
-            student_item["course_id"],
-            student_item["item_id"],
+            STUDENT_ITEM["course_id"],
+            STUDENT_ITEM["item_id"],
             "Peer_Submission", 2,
             use_cache=False,
             read_replica=False
@@ -371,23 +376,32 @@ class TestSubmissionsApi(TestCase):
         )
 
     def test_get_top_submissions_with_score_greater_than_zero(self):
-        student_item = copy.deepcopy(STUDENT_ITEM)
-        student_item["course_id"] = "get_scores_course"
-        student_item["item_id"] = "i4x://a/b/c/s1"
+        student_item_1 = copy.deepcopy(STUDENT_ITEM)
+        student_item_1['student_id'] = 'Tim'
 
-        student_1 = api.create_submission(student_item, "Hello World")
-        student_2 = api.create_submission(student_item, "Hello World")
-        student_3 = api.create_submission(student_item, "Hello World")
+        student_item_2 = copy.deepcopy(STUDENT_ITEM)
+        student_item_2['student_id'] = 'Bob'
+
+        student_item_3 = copy.deepcopy(STUDENT_ITEM)
+        student_item_3['student_id'] = 'Li'
+
+        student_1 = api.create_submission(student_item_1, "Hello World")
+        student_2 = api.create_submission(student_item_2, "Hello World")
+        student_3 = api.create_submission(student_item_3, "Hello World")
 
         api.set_score(student_1['uuid'], 8, 10)
         api.set_score(student_2['uuid'], 4, 10)
+        # These scores should not appear in top submissions.
+        # because we are considering the scores which are
+        # latest and greater than 0.
+        api.set_score(student_3['uuid'], 5, 10)
         api.set_score(student_3['uuid'], 0, 10)
 
         # Get greater than 0 top scores works correctly
         with self.assertNumQueries(1):
             top_scores = api.get_top_submissions(
-                student_item["course_id"],
-                student_item["item_id"],
+                STUDENT_ITEM["course_id"],
+                STUDENT_ITEM["item_id"],
                 "Peer_Submission", 3,
                 use_cache=False,
                 read_replica=False,
@@ -407,9 +421,18 @@ class TestSubmissionsApi(TestCase):
             )
 
     def test_get_top_submissions_from_cache(self):
-        student_1 = api.create_submission(STUDENT_ITEM, "Hello World")
-        student_2 = api.create_submission(STUDENT_ITEM, "Hello World")
-        student_3 = api.create_submission(STUDENT_ITEM, "Hello World")
+        student_item_1 = copy.deepcopy(STUDENT_ITEM)
+        student_item_1['student_id'] = 'Tim'
+
+        student_item_2 = copy.deepcopy(STUDENT_ITEM)
+        student_item_2['student_id'] = 'Bob'
+
+        student_item_3 = copy.deepcopy(STUDENT_ITEM)
+        student_item_3['student_id'] = 'Li'
+
+        student_1 = api.create_submission(student_item_1, "Hello World")
+        student_2 = api.create_submission(student_item_2, "Hello World")
+        student_3 = api.create_submission(student_item_3, "Hello World")
 
         api.set_score(student_1['uuid'], 8, 10)
         api.set_score(student_2['uuid'], 4, 10)
@@ -425,8 +448,8 @@ class TestSubmissionsApi(TestCase):
                 read_replica=False
             )
             self.assertEqual(scores, [
-                { "content": "Hello World", "score": 8 },
-                { "content": "Hello World", "score": 4 },
+                {"content": "Hello World", "score": 8},
+                {"content": "Hello World", "score": 4},
             ])
 
         # The second call should use the cache
@@ -441,9 +464,18 @@ class TestSubmissionsApi(TestCase):
             self.assertEqual(cached_scores, scores)
 
     def test_get_top_submissions_from_cache_having_greater_than_0_score(self):
-        student_1 = api.create_submission(STUDENT_ITEM, "Hello World")
-        student_2 = api.create_submission(STUDENT_ITEM, "Hello World")
-        student_3 = api.create_submission(STUDENT_ITEM, "Hello World")
+        student_item_1 = copy.deepcopy(STUDENT_ITEM)
+        student_item_1['student_id'] = 'Tim'
+
+        student_item_2 = copy.deepcopy(STUDENT_ITEM)
+        student_item_2['student_id'] = 'Bob'
+
+        student_item_3 = copy.deepcopy(STUDENT_ITEM)
+        student_item_3['student_id'] = 'Li'
+
+        student_1 = api.create_submission(student_item_1, "Hello World")
+        student_2 = api.create_submission(student_item_2, "Hello World")
+        student_3 = api.create_submission(student_item_3, "Hello World")
 
         api.set_score(student_1['uuid'], 8, 10)
         api.set_score(student_2['uuid'], 4, 10)
@@ -499,7 +531,7 @@ class TestSubmissionsApi(TestCase):
             read_replica=False
         )
 
-    @patch.object(Score.objects, 'filter')
+    @patch.object(ScoreSummary.objects, 'filter')
     @raises(api.SubmissionInternalError)
     def test_error_on_get_top_submissions_db_error(self, mock_filter):
         mock_filter.side_effect = DatabaseError("Bad things happened")

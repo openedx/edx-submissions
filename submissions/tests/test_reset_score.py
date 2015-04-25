@@ -8,8 +8,9 @@ from django.test import TestCase
 import ddt
 from django.core.cache import cache
 from django.db import DatabaseError
+from django.dispatch import Signal
 from submissions import api as sub_api
-from submissions.models import Score
+from submissions.models import Score, score_reset
 
 
 @ddt.ddt
@@ -165,3 +166,24 @@ class TestResetScore(TestCase):
                 self.STUDENT_ITEM['course_id'],
                 self.STUDENT_ITEM['item_id'],
             )
+
+    @patch.object(score_reset, 'send')
+    def test_reset_score_signal(self, send_mock):
+        # Create a submission for the student and score it
+        submission = sub_api.create_submission(self.STUDENT_ITEM, 'test answer')
+        sub_api.set_score(submission['uuid'], 1, 2)
+
+        # Reset scores
+        sub_api.reset_score(
+            self.STUDENT_ITEM['student_id'],
+            self.STUDENT_ITEM['course_id'],
+            self.STUDENT_ITEM['item_id'],
+        )
+
+        # Verify that the send method was properly called
+        send_mock.assert_called_with(
+            sender = None,
+            anonymous_user_id=self.STUDENT_ITEM['student_id'],
+            course_id=self.STUDENT_ITEM['course_id'],
+            item_id=self.STUDENT_ITEM['item_id']
+        )

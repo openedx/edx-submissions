@@ -3,6 +3,7 @@ import copy
 
 from ddt import ddt, file_data
 from django.db import DatabaseError
+from django.dispatch import Signal
 from django.core.cache import cache
 from django.test import TestCase
 from nose.tools import raises
@@ -10,7 +11,7 @@ from mock import patch
 import pytz
 
 from submissions import api as api
-from submissions.models import ScoreSummary, Submission, StudentItem, Score
+from submissions.models import ScoreSummary, Submission, StudentItem, Score, score_set
 from submissions.serializers import StudentItemSerializer
 
 STUDENT_ITEM = dict(
@@ -225,6 +226,21 @@ class TestSubmissionsApi(TestCase):
         api.set_score(submission["uuid"], 11, 12)
         score = api.get_latest_score_for_submission(submission["uuid"])
         self._assert_score(score, 11, 12)
+
+    @patch.object(score_set, 'send')
+    def test_set_score_signal(self, send_mock):
+        submission = api.create_submission(STUDENT_ITEM, ANSWER_ONE)
+        api.set_score(submission['uuid'], 11, 12)
+
+        # Verify that the send method was properly called
+        send_mock.assert_called_with(
+            sender=None,
+            points_possible=12,
+            points_earned=11,
+            anonymous_user_id=STUDENT_ITEM['student_id'],
+            course_id=STUDENT_ITEM['course_id'],
+            item_id=STUDENT_ITEM['item_id']
+        )
 
     def test_get_score(self):
         submission = api.create_submission(STUDENT_ITEM, ANSWER_ONE)
@@ -553,3 +569,4 @@ class TestSubmissionsApi(TestCase):
         self.assertIsNotNone(score)
         self.assertEqual(score["points_earned"], expected_points_earned)
         self.assertEqual(score["points_possible"], expected_points_possible)
+

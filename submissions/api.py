@@ -6,6 +6,7 @@ import copy
 import logging
 import json
 
+from collections import namedtuple
 from django.conf import settings
 from django.core.cache import cache
 from django.db import IntegrityError, DatabaseError
@@ -87,6 +88,15 @@ class SubmissionRequestError(SubmissionError):
             if field_errors is not None
             else {}
         )
+
+
+# For API stability and low memory usage, large result sets are returned using namedtuples.
+# They take up only as much memory as tuples, but fields are accessible by name,
+# so we can change the fields in the future if needed
+LatestSubmission = namedtuple(
+    "LatestSubmission",
+    ("student_id", "attempt_number", "submitted_at", "created_at", "answer"),
+)
 
 
 def create_submission(student_item_dict, answer, submitted_at=None, attempt_number=None):
@@ -371,6 +381,40 @@ def get_submissions(student_item_dict, limit=None):
         submission_models = submission_models[:limit]
 
     return SubmissionSerializer(submission_models, many=True).data
+
+
+def get_all_submissions(course_id, item_id, item_type, read_replica=True):
+    """
+    For the given item, get the most recent submission for every student who has submitted.
+
+    This may return a very large result set! It is implemented as a generator for efficiency.
+    It yields namedtuples with the following fields:
+        student_id
+        attempt_number
+        submitted_at
+        created_at
+        answer
+
+    Cannot fail unless there's a database error, but may return an empty list.
+    """
+    query = Submission.objects.filter(
+        student_item__course_id=course_id,
+        student_item__item_id=item_id,
+        student_item__item_type=item_type,
+    ).values_list(
+        'student_item__student_id', 'attempt_number', 'submitted_at', 'created_at', 'raw_answer'
+    ).order_by('student_item__student_id', '-created_at')
+
+    last_student_id = None
+    for row in query.all():
+        # We cannot use SELECT DISTINCT ON because it's PostgreSQL only, so unfortunately
+        # our results may contain every entry of each student, not just the most recent.
+        if row[0] == last_student_id:
+            continue  # Skip this row; it's an old submission for a student we've already included
+        last_student_id = row[0]
+        # Parse 'raw_answer' as JSON:
+        answer = json.loads(row[4])
+        yield LatestSubmission(row[0], row[1], row[2], row[3], answer)
 
 
 def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use_cache=True, read_replica=True):

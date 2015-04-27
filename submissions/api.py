@@ -14,7 +14,7 @@ from dogapi import dog_stats_api
 from submissions.serializers import (
     SubmissionSerializer, StudentItemSerializer, ScoreSerializer, JsonFieldError
 )
-from submissions.models import Submission, StudentItem, Score, ScoreSummary
+from submissions.models import Submission, StudentItem, Score, ScoreSummary, score_set, score_reset
 
 logger = logging.getLogger("submissions.api")
 
@@ -636,6 +636,14 @@ def reset_score(student_id, course_id, item_id):
     # Create a "reset" score
     try:
         Score.create_reset_score(student_item)
+        # Send a signal out to any listeners who are waiting for scoring events.
+        score_reset.send(
+            sender=None,
+            anonymous_user_id=student_id,
+            course_id=course_id,
+            item_id=item_id,
+        )
+
     except DatabaseError:
         msg = (
             u"Error occurred while reseting scores for"
@@ -716,6 +724,15 @@ def set_score(submission_uuid, points_earned, points_possible):
     try:
         score_model = score.save()
         _log_score(score_model)
+        # Send a signal out to any listeners who are waiting for scoring events.
+        score_set.send(
+            sender=None,
+            points_possible=points_possible,
+            points_earned=points_earned,
+            anonymous_user_id=submission_model.student_item.student_id,
+            course_id=submission_model.student_item.course_id,
+            item_id=submission_model.student_item.item_id,
+        )
     except IntegrityError:
         pass
 

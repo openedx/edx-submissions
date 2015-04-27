@@ -14,13 +14,24 @@ import logging
 
 from django.db import models, DatabaseError
 from django.db.models.signals import post_save
-from django.dispatch import receiver
+from django.dispatch import receiver, Signal
 from django.utils.timezone import now
 from django_extensions.db.fields import UUIDField
 
 
 logger = logging.getLogger(__name__)
 
+# Signal to inform listeners that a score has been changed
+score_set = Signal(providing_args=[
+        'points_possible', 'points_earned', 'anonymous_user_id',
+        'course_id', 'item_id'
+    ]
+)
+
+# Signal to inform listeners that a score has been reset
+score_reset = Signal(
+    providing_args=['anonymous_user_id', 'course_id', 'item_id']
+)
 
 class StudentItem(models.Model):
     """Represents a single item for a single course for a single user.

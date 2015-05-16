@@ -74,6 +74,28 @@ class TestSubmissionsApi(TestCase):
         self._assert_submission(submissions[1], ANSWER_ONE, student_item.pk, 1)
         self._assert_submission(submissions[0], ANSWER_TWO, student_item.pk, 2)
 
+    def test_get_all_submissions(self):
+        api.create_submission(SECOND_STUDENT_ITEM, ANSWER_TWO)
+        api.create_submission(STUDENT_ITEM, ANSWER_ONE)
+        api.create_submission(STUDENT_ITEM, ANSWER_TWO)
+        api.create_submission(SECOND_STUDENT_ITEM, ANSWER_ONE)
+        with self.assertNumQueries(1):
+            submissions = list(api.get_all_submissions(
+                STUDENT_ITEM['course_id'],
+                STUDENT_ITEM['item_id'],
+                STUDENT_ITEM['item_type'],
+                read_replica=False,
+            ))
+
+        student_item = self._get_student_item(STUDENT_ITEM)
+        second_student_item = self._get_student_item(SECOND_STUDENT_ITEM)
+        # The result is assumed to be sorted by student_id, which is not part of the specification
+        # of get_all_submissions(), but it is what it currently does.
+        self._assert_submission(submissions[0], ANSWER_ONE, second_student_item.pk, 2)
+        self.assertEqual(submissions[0]['student_id'], SECOND_STUDENT_ITEM['student_id'])
+        self._assert_submission(submissions[1], ANSWER_TWO, student_item.pk, 2)
+        self.assertEqual(submissions[1]['student_id'], STUDENT_ITEM['student_id'])
+
     def test_get_submission(self):
         # Test base case that we can create a submission and get it back
         sub_dict1 = api.create_submission(STUDENT_ITEM, ANSWER_ONE)

@@ -401,14 +401,16 @@ def get_all_submissions(course_id, item_id, item_type, read_replica=True):
     submission_qs = Submission.objects
     if read_replica:
         submission_qs = _use_read_replica(submission_qs)
+    # We cannot use SELECT DISTINCT ON because it's PostgreSQL only, so unfortunately
+    # our results will contain every entry of each student, not just the most recent.
+    # We sort by student_id and primary key, so the reults will be grouped be grouped by
+    # student, with the most recent submission being the first one in each group.
     query = submission_qs.select_related('student_item').filter(
         student_item__course_id=course_id,
         student_item__item_id=item_id,
         student_item__item_type=item_type,
-    ).order_by('student_item__student_id', '-created_at').iterator()
+    ).order_by('student_item__student_id', '-submitted_at', '-id').iterator()
 
-    # We cannot use SELECT DISTINCT ON because it's PostgreSQL only, so unfortunately
-    # our results will contain every entry of each student, not just the most recent.
     for unused_student_id, row_iter in itertools.groupby(query, operator.attrgetter('student_item.student_id')):
         submission = next(row_iter)
         data = SubmissionSerializer(submission).data

@@ -3,7 +3,9 @@ Public interface for the submissions app.
 
 """
 import copy
+import itertools
 import logging
+import operator
 import json
 
 from django.conf import settings
@@ -371,6 +373,49 @@ def get_submissions(student_item_dict, limit=None):
         submission_models = submission_models[:limit]
 
     return SubmissionSerializer(submission_models, many=True).data
+
+
+def get_all_submissions(course_id, item_id, item_type, read_replica=True):
+    """For the given item, get the most recent submission for every student who has submitted.
+
+    This may return a very large result set! It is implemented as a generator for efficiency.
+
+    Args:
+        course_id, item_id, item_type (string): The values of the respective student_item fields
+            to filter the submissions by.
+        read_replica (bool): If true, attempt to use the read replica database.
+            If no read replica is available, use the default database.
+
+    Yields:
+        Dicts representing the submissions with the following fields:
+            student_item
+            student_id
+            attempt_number
+            submitted_at
+            created_at
+            answer
+
+    Raises:
+        Cannot fail unless there's a database error, but may return an empty iterable.
+    """
+    submission_qs = Submission.objects
+    if read_replica:
+        submission_qs = _use_read_replica(submission_qs)
+    # We cannot use SELECT DISTINCT ON because it's PostgreSQL only, so unfortunately
+    # our results will contain every entry of each student, not just the most recent.
+    # We sort by student_id and primary key, so the reults will be grouped be grouped by
+    # student, with the most recent submission being the first one in each group.
+    query = submission_qs.select_related('student_item').filter(
+        student_item__course_id=course_id,
+        student_item__item_id=item_id,
+        student_item__item_type=item_type,
+    ).order_by('student_item__student_id', '-submitted_at', '-id').iterator()
+
+    for unused_student_id, row_iter in itertools.groupby(query, operator.attrgetter('student_item.student_id')):
+        submission = next(row_iter)
+        data = SubmissionSerializer(submission).data
+        data['student_id'] = submission.student_item.student_id
+        yield data
 
 
 def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use_cache=True, read_replica=True):

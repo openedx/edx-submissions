@@ -3,5 +3,5 @@ django>=1.4,<1.5
 django-extensions==1.5.5
 django-model-utils==1.4.0
 djangorestframework<2.4
-pytz==2012h
+pytz==2015.2
 South==0.7.6

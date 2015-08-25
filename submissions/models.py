@@ -9,7 +9,6 @@ need to then generate a matching migration for it using:
     ./manage.py schemamigration submissions --auto
 
 """
-import json
 import logging
 
 from django.db import models, DatabaseError
@@ -17,21 +16,22 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver, Signal
 from django.utils.timezone import now
 from django_extensions.db.fields import UUIDField
+from jsonfield import JSONField
 
 
 logger = logging.getLogger(__name__)
 
 # Signal to inform listeners that a score has been changed
 score_set = Signal(providing_args=[
-        'points_possible', 'points_earned', 'anonymous_user_id',
-        'course_id', 'item_id'
-    ]
-)
+    'points_possible', 'points_earned', 'anonymous_user_id',
+    'course_id', 'item_id'
+])
 
 # Signal to inform listeners that a score has been reset
 score_reset = Signal(
     providing_args=['anonymous_user_id', 'course_id', 'item_id']
 )
+
 
 class StudentItem(models.Model):
     """Represents a single item for a single course for a single user.
@@ -99,7 +99,12 @@ class Submission(models.Model):
     created_at = models.DateTimeField(editable=False, default=now, db_index=True)
 
     # The answer (JSON-serialized)
-    raw_answer = models.TextField(blank=True)
+    # NOTE: previously, this field was a TextField named `raw_answer`.
+    # Since JSONField is a subclass of TextField, we can use it as a drop-in
+    # replacement for TextField that performs JSON serialization/deserialization.
+    # For backwards compatibility, we override the default database column
+    # name so it continues to use `raw_answer`.
+    answer = JSONField(blank=True, db_column="raw_answer")
 
     def __repr__(self):
         return repr(dict(
@@ -108,7 +113,7 @@ class Submission(models.Model):
             attempt_number=self.attempt_number,
             submitted_at=self.submitted_at,
             created_at=self.created_at,
-            raw_answer=self.raw_answer,
+            answer=self.answer,
         ))
 
     def __unicode__(self):

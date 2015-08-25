@@ -14,7 +14,7 @@ from django.db import IntegrityError, DatabaseError
 from dogapi import dog_stats_api
 
 from submissions.serializers import (
-    SubmissionSerializer, StudentItemSerializer, ScoreSerializer, JsonFieldError
+    SubmissionSerializer, StudentItemSerializer, ScoreSerializer
 )
 from submissions.models import Submission, StudentItem, Score, ScoreSummary, score_set, score_reset
 
@@ -177,11 +177,6 @@ def create_submission(student_item_dict, answer, submitted_at=None, attempt_numb
 
         return sub_data
 
-    except JsonFieldError:
-        error_message = u"Could not serialize JSON field in submission {} for student item {}".format(
-            model_kwargs, student_item_dict
-        )
-        raise SubmissionRequestError(msg=error_message)
     except DatabaseError:
         error_message = u"An error occurred while creating submission {} for student item: {}".format(
             model_kwargs,

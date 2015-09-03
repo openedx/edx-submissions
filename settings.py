@@ -8,12 +8,12 @@ TEMPLATE_DEBUG = DEBUG
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'submissions_test_db',
+        'TEST_NAME': 'submissions_test_db',
     },
 
     'read_replica': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'MIRROR': 'default'
+        'TEST_MIRROR': 'default'
     }
 }
 

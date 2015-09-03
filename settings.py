@@ -8,12 +8,12 @@ TEMPLATE_DEBUG = DEBUG
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'TEST_NAME': 'submissions_test_db',
+        'NAME': 'submissions_test_db',
     },
 
     'read_replica': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'TEST_MIRROR': 'default'
+        'MIRROR': 'default'
     }
 }
 
@@ -27,6 +27,10 @@ CACHES = {
 ROOT_URLCONF = 'urls'
 SITE_ID = 1
 USE_TZ = True
+
+from django.utils.crypto import get_random_string
+chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
+SECRET_KEY = get_random_string(50, chars)
 
 # Silence cache key warnings
 # https://docs.djangoproject.com/en/1.4/topics/cache/#cache-key-warnings
@@ -46,13 +50,19 @@ INSTALLED_APPS = (
 
     # Third party
     'django_extensions',
-    'south',
 
     # Test
     'django_nose',
 
     # Submissions
     'submissions'
+)
+
+# TODO: These are removed from global defaults. Not sure we need here or not but i have added this to remove warning.
+MIDDLEWARE_CLASSES = (
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware'
 )
 
 TEST_APPS = ('submissions',)

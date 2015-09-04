@@ -1,58 +1,36 @@
 """
 Serializers are created to ensure models do not have to be accessed outside the
-scope of the Tim APIs.
+scope of the submissions API.
 """
 import json
+
 from rest_framework import serializers
+from rest_framework.fields import Field, DateTimeField, IntegerField
 from submissions.models import StudentItem, Submission, Score
 
 
-class JsonFieldError(Exception):
+class RawField(Field):
     """
-    An error occurred while serializing/deserializing JSON.
+    Serializer field that does NOT modify its value.
+
+    This is useful when the Django model field is handling serialization/deserialization.
+    For example, `JsonField` already converts its value to JSON internally.  If we use
+    the default DRF text field, the value would be converted to a string, which would then
+    be encoded as JSON:
+
+    1) field value is {"foo": "bar"} (a dict)
+    2) DRF's default field implementation converts the dict to a string: "{'foo': 'bar'}"
+    3) JsonField encodes the string as JSON: '"{\'foo\': \'bar\'}"'
+
+    This is a problem, because when we load the data back from the database, we'll end
+    up with a string instead of a dictionary!
+
     """
-    pass
+    def to_representation(self, obj):
+        return obj
 
-
-class JsonField(serializers.WritableField):
-    """
-    JSON-serializable field.
-    """
-    def to_native(self, obj):
-        """
-        Deserialize the JSON string.
-
-        Args:
-            obj (str): The JSON string stored in the database.
-
-        Returns:
-            JSON-serializable
-
-        Raises:
-            JsonFieldError: The field could not be deserialized.
-        """
-        try:
-            return json.loads(obj)
-        except (TypeError, ValueError):
-            raise JsonFieldError(u"Could not deserialize as JSON: {}".format(obj))
-
-    def from_native(self, data):
-        """
-        Serialize an object to JSON.
-
-        Args:
-            data (JSON-serializable): The data to serialize.
-
-        Returns:
-            str
-
-        Raises:
-            ValueError: The data could not be serialized as JSON.
-        """
-        try:
-            return json.dumps(data)
-        except (TypeError, ValueError):
-            raise JsonFieldError(u"Could not serialize as JSON: {}".format(data))
+    def to_internal_value(self, data):
+        return data
 
 
 class StudentItemSerializer(serializers.ModelSerializer):
@@ -63,14 +41,37 @@ class StudentItemSerializer(serializers.ModelSerializer):
 
 class SubmissionSerializer(serializers.ModelSerializer):
 
-    answer = JsonField(source='raw_answer')
+    # Django Rest Framework v3 uses the Django setting `DATETIME_FORMAT`
+    # when serializing datetimes.  This differs from v2, which always
+    # returned a datetime.  To preserve the old behavior, we explicitly
+    # set `format` to None.
+    # http://www.django-rest-framework.org/api-guide/fields/#datetimefield
+    submitted_at = DateTimeField(format=None, required=False)
+    created_at = DateTimeField(format=None, required=False)
 
-    def validate_answer(self, attrs, source):
-        """Check that the answer is within an acceptable size range."""
-        value = attrs[source]
-        if len(value) > Submission.MAXSIZE:
+    # Django Rest Framework v3 apparently no longer validates that
+    # `PositiveIntegerField`s are positive!
+    attempt_number = IntegerField(min_value=0)
+
+    # Prevent Django Rest Framework from converting the answer (dict or str)
+    # to a string.
+    answer = RawField()
+
+    def validate_answer(self, value):
+        """
+        Check that the answer is JSON-serializable and not too long.
+        """
+        # Check that the answer is JSON-serializable
+        try:
+            serialized = json.dumps(value)
+        except (ValueError, TypeError):
+            raise serializers.ValidationError("Answer value must be JSON-serializable")
+
+        # Check the length of the serialized representation
+        if len(serialized) > Submission.MAXSIZE:
             raise serializers.ValidationError("Maximum answer size exceeded.")
-        return attrs
+
+        return value
 
     class Meta:
         model = Submission
@@ -80,15 +81,14 @@ class SubmissionSerializer(serializers.ModelSerializer):
             'attempt_number',
             'submitted_at',
             'created_at',
-
-            # Computed
             'answer',
         )
 
 
 class ScoreSerializer(serializers.ModelSerializer):
 
-    submission_uuid = serializers.Field(source='submission_uuid')
+    # Ensure that the created_at datetime is not converted to a string.
+    created_at = DateTimeField(format=None, required=False)
 
     class Meta:
         model = Score
@@ -102,4 +102,3 @@ class ScoreSerializer(serializers.ModelSerializer):
             # Computed
             'submission_uuid',
         )
-

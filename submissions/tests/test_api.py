@@ -1,9 +1,8 @@
 import datetime
 import copy
 
-from ddt import ddt, file_data
-from django.db import DatabaseError
-from django.dispatch import Signal
+import ddt
+from django.db import DatabaseError, connection, transaction
 from django.core.cache import cache
 from django.test import TestCase
 from nose.tools import raises
@@ -11,7 +10,7 @@ from mock import patch
 import pytz
 
 from submissions import api as api
-from submissions.models import ScoreSummary, Submission, StudentItem, Score, score_set
+from submissions.models import ScoreSummary, Submission, StudentItem, score_set
 from submissions.serializers import StudentItemSerializer
 
 STUDENT_ITEM = dict(
@@ -32,8 +31,11 @@ ANSWER_ONE = u"this is my answer!"
 ANSWER_TWO = u"this is my other answer!"
 ANSWER_THREE = u'' + 'c' * (Submission.MAXSIZE + 1)
 
+# Test a non-string JSON-serializable answer
+ANSWER_DICT = {"text": "foobar"}
 
-@ddt
+
+@ddt.ddt
 class TestSubmissionsApi(TestCase):
     """
     Testing Submissions
@@ -45,10 +47,11 @@ class TestSubmissionsApi(TestCase):
         """
         cache.clear()
 
-    def test_create_submission(self):
-        submission = api.create_submission(STUDENT_ITEM, ANSWER_ONE)
+    @ddt.data(ANSWER_ONE, ANSWER_DICT)
+    def test_create_submission(self, answer):
+        submission = api.create_submission(STUDENT_ITEM, answer)
         student_item = self._get_student_item(STUDENT_ITEM)
-        self._assert_submission(submission, ANSWER_ONE, student_item.pk, 1)
+        self._assert_submission(submission, answer, student_item.pk, 1)
 
     def test_create_huge_submission_fails(self):
         with self.assertRaises(api.SubmissionRequestError):
@@ -121,7 +124,6 @@ class TestSubmissionsApi(TestCase):
         mock_get.side_effect = DatabaseError("Kaboom!")
         api.get_submission("000000000000000")
 
-
     def test_two_students(self):
         api.create_submission(STUDENT_ITEM, ANSWER_ONE)
         api.create_submission(SECOND_STUDENT_ITEM, ANSWER_TWO)
@@ -136,8 +138,7 @@ class TestSubmissionsApi(TestCase):
         student_item = self._get_student_item(SECOND_STUDENT_ITEM)
         self._assert_submission(submissions[0], ANSWER_TWO, student_item.pk, 1)
 
-
-    @file_data('data/valid_student_items.json')
+    @ddt.file_data('data/valid_student_items.json')
     def test_various_student_items(self, valid_student_item):
         api.create_submission(valid_student_item, ANSWER_ONE)
         student_item = self._get_student_item(valid_student_item)
@@ -164,12 +165,13 @@ class TestSubmissionsApi(TestCase):
         self._assert_submission(submissions[0], ANSWER_ONE, student_item.pk, 2)
 
     @raises(api.SubmissionRequestError)
-    @file_data('data/bad_student_items.json')
+    @ddt.file_data('data/bad_student_items.json')
     def test_error_checking(self, bad_student_item):
         api.create_submission(bad_student_item, -100)
 
     @raises(api.SubmissionRequestError)
     def test_error_checking_submissions(self):
+        # Attempt number should be >= 0
         api.create_submission(STUDENT_ITEM, ANSWER_ONE, None, -1)
 
     @patch.object(Submission.objects, 'filter')
@@ -183,12 +185,14 @@ class TestSubmissionsApi(TestCase):
             api.create_submission(STUDENT_ITEM, datetime.datetime.now())
 
     def test_load_non_json_answer(self):
-        # This should never happen, if folks are using the public API.
-        # Create a submission with a raw answer that is NOT valid JSON
         submission = api.create_submission(STUDENT_ITEM, ANSWER_ONE)
         sub_model = Submission.objects.get(uuid=submission['uuid'])
-        sub_model.raw_answer = ''
-        sub_model.save()
+
+        # This should never happen, if folks are using the public API.
+        # Create a submission with a raw answer that is NOT valid JSON
+        with transaction.atomic():
+            query = "UPDATE submissions_submission SET raw_answer = '}' WHERE id = %s"
+            connection.cursor().execute(query, [str(sub_model.id)])
 
         with self.assertRaises(api.SubmissionInternalError):
             api.get_submission(sub_model.uuid)

@@ -56,7 +56,7 @@ class SubmissionAdmin(admin.ModelAdmin, StudentItemAdminMixin):
         'student_item_id',
         'course_id', 'item_id', 'student_id',
         'attempt_number', 'submitted_at', 'created_at',
-        'raw_answer', 'all_scores',
+        'answer', 'all_scores',
     )
     search_fields = ('id', 'uuid') + StudentItemAdminMixin.search_fields
 

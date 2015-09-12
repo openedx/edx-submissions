@@ -227,7 +227,7 @@ class Score(models.Model):
 
 class ScoreSummary(models.Model):
     """Running store of the highest and most recent Scores for a StudentItem."""
-    student_item = models.ForeignKey(StudentItem, unique=True)
+    student_item = models.OneToOneField(StudentItem)
 
     highest = models.ForeignKey(Score, related_name="+")
     latest = models.ForeignKey(Score, related_name="+")

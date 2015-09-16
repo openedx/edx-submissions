@@ -46,6 +46,7 @@ INSTALLED_APPS = (
 
     # Third party
     'django_extensions',
+    'south',
 
     # Test
     'django_nose',

@@ -79,6 +79,7 @@ class StudentItem(models.Model):
         return u"({0.student_id}, {0.course_id}, {0.item_type}, {0.item_id})".format(self)
 
     class Meta:
+        app_label = "submissions"
         unique_together = (
             # For integrity reasons, and looking up all of a student's items
             ("course_id", "student_id", "item_id"),
@@ -134,6 +135,7 @@ class Submission(models.Model):
         return u"Submission {}".format(self.uuid)
 
     class Meta:
+        app_label = "submissions"
         ordering = ["-submitted_at", "-id"]
 
 
@@ -153,6 +155,9 @@ class Score(models.Model):
 
     # Flag to indicate that this score should reset the current "highest" score
     reset = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = "submissions"
 
     @property
     def submission_uuid(self):
@@ -247,6 +252,7 @@ class ScoreSummary(models.Model):
     latest = models.ForeignKey(Score, related_name="+")
 
     class Meta:
+        app_label = "submissions"
         verbose_name_plural = "Score Summaries"
 
     @receiver(post_save, sender=Score)

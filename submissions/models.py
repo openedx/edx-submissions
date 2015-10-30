@@ -11,6 +11,7 @@ need to then generate a matching migration for it using:
 """
 import logging
 
+from south.modelsinspector import add_introspection_rules
 from django.db import models, DatabaseError
 from django.db.models.signals import post_save
 from django.dispatch import receiver, Signal
@@ -20,6 +21,9 @@ from jsonfield import JSONField
 
 
 logger = logging.getLogger(__name__)
+
+
+add_introspection_rules([], ["submissions\.models\.AnonymizedUserIDField"])
 
 # Signal to inform listeners that a score has been changed
 score_set = Signal(providing_args=[
@@ -33,6 +37,16 @@ score_reset = Signal(
 )
 
 
+class AnonymizedUserIDField(models.CharField):
+    """ Field for storing anonymized user ids. """
+    description = "The anonymized User ID that the XBlock sees"
+
+    def __init__(self, *args, **kwargs):
+        kwargs['max_length'] = 255
+        kwargs['db_index'] = True
+        super(AnonymizedUserIDField, self).__init__(*args, **kwargs)
+
+
 class StudentItem(models.Model):
     """Represents a single item for a single course for a single user.
 
@@ -41,7 +55,7 @@ class StudentItem(models.Model):
 
     """
     # The anonymized Student ID that the XBlock sees, not their real ID.
-    student_id = models.CharField(max_length=255, blank=False, db_index=True)
+    student_id = AnonymizedUserIDField()
 
     # Not sure yet whether these are legacy course_ids or new course_ids
     course_id = models.CharField(max_length=255, blank=False, db_index=True)
@@ -274,3 +288,15 @@ class ScoreSummary(models.Model):
                 u"Error while updating score summary for student item {}"
                 .format(score.student_item)
             )
+
+
+class ScoreAnnotation(models.Model):
+    """ Annotate individual scores with extra information if necessary. """
+
+    score = models.ForeignKey(Score)
+    # A string that will represent the 'type' of annotation,
+    # e.g. staff_override, etc.
+    annotation_type = models.CharField(max_length=255, blank=False, db_index=True)
+
+    creator = AnonymizedUserIDField()
+    reason = models.TextField()

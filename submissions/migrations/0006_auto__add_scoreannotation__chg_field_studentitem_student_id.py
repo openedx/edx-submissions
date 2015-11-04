@@ -8,14 +8,27 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # For the upgrade to Django Rest Framework v3, we replaced the `raw_answer` TextField
-        # with an `answer` JsonField that maps to the `raw_answer` DB column.
-        # This doesn't require any changes to the database schema, but we generate a migration
-        # anyway so that South knows about the change.
-        pass
+        # Adding model 'ScoreAnnotation'
+        db.create_table('submissions_scoreannotation', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('score', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['submissions.Score'])),
+            ('annotation_type', self.gf('django.db.models.fields.CharField')(max_length=255, db_index=True)),
+            ('creator', self.gf('submissions.models.AnonymizedUserIDField')(max_length=255, db_index=True)),
+            ('reason', self.gf('django.db.models.fields.TextField')()),
+        ))
+        db.send_create_signal('submissions', ['ScoreAnnotation'])
+
+
+        # Changing field 'StudentItem.student_id'
+        db.alter_column('submissions_studentitem', 'student_id', self.gf('submissions.models.AnonymizedUserIDField')(max_length=255))
 
     def backwards(self, orm):
-        pass
+        # Deleting model 'ScoreAnnotation'
+        db.delete_table('submissions_scoreannotation')
+
+
+        # Changing field 'StudentItem.student_id'
+        db.alter_column('submissions_studentitem', 'student_id', self.gf('django.db.models.fields.CharField')(max_length=255))
 
     models = {
         'submissions.score': {
@@ -27,6 +40,14 @@ class Migration(SchemaMigration):
             'reset': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'student_item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['submissions.StudentItem']"}),
             'submission': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['submissions.Submission']", 'null': 'True'})
+        },
+        'submissions.scoreannotation': {
+            'Meta': {'object_name': 'ScoreAnnotation'},
+            'annotation_type': ('django.db.models.fields.CharField', [], {'max_length': '255', 'db_index': 'True'}),
+            'creator': ('submissions.models.AnonymizedUserIDField', [], {'max_length': '255', 'db_index': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'reason': ('django.db.models.fields.TextField', [], {}),
+            'score': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['submissions.Score']"})
         },
         'submissions.scoresummary': {
             'Meta': {'object_name': 'ScoreSummary'},
@@ -41,7 +62,7 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'item_id': ('django.db.models.fields.CharField', [], {'max_length': '255', 'db_index': 'True'}),
             'item_type': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'student_id': ('django.db.models.fields.CharField', [], {'max_length': '255', 'db_index': 'True'})
+            'student_id': ('submissions.models.AnonymizedUserIDField', [], {'max_length': '255', 'db_index': 'True'})
         },
         'submissions.submission': {
             'Meta': {'ordering': "['-submitted_at', '-id']", 'object_name': 'Submission'},

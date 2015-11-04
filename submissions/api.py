@@ -10,13 +10,13 @@ import json
 
 from django.conf import settings
 from django.core.cache import cache
-from django.db import IntegrityError, DatabaseError
+from django.db import IntegrityError, DatabaseError, transaction
 from dogapi import dog_stats_api
 
 from submissions.serializers import (
     SubmissionSerializer, StudentItemSerializer, ScoreSerializer
 )
-from submissions.models import Submission, StudentItem, Score, ScoreSummary, score_set, score_reset
+from submissions.models import Submission, StudentItem, Score, ScoreSummary, ScoreAnnotation, score_set, score_reset
 
 logger = logging.getLogger("submissions.api")
 
@@ -698,7 +698,8 @@ def reset_score(student_id, course_id, item_id):
         logger.info(msg)
 
 
-def set_score(submission_uuid, points_earned, points_possible):
+def set_score(submission_uuid, points_earned, points_possible,
+              annotation_creator=None, annotation_type=None, annotation_reason=None):
     """Set a score for a particular submission.
 
     Sets the score for a particular submission. This score is calculated
@@ -708,6 +709,11 @@ def set_score(submission_uuid, points_earned, points_possible):
         submission_uuid (str): UUID for the submission (must exist).
         points_earned (int): The earned points for this submission.
         points_possible (int): The total points possible for this particular student item.
+
+        annotation_creator (str): An optional field for recording who gave this particular score
+        annotation_type (str): An optional field for recording what type of annotation should be created,
+                                e.g. "staff_override".
+        annotation_reason (str): An optional field for recording why this score was set to its value.
 
     Returns:
         None
@@ -761,9 +767,19 @@ def set_score(submission_uuid, points_earned, points_possible):
     # even though we cannot retrieve it.
     # In this case, we assume that someone else has already created
     # a score summary and ignore the error.
+    # TODO: once we're using Django 1.8, use transactions to ensure that these
+    # two models are saved at the same time.
     try:
         score_model = score.save()
         _log_score(score_model)
+        if annotation_creator is not None:
+            score_annotation = ScoreAnnotation(
+                score=score_model,
+                creator=annotation_creator,
+                annotation_type=annotation_type,
+                reason=annotation_reason
+            )
+            score_annotation.save()
         # Send a signal out to any listeners who are waiting for scoring events.
         score_set.send(
             sender=None,

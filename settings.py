@@ -28,6 +28,9 @@ ROOT_URLCONF = 'urls'
 SITE_ID = 1
 USE_TZ = True
 
+from django.utils.crypto import get_random_string
+SECRET_KEY = get_random_string(50, 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)')
+
 # Silence cache key warnings
 # https://docs.djangoproject.com/en/1.4/topics/cache/#cache-key-warnings
 import warnings
@@ -46,13 +49,18 @@ INSTALLED_APPS = (
 
     # Third party
     'django_extensions',
-    'south',
 
     # Test
     'django_nose',
 
     # Submissions
     'submissions'
+)
+
+MIDDLEWARE_CLASSES = (
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware'
 )
 
 TEST_APPS = ('submissions',)

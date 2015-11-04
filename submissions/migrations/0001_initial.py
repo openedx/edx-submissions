@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import models, migrations
+from django.db import migrations, models
 import jsonfield.fields
+import submissions.models
 import django.utils.timezone
 import django_extensions.db.fields
 
@@ -24,6 +25,16 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
+            name='ScoreAnnotation',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('annotation_type', models.CharField(max_length=255, db_index=True)),
+                ('creator', submissions.models.AnonymizedUserIDField()),
+                ('reason', models.TextField()),
+                ('score', models.ForeignKey(to='submissions.Score')),
+            ],
+        ),
+        migrations.CreateModel(
             name='ScoreSummary',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
@@ -38,7 +49,7 @@ class Migration(migrations.Migration):
             name='StudentItem',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('student_id', models.CharField(max_length=255, db_index=True)),
+                ('student_id', submissions.models.AnonymizedUserIDField()),
                 ('course_id', models.CharField(max_length=255, db_index=True)),
                 ('item_id', models.CharField(max_length=255, db_index=True)),
                 ('item_type', models.CharField(max_length=100)),
@@ -66,7 +77,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='scoresummary',
             name='student_item',
-            field=models.ForeignKey(to='submissions.StudentItem', unique=True),
+            field=models.OneToOneField(to='submissions.StudentItem'),
         ),
         migrations.AddField(
             model_name='score',

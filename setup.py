@@ -33,7 +33,7 @@ def load_requirements(*requirements_paths):
 
 setup(
     name='edx-submissions',
-    version='1.0',
+    version='0.1.1',
     author='edX',
     description='An API for creating submissions and scores.',
     url='http://github.com/edx/edx-submissions.git',

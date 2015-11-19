@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import datetime
 import copy
 
@@ -10,7 +12,7 @@ from mock import patch
 import pytz
 
 from submissions import api as api
-from submissions.models import ScoreSummary, Submission, StudentItem, score_set
+from submissions.models import ScoreSummary, ScoreAnnotation, Submission, StudentItem, score_set
 from submissions.serializers import StudentItemSerializer
 
 STUDENT_ITEM = dict(
@@ -252,6 +254,7 @@ class TestSubmissionsApi(TestCase):
         api.set_score(submission["uuid"], 11, 12)
         score = api.get_latest_score_for_submission(submission["uuid"])
         self._assert_score(score, 11, 12)
+        self.assertFalse(ScoreAnnotation.objects.all().exists())
 
     @patch.object(score_set, 'send')
     def test_set_score_signal(self, send_mock):
@@ -267,6 +270,28 @@ class TestSubmissionsApi(TestCase):
             course_id=STUDENT_ITEM['course_id'],
             item_id=STUDENT_ITEM['item_id']
         )
+
+    @ddt.data(u"First score was incorrect", u"☃")
+    def test_set_score_with_annotation(self, reason):
+        submission = api.create_submission(STUDENT_ITEM, ANSWER_ONE)
+        creator_uuid = "Bob"
+        annotation_type = "staff_override"
+        api.set_score(submission["uuid"], 11, 12, creator_uuid, annotation_type, reason)
+        score = api.get_latest_score_for_submission(submission["uuid"])
+        self._assert_score(score, 11, 12)
+
+        # We need to do this to verify that one score annotation exists and was
+        # created for this score. We do not have an api point for retrieving
+        # annotations, and it doesn't make sense to expose them, since they're
+        # for auditing purposes.
+        annotations = ScoreAnnotation.objects.all()
+        self.assertGreater(len(annotations), 0)
+        annotation = annotations[0]
+        self.assertEqual(annotation.score.points_earned, 11)
+        self.assertEqual(annotation.score.points_possible, 12)
+        self.assertEqual(annotation.annotation_type, annotation_type)
+        self.assertEqual(annotation.creator, creator_uuid)
+        self.assertEqual(annotation.reason, reason)
 
     def test_get_score(self):
         submission = api.create_submission(STUDENT_ITEM, ANSWER_ONE)
@@ -595,4 +620,3 @@ class TestSubmissionsApi(TestCase):
         self.assertIsNotNone(score)
         self.assertEqual(score["points_earned"], expected_points_earned)
         self.assertEqual(score["points_possible"], expected_points_possible)
-

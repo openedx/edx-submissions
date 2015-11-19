@@ -6,12 +6,11 @@ different problem types, and is therefore ignorant of ORA workflow.
 NOTE: We've switched to migrations, so if you make any edits to this file, you
 need to then generate a matching migration for it using:
 
-    ./manage.py schemamigration submissions --auto
+    ./manage.py makemigrations submissions
 
 """
 import logging
 
-from south.modelsinspector import add_introspection_rules
 from django.db import models, DatabaseError
 from django.db.models.signals import post_save
 from django.dispatch import receiver, Signal
@@ -22,8 +21,6 @@ from jsonfield import JSONField
 
 logger = logging.getLogger(__name__)
 
-
-add_introspection_rules([], ["submissions\.models\.AnonymizedUserIDField"])
 
 # Signal to inform listeners that a score has been changed
 score_set = Signal(providing_args=[
@@ -45,6 +42,12 @@ class AnonymizedUserIDField(models.CharField):
         kwargs['max_length'] = 255
         kwargs['db_index'] = True
         super(AnonymizedUserIDField, self).__init__(*args, **kwargs)
+
+    def deconstruct(self):
+        name, path, args, kwargs = super(AnonymizedUserIDField, self).deconstruct()
+        del kwargs["max_length"]
+        del kwargs["db_index"]
+        return name, path, args, kwargs
 
 
 class StudentItem(models.Model):
@@ -79,6 +82,7 @@ class StudentItem(models.Model):
         return u"({0.student_id}, {0.course_id}, {0.item_type}, {0.item_id})".format(self)
 
     class Meta:
+        app_label = "submissions"
         unique_together = (
             # For integrity reasons, and looking up all of a student's items
             ("course_id", "student_id", "item_id"),
@@ -134,6 +138,7 @@ class Submission(models.Model):
         return u"Submission {}".format(self.uuid)
 
     class Meta:
+        app_label = "submissions"
         ordering = ["-submitted_at", "-id"]
 
 
@@ -153,6 +158,9 @@ class Score(models.Model):
 
     # Flag to indicate that this score should reset the current "highest" score
     reset = models.BooleanField(default=False)
+
+    class Meta:
+        app_label = "submissions"
 
     @property
     def submission_uuid(self):
@@ -241,12 +249,13 @@ class Score(models.Model):
 
 class ScoreSummary(models.Model):
     """Running store of the highest and most recent Scores for a StudentItem."""
-    student_item = models.ForeignKey(StudentItem, unique=True)
+    student_item = models.OneToOneField(StudentItem)
 
     highest = models.ForeignKey(Score, related_name="+")
     latest = models.ForeignKey(Score, related_name="+")
 
     class Meta:
+        app_label = "submissions"
         verbose_name_plural = "Score Summaries"
 
     @receiver(post_save, sender=Score)

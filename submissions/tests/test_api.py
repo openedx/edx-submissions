@@ -192,9 +192,9 @@ class TestSubmissionsApi(TestCase):
 
         # This should never happen, if folks are using the public API.
         # Create a submission with a raw answer that is NOT valid JSON
-        query = "UPDATE submissions_submission SET raw_answer = '}' WHERE id = %s"
-        connection.cursor().execute(query, [str(sub_model.id)])
-        transaction.commit_unless_managed()
+        with transaction.atomic():
+            query = "UPDATE submissions_submission SET raw_answer = '}' WHERE id = %s"
+            connection.cursor().execute(query, [str(sub_model.id)])
 
         with self.assertRaises(api.SubmissionInternalError):
             api.get_submission(sub_model.uuid)

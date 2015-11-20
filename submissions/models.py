@@ -302,6 +302,9 @@ class ScoreSummary(models.Model):
 class ScoreAnnotation(models.Model):
     """ Annotate individual scores with extra information if necessary. """
 
+    class Meta:
+        app_label = "submissions"
+
     score = models.ForeignKey(Score)
     # A string that will represent the 'type' of annotation,
     # e.g. staff_override, etc.

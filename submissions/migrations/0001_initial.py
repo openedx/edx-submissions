@@ -1,92 +1,81 @@
 # -*- coding: utf-8 -*-
-import datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+from __future__ import unicode_literals
+
+from django.db import migrations, models
+import jsonfield.fields
+import django.utils.timezone
+import django_extensions.db.fields
 
 
-class Migration(SchemaMigration):
+class Migration(migrations.Migration):
 
-    def forwards(self, orm):
-        # Adding model 'StudentItem'
-        db.create_table('submissions_studentitem', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('student_id', self.gf('django.db.models.fields.CharField')(max_length=255, db_index=True)),
-            ('course_id', self.gf('django.db.models.fields.CharField')(max_length=255, db_index=True)),
-            ('item_id', self.gf('django.db.models.fields.CharField')(max_length=255, db_index=True)),
-            ('item_type', self.gf('django.db.models.fields.CharField')(max_length=100)),
-        ))
-        db.send_create_signal('submissions', ['StudentItem'])
+    dependencies = [
+    ]
 
-        # Adding unique constraint on 'StudentItem', fields ['course_id', 'student_id', 'item_id']
-        db.create_unique('submissions_studentitem', ['course_id', 'student_id', 'item_id'])
-
-        # Adding model 'Submission'
-        db.create_table('submissions_submission', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('uuid', self.gf('django.db.models.fields.CharField')(db_index=True, max_length=36, blank=True)),
-            ('student_item', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['submissions.StudentItem'])),
-            ('attempt_number', self.gf('django.db.models.fields.PositiveIntegerField')()),
-            ('submitted_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, db_index=True)),
-            ('created_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, db_index=True)),
-            ('answer', self.gf('django.db.models.fields.TextField')(blank=True)),
-        ))
-        db.send_create_signal('submissions', ['Submission'])
-
-        # Adding model 'Score'
-        db.create_table('submissions_score', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('student_item', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['submissions.StudentItem'])),
-            ('submission', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['submissions.Submission'], null=True)),
-            ('points_earned', self.gf('django.db.models.fields.PositiveIntegerField')(default=0)),
-            ('points_possible', self.gf('django.db.models.fields.PositiveIntegerField')(default=0)),
-            ('created_at', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now, db_index=True)),
-        ))
-        db.send_create_signal('submissions', ['Score'])
-
-
-    def backwards(self, orm):
-        # Removing unique constraint on 'StudentItem', fields ['course_id', 'student_id', 'item_id']
-        db.delete_unique('submissions_studentitem', ['course_id', 'student_id', 'item_id'])
-
-        # Deleting model 'StudentItem'
-        db.delete_table('submissions_studentitem')
-
-        # Deleting model 'Submission'
-        db.delete_table('submissions_submission')
-
-        # Deleting model 'Score'
-        db.delete_table('submissions_score')
-
-
-    models = {
-        'submissions.score': {
-            'Meta': {'object_name': 'Score'},
-            'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'db_index': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'points_earned': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
-            'points_possible': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
-            'student_item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['submissions.StudentItem']"}),
-            'submission': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['submissions.Submission']", 'null': 'True'})
-        },
-        'submissions.studentitem': {
-            'Meta': {'unique_together': "(('course_id', 'student_id', 'item_id'),)", 'object_name': 'StudentItem'},
-            'course_id': ('django.db.models.fields.CharField', [], {'max_length': '255', 'db_index': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'item_id': ('django.db.models.fields.CharField', [], {'max_length': '255', 'db_index': 'True'}),
-            'item_type': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'student_id': ('django.db.models.fields.CharField', [], {'max_length': '255', 'db_index': 'True'})
-        },
-        'submissions.submission': {
-            'Meta': {'ordering': "['-submitted_at', '-id']", 'object_name': 'Submission'},
-            'answer': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'attempt_number': ('django.db.models.fields.PositiveIntegerField', [], {}),
-            'created_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'db_index': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'student_item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['submissions.StudentItem']"}),
-            'submitted_at': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now', 'db_index': 'True'}),
-            'uuid': ('django.db.models.fields.CharField', [], {'db_index': 'True', 'max_length': '36', 'blank': 'True'})
-        }
-    }
-
-    complete_apps = ['submissions']
+    operations = [
+        migrations.CreateModel(
+            name='Score',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('points_earned', models.PositiveIntegerField(default=0)),
+                ('points_possible', models.PositiveIntegerField(default=0)),
+                ('created_at', models.DateTimeField(default=django.utils.timezone.now, editable=False, db_index=True)),
+                ('reset', models.BooleanField(default=False)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ScoreSummary',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('highest', models.ForeignKey(related_name='+', to='submissions.Score')),
+                ('latest', models.ForeignKey(related_name='+', to='submissions.Score')),
+            ],
+            options={
+                'verbose_name_plural': 'Score Summaries',
+            },
+        ),
+        migrations.CreateModel(
+            name='StudentItem',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('student_id', models.CharField(max_length=255, db_index=True)),
+                ('course_id', models.CharField(max_length=255, db_index=True)),
+                ('item_id', models.CharField(max_length=255, db_index=True)),
+                ('item_type', models.CharField(max_length=100)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Submission',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('uuid', django_extensions.db.fields.UUIDField(db_index=True, version=1, editable=False, blank=True)),
+                ('attempt_number', models.PositiveIntegerField()),
+                ('submitted_at', models.DateTimeField(default=django.utils.timezone.now, db_index=True)),
+                ('created_at', models.DateTimeField(default=django.utils.timezone.now, editable=False, db_index=True)),
+                ('answer', jsonfield.fields.JSONField(db_column=b'raw_answer', blank=True)),
+                ('student_item', models.ForeignKey(to='submissions.StudentItem')),
+            ],
+            options={
+                'ordering': ['-submitted_at', '-id'],
+            },
+        ),
+        migrations.AlterUniqueTogether(
+            name='studentitem',
+            unique_together=set([('course_id', 'student_id', 'item_id')]),
+        ),
+        migrations.AddField(
+            model_name='scoresummary',
+            name='student_item',
+            field=models.OneToOneField(to='submissions.StudentItem'),
+        ),
+        migrations.AddField(
+            model_name='score',
+            name='student_item',
+            field=models.ForeignKey(to='submissions.StudentItem'),
+        ),
+        migrations.AddField(
+            model_name='score',
+            name='submission',
+            field=models.ForeignKey(to='submissions.Submission', null=True),
+        ),
+    ]

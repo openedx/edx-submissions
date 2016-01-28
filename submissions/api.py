@@ -643,6 +643,37 @@ def get_latest_score_for_submission(submission_uuid, read_replica=False):
     return ScoreSerializer(score).data
 
 
+def delete_student_item(student_id, course_id, item_id):
+    """
+    EFischer - dev testing this on my devstack, will document more fully after trying proof-of-concept
+    """
+    # Retrieve the student item
+    try:
+        student_item = StudentItem.objects.get(
+            student_id=student_id, course_id=course_id, item_id=item_id
+        )
+        student_item.delete()
+    except StudentItem.DoesNotExist:
+        msg = (
+            u"No record found when deleting student item {item_id}"
+            u"in course {course_id} for student {student_id}."
+        ).format(item_id=item_id, course_id=course_id, student_id=student_id)
+        logger.exception(msg)
+        raise SubmissionInternalError(msg)
+    except DatabaseError:
+        msg = (
+            u"Error occurred while reseting scores for"
+            u" item {item_id} in course {course_id} for student {student_id}"
+        ).format(item_id=item_id, course_id=course_id, student_id=student_id)
+        logger.exception(msg)
+        raise SubmissionInternalError(msg)
+    else:
+        msg = u"Successfully deleted item {item_id} in course {course_id} for student {student_id}".format(
+            item_id=item_id, course_id=course_id, student_id=student_id
+        )
+        logger.info(msg)
+
+
 def reset_score(student_id, course_id, item_id):
     """
     Reset scores for a specific student on a specific problem.

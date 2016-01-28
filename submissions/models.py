@@ -124,6 +124,27 @@ class Submission(models.Model):
     # name so it continues to use `raw_answer`.
     answer = JSONField(blank=True, db_column="raw_answer")
 
+    # Has this submission been soft-deleted? This allows instructors to reset student
+    # state on an item, while preserving the previous value for potential analytics use.
+    DELETED = 'D'
+    ACTIVE = 'A'
+    STATUS_CHOICES = (
+        (DELETED, 'Deleted'),
+        (ACTIVE, 'Active'),
+    )
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=ACTIVE)
+
+    # Override the default Manager with our custom one to filter out soft-deleted items
+    class SoftDeletedManager(models.Manager):
+        def get_queryset(self):
+            return super(Submission.SoftDeletedManager, self).get_queryset().exclude(status=Submission.DELETED)
+
+    objects = SoftDeletedManager()
+
+    @staticmethod
+    def get_cache_key(sub_uuid):
+        return "submissions.submission.{}".format(sub_uuid)
+
     def __repr__(self):
         return repr(dict(
             uuid=self.uuid,

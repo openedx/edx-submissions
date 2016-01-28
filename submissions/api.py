@@ -217,7 +217,7 @@ def get_submission(submission_uuid, read_replica=False):
             msg="submission_uuid ({!r}) must be a string type".format(submission_uuid)
         )
 
-    cache_key = "submissions.submission.{}".format(submission_uuid)
+    cache_key = Submission.get_cache_key(submission_uuid)
     try:
         cached_submission_data = cache.get(cache_key)
     except Exception as ex:
@@ -627,8 +627,10 @@ def get_latest_score_for_submission(submission_uuid, read_replica=False):
 
     """
     try:
+        # Ensure that submission_uuid is valid before fetching score
+        submission_model = Submission.objects.get(uuid=submission_uuid)
         score_qs = Score.objects.filter(
-            submission__uuid=submission_uuid
+            submission__uuid=submission_model.uuid
         ).order_by("-id").select_related("submission")
 
         if read_replica:
@@ -637,13 +639,13 @@ def get_latest_score_for_submission(submission_uuid, read_replica=False):
         score = score_qs[0]
         if score.is_hidden():
             return None
-    except IndexError:
+    except (IndexError, Submission.DoesNotExist):
         return None
 
     return ScoreSerializer(score).data
 
 
-def reset_score(student_id, course_id, item_id):
+def reset_score(student_id, course_id, item_id, clear_state=False):
     """
     Reset scores for a specific student on a specific problem.
 
@@ -655,6 +657,7 @@ def reset_score(student_id, course_id, item_id):
         student_id (unicode): The ID of the student for whom to reset scores.
         course_id (unicode): The ID of the course containing the item to reset.
         item_id (unicode): The ID of the item for which to reset scores.
+        clear_state (bool): If True, will appear to delete any submissions associated with the specified StudentItem
 
     Returns:
         None
@@ -683,6 +686,16 @@ def reset_score(student_id, course_id, item_id):
             course_id=course_id,
             item_id=item_id,
         )
+
+        if clear_state:
+            for sub in student_item.submission_set.all():
+                # soft-delete the Submission
+                sub.status = Submission.DELETED
+                sub.save(update_fields=["status"])
+
+                # Also clear out cached values
+                cache_key = Submission.get_cache_key(sub.uuid)
+                cache.delete(cache_key)
 
     except DatabaseError:
         msg = (

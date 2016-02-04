@@ -689,6 +689,7 @@ def reset_score(student_id, course_id, item_id, clear_state=False):
             # sever the link between this student item and any submissions it may current have
             for sub in student_item.submission_set.all():
                 sub.student_item = None
+                sub.save(update_fields=['student_item'])
 
     except DatabaseError:
         msg = (

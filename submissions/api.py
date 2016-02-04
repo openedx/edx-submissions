@@ -643,7 +643,7 @@ def get_latest_score_for_submission(submission_uuid, read_replica=False):
     return ScoreSerializer(score).data
 
 
-def reset_score(student_id, course_id, item_id):
+def reset_score(student_id, course_id, item_id, clear_state=False):
     """
     Reset scores for a specific student on a specific problem.
 
@@ -655,6 +655,7 @@ def reset_score(student_id, course_id, item_id):
         student_id (unicode): The ID of the student for whom to reset scores.
         course_id (unicode): The ID of the course containing the item to reset.
         item_id (unicode): The ID of the item for which to reset scores.
+        clear_state (boolean): If True, unlink the Submission and StudentItem so the Submission cannot be accessed.
 
     Returns:
         None
@@ -683,6 +684,17 @@ def reset_score(student_id, course_id, item_id):
             course_id=course_id,
             item_id=item_id,
         )
+
+        if clear_state:
+            # sever the link between this student item and any submissions it may current have
+            for sub in student_item.submission_set.all():
+                # By mangling the item_id, the course and student information remains intact for analytics
+                # But the submission will no longer be accessible
+                mangled_item = copy.deepcopy(sub.student_item)
+                mangled_item.item_id = mangled_item.item_id[::-1] # Reverse the identifier
+                mangled_item.save()
+                sub.student_item = mangled_item
+                sub.save(update_fields=['student_item'])
 
     except DatabaseError:
         msg = (

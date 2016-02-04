@@ -14,6 +14,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='submission',
             name='student_item',
-            field=models.ForeignKey(to='submissions.StudentItem', null=True),
+            field=models.ForeignKey(to='submissions.StudentItem', null=True, default=1),
+            preserve_default=False
         ),
     ]

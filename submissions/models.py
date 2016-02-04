@@ -103,7 +103,7 @@ class Submission(models.Model):
 
     uuid = UUIDField(version=1, db_index=True)
 
-    student_item = models.ForeignKey(StudentItem)
+    student_item = models.ForeignKey(StudentItem, null=True)
 
     # Which attempt is this? Consecutive Submissions do not necessarily have
     # increasing attempt_number entries -- e.g. re-scoring a buggy problem.

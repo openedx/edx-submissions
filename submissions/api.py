@@ -16,7 +16,9 @@ from dogapi import dog_stats_api
 from submissions.serializers import (
     SubmissionSerializer, StudentItemSerializer, ScoreSerializer
 )
-from submissions.models import Submission, StudentItem, Score, ScoreSummary, ScoreAnnotation, score_set, score_reset
+from submissions.models import (
+        Submission, SubmissionDeleted, StudentItem, Score, ScoreSummary, ScoreAnnotation, score_set, score_reset
+)
 
 logger = logging.getLogger("submissions.api")
 
@@ -643,7 +645,7 @@ def get_latest_score_for_submission(submission_uuid, read_replica=False):
     return ScoreSerializer(score).data
 
 
-def reset_score(student_id, course_id, item_id):
+def reset_score(student_id, course_id, item_id, clear_state=False):
     """
     Reset scores for a specific student on a specific problem.
 
@@ -655,6 +657,7 @@ def reset_score(student_id, course_id, item_id):
         student_id (unicode): The ID of the student for whom to reset scores.
         course_id (unicode): The ID of the course containing the item to reset.
         item_id (unicode): The ID of the item for which to reset scores.
+        clear_state (boolean): If True, unlink the Submission and StudentItem so the Submission cannot be accessed.
 
     Returns:
         None
@@ -683,6 +686,27 @@ def reset_score(student_id, course_id, item_id):
             course_id=course_id,
             item_id=item_id,
         )
+
+        if clear_state:
+            # sever the link between this student item and any submissions it may currently have
+            # this is done by creating a SubmissionDeleted (to keep data for analytics), then deleting the Submission
+            for sub in student_item.submission_set.all():
+                init_dict = sub._clone_dict()
+                with transaction.atomic():
+                    archived_sub = SubmissionDeleted.objects.create(**init_dict)
+                    sub.delete()
+
+                # Also clear out cached values
+                cache_key = "submissions.submission.{}".format(sub.uuid)
+                cache.delete(cache_key)
+                # TODO: the top scores cache is automatically invalidated after 5 minutes, should we rely on that instead of doing it manually here?
+                cache_keys = ["submissions.top_submissions.{course}.{item}.{type}.{number}".format(
+                    course=course_id,
+                    item=item_id,
+                    type=student_item.item_type,
+                    number=i+1 # Looping from 1 to MAX_TOP_SUBMISSIONS, inclusive
+                ) for i in range(0, MAX_TOP_SUBMISSIONS)]
+                cache.delete_many(cache_keys)
 
     except DatabaseError:
         msg = (

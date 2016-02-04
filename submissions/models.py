@@ -89,7 +89,7 @@ class StudentItem(models.Model):
         )
 
 
-class Submission(models.Model):
+class SubmissionBase(models.Model):
     """A single response by a student for a given problem in a given course.
 
     A student may have multiple submissions for the same problem. Submissions
@@ -125,14 +125,17 @@ class Submission(models.Model):
     answer = JSONField(blank=True, db_column="raw_answer")
 
     def __repr__(self):
-        return repr(dict(
+        return repr(self._clone_dict())
+
+    def _clone_dict(self):
+        return dict(
             uuid=self.uuid,
             student_item=self.student_item,
             attempt_number=self.attempt_number,
             submitted_at=self.submitted_at,
             created_at=self.created_at,
             answer=self.answer,
-        ))
+        )
 
     def __unicode__(self):
         return u"Submission {}".format(self.uuid)
@@ -140,6 +143,24 @@ class Submission(models.Model):
     class Meta:
         app_label = "submissions"
         ordering = ["-submitted_at", "-id"]
+        abstract = True
+
+
+class Submission(SubmissionBase):
+    """
+    The main Submission model.
+    """
+    def __init__(self, *args, **kwargs):
+        SubmissionBase.__init__(self, *args, **kwargs)
+
+
+class SubmissionDeleted(SubmissionBase):
+    """
+    A utility class, to allow submissions to be hidden from the main Submissions data
+    while still remaining useful for later analysis on the backend.
+    """
+    def __init__(self, *args, **kwargs):
+        SubmissionBase.__init__(self, *args, **kwargs)
 
 
 class Score(models.Model):

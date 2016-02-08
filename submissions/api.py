@@ -643,7 +643,7 @@ def get_latest_score_for_submission(submission_uuid, read_replica=False):
     return ScoreSerializer(score).data
 
 
-def reset_score(student_id, course_id, item_id):
+def reset_score(student_id, course_id, item_id, clear_state=False):
     """
     Reset scores for a specific student on a specific problem.
 
@@ -655,6 +655,7 @@ def reset_score(student_id, course_id, item_id):
         student_id (unicode): The ID of the student for whom to reset scores.
         course_id (unicode): The ID of the course containing the item to reset.
         item_id (unicode): The ID of the item for which to reset scores.
+        clear_state (boolean): If True, unlink the Submission and StudentItem so the Submission cannot be accessed.
 
     Returns:
         None
@@ -683,6 +684,34 @@ def reset_score(student_id, course_id, item_id):
             course_id=course_id,
             item_id=item_id,
         )
+
+        if clear_state:
+            # sever the link between this student item and any submissions it may currently have
+            for sub in student_item.submission_set.all():
+                # By mangling the item_id, the course and student information remains intact for analytics
+                # But the submission will no longer be accessible. The actual mangling will be done by appending
+                # "+orphaned" to the item_id (original value will be truncated to fit if needed)
+                orphaned_str = "+orphaned"
+                mangled_item, _ = StudentItem.objects.get_or_create(
+                    course_id=course_id,
+                    student_id=student_id,
+                    item_id=item_id[:255-len(orphaned_str)] + orphaned_str,
+                    item_type=student_item.item_type
+                )
+                sub.student_item = mangled_item
+                sub.save(update_fields=['student_item'])
+
+                # Also clear out cached values
+                cache_key = "submissions.submission.{}".format(sub.uuid)
+                cache.delete(cache_key)
+                # TODO: the top scores cache is automatically invalidated after 5 minutes, should we rely on that instead of doing it manually here?
+                cache_keys = ["submissions.top_submissions.{course}.{item}.{type}.{number}".format(
+                    course=course_id,
+                    item=item_id,
+                    type=student_item.item_type,
+                    number=i+1 # Looping from 1 to MAX_TOP_SUBMISSIONS, inclusive
+                ) for i in range(0, MAX_TOP_SUBMISSIONS)]
+                cache.delete_many(cache_keys)
 
     except DatabaseError:
         msg = (

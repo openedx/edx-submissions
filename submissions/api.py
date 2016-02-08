@@ -693,13 +693,25 @@ def reset_score(student_id, course_id, item_id, clear_state=False):
                 # "+orphaned" to the item_id (original value will be truncated to fit if needed)
                 orphaned_str = "+orphaned"
                 mangled_item, _ = StudentItem.objects.get_or_create(
-                    course_id=student_item.course_id,
-                    student_id=student_item.student_id,
-                    item_id=student_item.item_id[:255-len(orphaned_str)] + orphaned_str,
+                    course_id=course_id,
+                    student_id=student_id,
+                    item_id=item_id[:255-len(orphaned_str)] + orphaned_str,
                     item_type=student_item.item_type
                 )
                 sub.student_item = mangled_item
                 sub.save(update_fields=['student_item'])
+
+                # Also clear out cached values
+                cache_key = "submissions.submission.{}".format(sub.uuid)
+                cache.delete(cache_key)
+                # TODO: the top scores cache is automatically invalidated after 5 minutes, should we rely on that instead of doing it manually here?
+                cache_keys = ["submissions.top_submissions.{course}.{item}.{type}.{number}".format(
+                    course=course_id,
+                    item=item_id,
+                    type=student_item.item_type,
+                    number=i+1 # Looping from 1 to MAX_TOP_SUBMISSIONS, inclusive
+                ) for i in range(0, MAX_TOP_SUBMISSIONS)]
+                cache.delete_many(cache_keys)
 
     except DatabaseError:
         msg = (

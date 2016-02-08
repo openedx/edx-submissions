@@ -573,6 +573,27 @@ class TestSubmissionsApi(TestCase):
             )
         self.assertEqual(cached_scores, scores)
 
+    def test_clear_state(self):
+        # Create a submission, give it a score, and verify that score exists
+        submission = api.create_submission(STUDENT_ITEM, ANSWER_ONE)
+        api.set_score(submission["uuid"], 11, 12)
+        score = api.get_score(STUDENT_ITEM)
+        self._assert_score(score, 11, 12)
+        self.assertEqual(score['submission_uuid'], submission['uuid'])
+
+        # Reset the score with clear_state=True
+        # This should set the submission's score to None, and make it unavailable to get_submissions
+        api.reset_score(
+            STUDENT_ITEM["student_id"],
+            STUDENT_ITEM["course_id"],
+            STUDENT_ITEM["item_id"],
+            clear_state=True,
+        )
+        score = api.get_score(STUDENT_ITEM)
+        self.assertIsNone(score)
+        subs = api.get_submissions(STUDENT_ITEM)
+        self.assertEqual(subs, [])
+
     @raises(api.SubmissionRequestError)
     def test_error_on_get_top_submissions_too_few(self):
         student_item = copy.deepcopy(STUDENT_ITEM)

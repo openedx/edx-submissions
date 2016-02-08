@@ -686,13 +686,18 @@ def reset_score(student_id, course_id, item_id, clear_state=False):
         )
 
         if clear_state:
-            # sever the link between this student item and any submissions it may current have
+            # sever the link between this student item and any submissions it may currently have
             for sub in student_item.submission_set.all():
                 # By mangling the item_id, the course and student information remains intact for analytics
-                # But the submission will no longer be accessible
-                mangled_item = copy.deepcopy(sub.student_item)
-                mangled_item.item_id = mangled_item.item_id[::-1] # Reverse the identifier
-                mangled_item.save()
+                # But the submission will no longer be accessible. The actual mangling will be done by appending
+                # "+orphaned" to the item_id (original value will be truncated to fit if needed)
+                orphaned_str = "+orphaned"
+                mangled_item, _ = StudentItem.objects.get_or_create(
+                    course_id=student_item.course_id,
+                    student_id=student_item.student_id,
+                    item_id=student_item.item_id[:255-len(orphaned_str)] + orphaned_str,
+                    item_type=student_item.item_type
+                )
                 sub.student_item = mangled_item
                 sub.save(update_fields=['student_item'])
 

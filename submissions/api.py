@@ -10,7 +10,7 @@ import json
 
 from django.conf import settings
 from django.core.cache import cache
-from django.db import IntegrityError, DatabaseError, transaction
+from django.db import IntegrityError, DatabaseError
 from dogapi import dog_stats_api
 
 from submissions.serializers import (
@@ -220,7 +220,7 @@ def get_submission(submission_uuid, read_replica=False):
     cache_key = Submission.get_cache_key(submission_uuid)
     try:
         cached_submission_data = cache.get(cache_key)
-    except Exception as ex:
+    except Exception:
         # The cache backend could raise an exception
         # (for example, memcache keys that contain spaces)
         logger.exception("Error occurred while retrieving submission from the cache")
@@ -411,6 +411,63 @@ def get_all_submissions(course_id, item_id, item_type, read_replica=True):
         data = SubmissionSerializer(submission).data
         data['student_id'] = submission.student_item.student_id
         yield data
+
+
+def get_all_course_submission_information(course_id, item_type, read_replica=True):
+    """ For the given course, get all the submissions, student items, and scores of the given item type.
+
+    Args:
+        course_id (str): The course that we are getting submissions from.
+        item_type (str): The type of items that we are getting submissions for.
+        read_replica (bool): Try to use the database's read replica if it's available.
+
+    Yields:
+        A tuple of three dictionaries representing:
+        (1) a student item with the following fields:
+            student_id
+            course_id
+            student_item
+            item_type
+        (2) a submission with the following fields:
+            student_item
+            attempt_number
+            submitted_at
+            created_at
+            answer
+        (3) a score with the following fields:
+            student_item
+            submission
+            points_earned
+            points_possible
+            created_at
+            submission_uuid
+    """
+
+    submission_qs = Submission.objects
+    if read_replica:
+        submission_qs = _use_read_replica(submission_qs)
+
+    query = submission_qs.select_related('student_item').prefetch_related('score_set').filter(
+        student_item__course_id=course_id,
+        student_item__item_type=item_type,
+    ).iterator()
+
+    for submission in query:
+        student_item = submission.student_item
+        if submission.score_set.count() > 0:
+            for score in submission.score_set.all():
+                yield (
+                    StudentItemSerializer(student_item).data,
+                    SubmissionSerializer(submission).data,
+                    ScoreSerializer(score).data
+                )
+        else:
+            # Make sure we return submission information even if there isn't a score associated with it.
+            yield (
+                StudentItemSerializer(student_item).data,
+                SubmissionSerializer(submission).data,
+                {}
+            )
 
 
 def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use_cache=True, read_replica=True):
@@ -755,7 +812,7 @@ def set_score(submission_uuid, points_earned, points_possible,
             u"No submission matching uuid {}".format(submission_uuid)
         )
     except DatabaseError:
-        error_msg = u"Could not retrieve student item: {} or submission {}.".format(
+        error_msg = u"Could not retrieve submission {}.".format(
             submission_uuid
         )
         logger.exception(error_msg)

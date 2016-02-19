@@ -42,6 +42,7 @@ submissions_test_db
 .mr.developer.cfg
 .project
 .pydevproject
+*.swp
 
 # Rope
 .ropeproject

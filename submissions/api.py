@@ -443,31 +443,32 @@ def get_all_course_submission_information(course_id, item_type, read_replica=Tru
             submission_uuid
     """
 
-    submission_qs = Submission.objects
+    student_item_qs = StudentItem.objects
     if read_replica:
-        submission_qs = _use_read_replica(submission_qs)
+        student_item_qs = _use_read_replica(student_item_qs)
 
-    query = submission_qs.select_related('student_item').prefetch_related('score_set').filter(
-        student_item__course_id=course_id,
-        student_item__item_type=item_type,
+    query = student_item_qs.prefetch_related('submission').select_related('scoresummary').filter(
+        course_id=course_id,
+        item_type=item_type,
     ).iterator()
 
-    for submission in query:
-        student_item = submission.student_item
-        if submission.score_set.count() > 0:
-            for score in submission.score_set.all():
+    for student_item in query:
+        for submission in student_item.submissions:
+            if submission.status == Submission.DELETED:
+                continue
+            if submission.hasattr('scoresummary') and not submission.score_summary.latest.is_hidden():
                 yield (
                     StudentItemSerializer(student_item).data,
                     SubmissionSerializer(submission).data,
-                    ScoreSerializer(score).data
+                    ScoreSerializer(submission.score_summary.latest).data
                 )
-        else:
-            # Make sure we return submission information even if there isn't a score associated with it.
-            yield (
-                StudentItemSerializer(student_item).data,
-                SubmissionSerializer(submission).data,
-                {}
-            )
+            else:
+                # Make sure we return submission information even if there isn't a score associated with it.
+                yield (
+                    StudentItemSerializer(student_item).data,
+                    SubmissionSerializer(submission).data,
+                    {}
+                )
 
 
 def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use_cache=True, read_replica=True):

@@ -127,7 +127,8 @@ class TestSubmissionsApi(TestCase):
 
         self.assertDictEqual(SECOND_STUDENT_ITEM, submissions_and_scores[1][0])
         self._assert_submission(submissions_and_scores[1][1], submission3['answer'], student_item2.pk, 1)
-        self._assert_score(submissions_and_scores[1][2], 3, 4)
+        # submission4 also pertains to this student item and got its score later, so no score will be reported here
+        self.assertEqual(submissions_and_scores[1][2], {})
 
         self.assertDictEqual(STUDENT_ITEM, submissions_and_scores[2][0])
         self._assert_submission(submissions_and_scores[2][1], submission2['answer'], student_item1.pk, 2)
@@ -135,7 +136,8 @@ class TestSubmissionsApi(TestCase):
 
         self.assertDictEqual(STUDENT_ITEM, submissions_and_scores[3][0])
         self._assert_submission(submissions_and_scores[3][1], submission1['answer'], student_item1.pk, 1)
-        self._assert_score(submissions_and_scores[3][2], 1, 4)
+        # submission2 also pertains to this student item and got its score later, so no score will be reported here
+        self.assertEqual(submissions_and_scores[3][2], {})
 
     def test_get_submission(self):
         # Test base case that we can create a submission and get it back

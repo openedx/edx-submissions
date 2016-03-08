@@ -447,27 +447,27 @@ def get_all_course_submission_information(course_id, item_type, read_replica=Tru
     if read_replica:
         submission_qs = _use_read_replica(submission_qs)
 
-    query = submission_qs.select_related('student_item').prefetch_related('score_set').filter(
+    query = submission_qs.select_related('student_item__scoresummary__latest__submission').filter(
         student_item__course_id=course_id,
         student_item__item_type=item_type,
     ).iterator()
 
     for submission in query:
         student_item = submission.student_item
-        if submission.score_set.count() > 0:
-            for score in submission.score_set.all():
-                yield (
-                    StudentItemSerializer(student_item).data,
-                    SubmissionSerializer(submission).data,
-                    ScoreSerializer(score).data
-                )
-        else:
-            # Make sure we return submission information even if there isn't a score associated with it.
-            yield (
-                StudentItemSerializer(student_item).data,
-                SubmissionSerializer(submission).data,
-                {}
-            )
+        serialized_score = {}
+        if hasattr(student_item, 'scoresummary'):
+            latest_score = student_item.scoresummary.latest
+
+            # We only include the score for a given submission if it is not a reset score and it "counts", that is,
+            # if it is the latest score on the score summary tracking the submission's student_item. This matches the
+            # behavior of the API's get_score method.
+            if (not latest_score.is_hidden()) and latest_score.submission.uuid == submission.uuid:
+                serialized_score = ScoreSerializer(latest_score).data
+        yield (
+            StudentItemSerializer(student_item).data,
+            SubmissionSerializer(submission).data,
+            serialized_score
+        )
 
 
 def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use_cache=True, read_replica=True):

@@ -414,7 +414,9 @@ def get_all_submissions(course_id, item_id, item_type, read_replica=True):
 
 
 def get_all_course_submission_information(course_id, item_type, read_replica=True):
-    """ For the given course, get all the submissions, student items, and scores of the given item type.
+    """ For the given course, get all student items of the given item type, all the submissions for those itemes,
+    and the latest scores for each item. If a submission was given a score that is not the latest score for the
+    relevant student item, it will still be included but without score.
 
     Args:
         course_id (str): The course that we are getting submissions from.
@@ -434,7 +436,8 @@ def get_all_course_submission_information(course_id, item_type, read_replica=Tru
             submitted_at
             created_at
             answer
-        (3) a score with the following fields:
+        (3) a score with the following fields, if one exists and it is the latest score:
+            (if both conditions are not met, an empty dict is returned here)
             student_item
             submission
             points_earned
@@ -447,27 +450,26 @@ def get_all_course_submission_information(course_id, item_type, read_replica=Tru
     if read_replica:
         submission_qs = _use_read_replica(submission_qs)
 
-    query = submission_qs.select_related('student_item').prefetch_related('score_set').filter(
+    query = submission_qs.select_related('student_item__scoresummary__latest__submission').filter(
         student_item__course_id=course_id,
         student_item__item_type=item_type,
     ).iterator()
 
     for submission in query:
         student_item = submission.student_item
-        if submission.score_set.count() > 0:
-            for score in submission.score_set.all():
-                yield (
-                    StudentItemSerializer(student_item).data,
-                    SubmissionSerializer(submission).data,
-                    ScoreSerializer(score).data
-                )
-        else:
-            # Make sure we return submission information even if there isn't a score associated with it.
-            yield (
-                StudentItemSerializer(student_item).data,
-                SubmissionSerializer(submission).data,
-                {}
-            )
+        serialized_score = {}
+        if hasattr(student_item, 'scoresummary'):
+            latest_score = student_item.scoresummary.latest
+
+            # Only include the score if it is not a reset score (is_hidden), and if the current submission is the same
+            # as the student_item's latest score's submission. This matches the behavior of the API's get_score method.
+            if (not latest_score.is_hidden()) and latest_score.submission.uuid == submission.uuid:
+                serialized_score = ScoreSerializer(latest_score).data
+        yield (
+            StudentItemSerializer(student_item).data,
+            SubmissionSerializer(submission).data,
+            serialized_score
+        )
 
 
 def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use_cache=True, read_replica=True):

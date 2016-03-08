@@ -101,16 +101,18 @@ class TestSubmissionsApi(TestCase):
         self._assert_submission(submissions[1], ANSWER_TWO, student_item.pk, 2)
         self.assertEqual(submissions[1]['student_id'], STUDENT_ITEM['student_id'])
 
-    def test_get_course_submissions(self):
+    @ddt.data(True, False)
+    def test_get_course_submissions(self, set_scores):
         submission1 = api.create_submission(STUDENT_ITEM, ANSWER_ONE)
         submission2 = api.create_submission(STUDENT_ITEM, ANSWER_TWO)
         submission3 = api.create_submission(SECOND_STUDENT_ITEM, ANSWER_ONE)
         submission4 = api.create_submission(SECOND_STUDENT_ITEM, ANSWER_TWO)
 
-        api.set_score(submission1['uuid'], 1, 4)
-        api.set_score(submission2['uuid'], 2, 4)
-        api.set_score(submission3['uuid'], 3, 4)
-        api.set_score(submission4['uuid'], 4, 4)
+        if set_scores:
+            api.set_score(submission1['uuid'], 1, 4)
+            api.set_score(submission2['uuid'], 2, 4)
+            api.set_score(submission3['uuid'], 3, 4)
+            api.set_score(submission4['uuid'], 4, 4)
 
         submissions_and_scores = list(api.get_all_course_submission_information(
             STUDENT_ITEM['course_id'],
@@ -123,21 +125,26 @@ class TestSubmissionsApi(TestCase):
 
         self.assertDictEqual(SECOND_STUDENT_ITEM, submissions_and_scores[0][0])
         self._assert_submission(submissions_and_scores[0][1], submission4['answer'], student_item2.pk, 2)
-        self._assert_score(submissions_and_scores[0][2], 4, 4)
 
         self.assertDictEqual(SECOND_STUDENT_ITEM, submissions_and_scores[1][0])
         self._assert_submission(submissions_and_scores[1][1], submission3['answer'], student_item2.pk, 1)
-        # submission4 also pertains to this student item and got its score later, so no score will be reported here
-        self.assertEqual(submissions_and_scores[1][2], {})
 
         self.assertDictEqual(STUDENT_ITEM, submissions_and_scores[2][0])
         self._assert_submission(submissions_and_scores[2][1], submission2['answer'], student_item1.pk, 2)
-        self._assert_score(submissions_and_scores[2][2], 2, 4)
 
         self.assertDictEqual(STUDENT_ITEM, submissions_and_scores[3][0])
         self._assert_submission(submissions_and_scores[3][1], submission1['answer'], student_item1.pk, 1)
-        # submission2 also pertains to this student item and got its score later, so no score will be reported here
+
+        # These scores will always be empty
+        self.assertEqual(submissions_and_scores[1][2], {})
         self.assertEqual(submissions_and_scores[3][2], {})
+
+        if set_scores:
+            self._assert_score(submissions_and_scores[0][2], 4, 4)
+            self._assert_score(submissions_and_scores[2][2], 2, 4)
+        else:
+            self.assertEqual(submissions_and_scores[0][2], {})
+            self.assertEqual(submissions_and_scores[2][2], {})
 
     def test_get_submission(self):
         # Test base case that we can create a submission and get it back

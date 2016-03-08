@@ -146,6 +146,9 @@ class TestSubmissionsApi(TestCase):
             self.assertEqual(submissions_and_scores[0][2], {})
             self.assertEqual(submissions_and_scores[2][2], {})
 
+        # Deliberately fail so I can see logged output
+        self.assertTrue(False)
+
     def test_get_submission(self):
         # Test base case that we can create a submission and get it back
         sub_dict1 = api.create_submission(STUDENT_ITEM, ANSWER_ONE)

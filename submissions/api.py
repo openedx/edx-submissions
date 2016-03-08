@@ -450,7 +450,9 @@ def get_all_course_submission_information(course_id, item_type, read_replica=Tru
     query = submission_qs.select_related('student_item__scoresummary__latest__submission').filter(
         student_item__course_id=course_id,
         student_item__item_type=item_type,
-    ).iterator()
+    )
+    print query.query
+    query = query.iterator()
 
     for submission in query:
         student_item = submission.student_item

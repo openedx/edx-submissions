@@ -33,7 +33,7 @@ def load_requirements(*requirements_paths):
 
 setup(
     name='edx-submissions',
-    version='1.1.2',
+    version='1.1.3',
     author='edX',
     description='An API for creating submissions and scores.',
     url='http://github.com/edx/edx-submissions.git',
@@ -46,6 +46,14 @@ setup(
         'Programming Language :: Python',
     ],
     packages=['submissions', 'submissions.migrations'],
-    install_requires=load_requirements('requirements.txt'),
-    tests_require=load_requirements('test-requirements.txt'),
+    install_requires=[
+        'dogapi',
+        'django>=1.8.14,<1.9',
+        'django-extensions',
+        'django-model-utils',
+        'djangorestframework',
+        'jsonfield',
+        'pytz',
+    ],
+    tests_require=load_requirements('requirements.txt') + load_requirements('test-requirements.txt'),
 )

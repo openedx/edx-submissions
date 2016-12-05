@@ -6,7 +6,7 @@ import json
 
 from rest_framework import serializers
 from rest_framework.fields import Field, DateTimeField, IntegerField
-from submissions.models import StudentItem, Submission, Score
+from submissions.models import StudentItem, Submission, Score, ScoreAnnotation
 
 
 class RawField(Field):
@@ -85,10 +85,32 @@ class SubmissionSerializer(serializers.ModelSerializer):
         )
 
 
+class ScoreAnnotationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ScoreAnnotation
+        fields = (
+            'creator',
+            'reason',
+            'annotation_type',
+        )
+
+
 class ScoreSerializer(serializers.ModelSerializer):
 
     # Ensure that the created_at datetime is not converted to a string.
     created_at = DateTimeField(format=None, required=False)
+
+    annotations = serializers.SerializerMethodField()
+    def get_annotations(self, obj):
+        """
+        Inspect ScoreAnnotations to attach all relevant annotations.
+        """
+        annotations = ScoreAnnotation.objects.filter(score_id=obj.id)
+        return [
+            ScoreAnnotationSerializer(instance=annotation).data
+            for annotation in annotations
+        ]
 
     class Meta:
         model = Score
@@ -101,4 +123,5 @@ class ScoreSerializer(serializers.ModelSerializer):
 
             # Computed
             'submission_uuid',
+            'annotations',
         )

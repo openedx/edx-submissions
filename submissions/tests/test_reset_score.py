@@ -4,13 +4,16 @@ Test reset scores.
 
 import copy
 from mock import patch
+from datetime import datetime
 from django.test import TestCase
 import ddt
 from django.core.cache import cache
 from django.db import DatabaseError
 from django.dispatch import Signal
+from freezegun import freeze_time
 from submissions import api as sub_api
 from submissions.models import Score, score_reset
+import pytz
 
 
 @ddt.ddt
@@ -167,6 +170,7 @@ class TestResetScore(TestCase):
                 self.STUDENT_ITEM['item_id'],
             )
 
+    @freeze_time(datetime.now())
     @patch.object(score_reset, 'send')
     def test_reset_score_signal(self, send_mock):
         # Create a submission for the student and score it
@@ -185,5 +189,6 @@ class TestResetScore(TestCase):
             sender = None,
             anonymous_user_id=self.STUDENT_ITEM['student_id'],
             course_id=self.STUDENT_ITEM['course_id'],
-            item_id=self.STUDENT_ITEM['item_id']
+            item_id=self.STUDENT_ITEM['item_id'],
+            created_at=datetime.now().replace(tzinfo=pytz.UTC),
         )

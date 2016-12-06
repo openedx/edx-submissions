@@ -7,6 +7,7 @@ import ddt
 from django.db import DatabaseError, connection, transaction
 from django.core.cache import cache
 from django.test import TestCase
+from freezegun import freeze_time
 from nose.tools import raises
 from mock import patch
 import pytz
@@ -301,6 +302,7 @@ class TestSubmissionsApi(TestCase):
         self._assert_score(score, 11, 12)
         self.assertFalse(ScoreAnnotation.objects.all().exists())
 
+    @freeze_time(datetime.datetime.now())
     @patch.object(score_set, 'send')
     def test_set_score_signal(self, send_mock):
         submission = api.create_submission(STUDENT_ITEM, ANSWER_ONE)
@@ -313,7 +315,8 @@ class TestSubmissionsApi(TestCase):
             points_earned=11,
             anonymous_user_id=STUDENT_ITEM['student_id'],
             course_id=STUDENT_ITEM['course_id'],
-            item_id=STUDENT_ITEM['item_id']
+            item_id=STUDENT_ITEM['item_id'],
+            created_at=datetime.datetime.now().replace(tzinfo=pytz.UTC),
         )
 
     @ddt.data(u"First score was incorrect", u"☃")

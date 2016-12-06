@@ -737,13 +737,14 @@ def reset_score(student_id, course_id, item_id, clear_state=False):
 
     # Create a "reset" score
     try:
-        Score.create_reset_score(student_item)
+        score = Score.create_reset_score(student_item)
         # Send a signal out to any listeners who are waiting for scoring events.
         score_reset.send(
             sender=None,
             anonymous_user_id=student_id,
             course_id=course_id,
             item_id=item_id,
+            created_at=score.created_at,
         )
 
         if clear_state:
@@ -860,6 +861,7 @@ def set_score(submission_uuid, points_earned, points_possible,
             anonymous_user_id=submission_model.student_item.student_id,
             course_id=submission_model.student_item.course_id,
             item_id=submission_model.student_item.item_id,
+            created_at=score_model.created_at,
         )
     except IntegrityError:
         pass

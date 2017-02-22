@@ -14,3 +14,6 @@ git+https://github.com/edx/edx-lint.git@v0.4.1#egg=edx_lint==0.4.1
 Sphinx==1.2
 sphinx-rtd-theme==0.1.5
 sphinxcontrib-napoleon==0.2.3
+
+# Tox
+tox==2.6.0

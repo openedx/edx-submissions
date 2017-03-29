@@ -704,7 +704,7 @@ def get_latest_score_for_submission(submission_uuid, read_replica=False):
     return ScoreSerializer(score).data
 
 
-def reset_score(student_id, course_id, item_id, clear_state=False):
+def reset_score(student_id, course_id, item_id, clear_state=False, emit_signal=True):
     """
     Reset scores for a specific student on a specific problem.
 
@@ -738,14 +738,15 @@ def reset_score(student_id, course_id, item_id, clear_state=False):
     # Create a "reset" score
     try:
         score = Score.create_reset_score(student_item)
-        # Send a signal out to any listeners who are waiting for scoring events.
-        score_reset.send(
-            sender=None,
-            anonymous_user_id=student_id,
-            course_id=course_id,
-            item_id=item_id,
-            created_at=score.created_at,
-        )
+        if emit_signal:
+            # Send a signal out to any listeners who are waiting for scoring events.
+            score_reset.send(
+                sender=None,
+                anonymous_user_id=student_id,
+                course_id=course_id,
+                item_id=item_id,
+                created_at=score.created_at,
+            )
 
         if clear_state:
             for sub in student_item.submission_set.all():

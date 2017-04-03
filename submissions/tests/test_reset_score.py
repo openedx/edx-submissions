@@ -137,7 +137,8 @@ class TestResetScore(TestCase):
 
         scores = sub_api.get_scores(self.STUDENT_ITEM['course_id'], self.STUDENT_ITEM['student_id'])
         self.assertIn(self.STUDENT_ITEM['item_id'], scores)
-        self.assertEqual(scores[self.STUDENT_ITEM['item_id']], (3, 4))
+        item_score = scores[self.STUDENT_ITEM['item_id']]
+        self.assertEqual((item_score['points_earned'], item_score['points_possible']), (3, 4))
 
     def test_reset_then_get_score_for_submission(self):
         # Create a submission for the student and score it

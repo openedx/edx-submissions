@@ -14,7 +14,7 @@ from django.db import IntegrityError, DatabaseError
 from dogapi import dog_stats_api
 
 from submissions.serializers import (
-    SubmissionSerializer, StudentItemSerializer, ScoreSerializer
+    SubmissionSerializer, StudentItemSerializer, ScoreSerializer, UnannotatedScoreSerializer
 )
 from submissions.models import Submission, StudentItem, Score, ScoreSummary, ScoreAnnotation, score_set, score_reset
 
@@ -626,7 +626,10 @@ def get_score(student_item):
 
 
 def get_scores(course_id, student_id):
-    """Return a dict mapping item_ids -> (points_earned, points_possible).
+    """Return a dict mapping item_ids to scores.
+
+    Scores are represented by serialized Score objects in JSON-like dict
+    format.
 
     This method would be used by an LMS to find all the scores for a given
     student in a given course.
@@ -654,7 +657,7 @@ def get_scores(course_id, student_id):
         score_summaries = ScoreSummary.objects.filter(
             student_item__course_id=course_id,
             student_item__student_id=student_id,
-        ).select_related('latest', 'student_item')
+        ).select_related('latest', 'latest__submission', 'student_item')
     except DatabaseError:
         msg = u"Could not fetch scores for course {}, student {}".format(
             course_id, student_id
@@ -662,10 +665,8 @@ def get_scores(course_id, student_id):
         logger.exception(msg)
         raise SubmissionInternalError(msg)
     scores = {
-        summary.student_item.item_id:
-            (summary.latest.points_earned, summary.latest.points_possible)
-        for summary in score_summaries
-        if not summary.latest.is_hidden()
+        summary.student_item.item_id: UnannotatedScoreSerializer(summary.latest).data
+        for summary in score_summaries if not summary.latest.is_hidden()
     }
     return scores
 

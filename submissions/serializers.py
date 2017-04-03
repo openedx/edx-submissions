@@ -96,12 +96,31 @@ class ScoreAnnotationSerializer(serializers.ModelSerializer):
         )
 
 
-class ScoreSerializer(serializers.ModelSerializer):
+class UnannotatedScoreSerializer(serializers.ModelSerializer):
 
     # Ensure that the created_at datetime is not converted to a string.
     created_at = DateTimeField(format=None, required=False)
 
+    class Meta:
+        model = Score
+        fields = (
+            'student_item',
+            'submission',
+            'points_earned',
+            'points_possible',
+            'created_at',
+
+            # Computed
+            'submission_uuid',
+        )
+
+
+class ScoreSerializer(serializers.ModelSerializer):
+
+    # Ensure that the created_at datetime is not converted to a string.
+    created_at = DateTimeField(format=None, required=False)
     annotations = serializers.SerializerMethodField()
+
     def get_annotations(self, obj):
         """
         Inspect ScoreAnnotations to attach all relevant annotations.

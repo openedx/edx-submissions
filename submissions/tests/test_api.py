@@ -363,6 +363,7 @@ class TestSubmissionsApi(TestCase):
         student_item['student_id'] = None
         self.assertIs(api.get_score(student_item), None)
 
+    @freeze_time(datetime.datetime.now().replace(tzinfo=pytz.UTC))
     def test_get_scores(self):
         student_item = copy.deepcopy(STUDENT_ITEM)
         student_item["course_id"] = "get_scores_course"
@@ -388,14 +389,35 @@ class TestSubmissionsApi(TestCase):
             scores = api.get_scores(
                 student_item["course_id"], student_item["student_id"]
             )
-            self.assertEqual(
-                scores,
-                {
-                    u"i4x://a/b/c/s1": (2, 5),
-                    u"i4x://a/b/c/s2": (0, 10),
-                    u"i4x://a/b/c/s3": (4, 4),
-                }
-            )
+        self.assertEqual(
+            scores,
+            {
+                u'i4x://a/b/c/s1': {
+                    'created_at': datetime.datetime.now(),
+                    'points_earned': 2,
+                    'points_possible': 5,
+                    'student_item': 1,
+                    'submission': 1,
+                    'submission_uuid': s1['uuid'],
+                },
+                u'i4x://a/b/c/s2': {
+                    'created_at': datetime.datetime.now(),
+                    'points_earned': 0,
+                    'points_possible': 10,
+                    'student_item': 2,
+                    'submission': 2,
+                    'submission_uuid': s2['uuid'],
+                },
+                u'i4x://a/b/c/s3': {
+                    'created_at': datetime.datetime.now(),
+                    'points_earned': 4,
+                    'points_possible': 4,
+                    'student_item': 3,
+                    'submission': 3,
+                    'submission_uuid': s3['uuid'],
+                },
+            }
+        )
 
     def test_get_top_submissions(self):
         student_item_1 = copy.deepcopy(STUDENT_ITEM)

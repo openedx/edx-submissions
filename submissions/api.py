@@ -626,7 +626,10 @@ def get_score(student_item):
 
 
 def get_scores(course_id, student_id):
-    """Return a dict mapping item_ids -> [ScoreSerializer(ScoreSummary)].
+    """Return a dict mapping item_ids to scores.
+
+    Scores are represented by serialized Score objects in JSON-like dict
+    format.
 
     This method would be used by an LMS to find all the scores for a given
     student in a given course.

@@ -626,7 +626,8 @@ def get_score(student_item):
 
 
 def get_scores(course_id, student_id):
-    """Return a dict mapping item_ids -> (points_earned, points_possible).
+    """
+    Return a dict mapping item_ids -> [ScoreSerializer(ScoreSummary)].
 
     This method would be used by an LMS to find all the scores for a given
     student in a given course.
@@ -662,10 +663,8 @@ def get_scores(course_id, student_id):
         logger.exception(msg)
         raise SubmissionInternalError(msg)
     scores = {
-        summary.student_item.item_id:
-            (summary.latest.points_earned, summary.latest.points_possible)
-        for summary in score_summaries
-        if not summary.latest.is_hidden()
+        summary.student_item.item_id: ScoreSerializer(summary.latest).data
+        for summary in score_summaries if not summary.latest.is_hidden()
     }
     return scores
 

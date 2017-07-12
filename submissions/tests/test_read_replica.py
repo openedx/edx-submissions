@@ -2,13 +2,27 @@
 Test API calls using the read replica.
 """
 import copy
+
+from django.conf import settings
 from django.test import TransactionTestCase
+import mock
+
 from submissions import api as sub_api
 
 
+def _mock_use_read_replica(queryset):
+    """
+    The Django DATABASES setting TEST_MIRROR isn't reliable.
+    See: https://code.djangoproject.com/ticket/23718
+    """
+    return (
+        queryset.using('default')
+        if 'read_replica' in settings.DATABASES
+        else queryset
+    )
+
 class ReadReplicaTest(TransactionTestCase):
     """ Test queries that use the read replica. """
-
     STUDENT_ITEM = {
         "student_id": "test student",
         "course_id": "test course",
@@ -31,15 +45,17 @@ class ReadReplicaTest(TransactionTestCase):
         )
 
     def test_get_submission_and_student(self):
-        retrieved = sub_api.get_submission_and_student(self.submission['uuid'], read_replica=True)
-        expected = copy.deepcopy(self.submission)
-        expected['student_item'] = copy.deepcopy(self.STUDENT_ITEM)
-        self.assertEqual(retrieved, expected)
+        with mock.patch('submissions.api._use_read_replica', _mock_use_read_replica):
+            retrieved = sub_api.get_submission_and_student(self.submission['uuid'], read_replica=True)
+            expected = copy.deepcopy(self.submission)
+            expected['student_item'] = copy.deepcopy(self.STUDENT_ITEM)
+            self.assertEqual(retrieved, expected)
 
     def test_get_latest_score_for_submission(self):
-        retrieved = sub_api.get_latest_score_for_submission(self.submission['uuid'], read_replica=True)
-        self.assertEqual(retrieved['points_possible'], self.SCORE['points_possible'])
-        self.assertEqual(retrieved['points_earned'], self.SCORE['points_earned'])
+        with mock.patch('submissions.api._use_read_replica', _mock_use_read_replica):
+            retrieved = sub_api.get_latest_score_for_submission(self.submission['uuid'], read_replica=True)
+            self.assertEqual(retrieved['points_possible'], self.SCORE['points_possible'])
+            self.assertEqual(retrieved['points_earned'], self.SCORE['points_earned'])
 
     def test_get_top_submissions(self):
         student_item_1 = copy.deepcopy(self.STUDENT_ITEM)
@@ -60,7 +76,7 @@ class ReadReplicaTest(TransactionTestCase):
         sub_api.set_score(student_3['uuid'], 2, 10)
 
         # Use the read-replica
-        with self.assertNumQueries(0):
+        with mock.patch('submissions.api._use_read_replica', _mock_use_read_replica):
             top_scores = sub_api.get_top_submissions(
                 self.STUDENT_ITEM['course_id'],
                 self.STUDENT_ITEM['item_id'],

@@ -36,7 +36,8 @@ To run the test suite:
 
 .. code:: bash
 
-    python manage.py test
+    pip install -r test-requirements.txt
+    tox # to run only a single environment, do e.g. tox -e django18
 
 
 License

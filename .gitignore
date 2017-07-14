@@ -54,3 +54,4 @@ submissions_test_db
 # Sphinx documentation
 docs/_build/
 
+venvs

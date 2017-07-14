@@ -1,22 +1,29 @@
 language: python
 python:
-  - "2.7"
+- '2.7'
 env:
-  - TOXENV=django18
-  - TOXENV=django19
-  - TOXENV=django110
+- TOXENV=django18
+- TOXENV=django110
+- TOXENV=django111
 matrix:
   allow_failures:
-    - env: TOXENV=django19
-    - env: TOXENV=django110
-# Use docker for travis builds
+  - env: TOXENV=django110
 sudo: false
 install:
-  - "pip install -r requirements.txt"
-  - "pip install -r test-requirements.txt"
-  - "python setup.py install"
-  - "pip install coveralls"
+- pip install -r requirements.txt
+- pip install -r test-requirements.txt
+- python setup.py install
+- pip install coveralls
 script:
-  - "tox"
-after_success:
-  coveralls
+- tox
+after_success: coveralls
+# Set password via "travis encrypt --add deploy.password"; for details, see
+# https://docs.travis-ci.com/user/deployment/pypi
+deploy:
+  provider: pypi
+  user: edx
+  distributions: sdist bdist_wheel
+  skip_upload_docs: true
+  password:
+    secure: BlYK3lplRoPiNfzqslxyReJZrC1QUT9Ls1A1xIxc3IHxKl9WEkqC2xO5vBvQDFKtMyooq8bGeN/gfksaZpRYqBmrO7hPITiz0FH0wPFdjoIikI4NTqKVxjhqUho0ZWmpxNXrX/iMd9Y2R4uZRXZGaWaTSRHfF9fPVlkbo66s7vw=
+    tags: true

@@ -26,4 +26,5 @@ deploy:
   skip_upload_docs: true
   password:
     secure: BlYK3lplRoPiNfzqslxyReJZrC1QUT9Ls1A1xIxc3IHxKl9WEkqC2xO5vBvQDFKtMyooq8bGeN/gfksaZpRYqBmrO7hPITiz0FH0wPFdjoIikI4NTqKVxjhqUho0ZWmpxNXrX/iMd9Y2R4uZRXZGaWaTSRHfF9fPVlkbo66s7vw=
+  on:
     tags: true

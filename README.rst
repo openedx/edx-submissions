@@ -40,6 +40,18 @@ To run the test suite:
     tox # to run only a single environment, do e.g. tox -e django18
 
 
+To use a Django shell to test commands:
+
+.. code:: bash
+
+    pip install -r django-requirements.txt
+    pip install -r requirements.txt
+    pip install -r test-requirements.txt
+    ./manage.py migrate
+    ./manage.py shell --settings=settings
+    >>> from submissions.serializers import StudentItemSerializer
+    >>> <other commands...>
+
 License
 -------
 

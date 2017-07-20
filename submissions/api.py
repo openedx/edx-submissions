@@ -90,6 +90,14 @@ class SubmissionRequestError(SubmissionError):
             else {}
         )
 
+    def __repr__(self):
+        """
+        Show the field errors upon output.
+        """
+        return '{}(msg="{}", field_errors={})'.format(
+            self.__class__.__name__, self.message, self.field_errors
+        )
+
 
 def create_submission(student_item_dict, answer, submitted_at=None, attempt_number=None):
     """Creates a submission for assessment.

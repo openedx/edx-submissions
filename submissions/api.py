@@ -89,6 +89,7 @@ class SubmissionRequestError(SubmissionError):
             if field_errors is not None
             else {}
         )
+        self.args += (self.field_errors,)
 
     def __repr__(self):
         """
@@ -991,6 +992,11 @@ def _get_or_create_student_item(student_item_dict):
             student_item_serializer = StudentItemSerializer(
                 data=student_item_dict)
             if not student_item_serializer.is_valid():
+                logger.error(
+                    "Invalid StudentItemSerializer: {}".format(
+                        unicode(student_item_serializer.errors)
+                    )
+                )
                 raise SubmissionRequestError(field_errors=student_item_serializer.errors)
             return student_item_serializer.save()
     except DatabaseError:

@@ -990,18 +990,21 @@ def _get_or_create_student_item(student_item_dict):
             return StudentItem.objects.get(**student_item_dict)
         except StudentItem.DoesNotExist:
             student_item_serializer = StudentItemSerializer(
-                data=student_item_dict)
+                data=student_item_dict
+            )
             if not student_item_serializer.is_valid():
                 logger.error(
-                    "Invalid StudentItemSerializer: {}".format(
-                        unicode(student_item_serializer.errors)
+                    u"Invalid StudentItemSerializer: errors:{} data:{}".format(
+                        student_item_serializer.errors,
+                        student_item_dict
                     )
                 )
                 raise SubmissionRequestError(field_errors=student_item_serializer.errors)
             return student_item_serializer.save()
     except DatabaseError:
         error_message = u"An error occurred creating student item: {}".format(
-            student_item_dict)
+            student_item_dict
+        )
         logger.exception(error_message)
         raise SubmissionInternalError(error_message)
 

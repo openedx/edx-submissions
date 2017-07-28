@@ -7,6 +7,7 @@ import itertools
 import logging
 import operator
 import json
+from uuid import UUID
 
 from django.conf import settings
 from django.core.cache import cache
@@ -222,9 +223,12 @@ def get_submission(submission_uuid, read_replica=False):
 
     """
     if not isinstance(submission_uuid, basestring):
-        raise SubmissionRequestError(
-            msg="submission_uuid ({!r}) must be a string type".format(submission_uuid)
-        )
+        if isinstance(submission_uuid, UUID):
+            submission_uuid = unicode(submission_uuid)
+        else:
+            raise SubmissionRequestError(
+                msg="submission_uuid ({!r}) must be serializable".format(submission_uuid)
+            )
 
     cache_key = Submission.get_cache_key(submission_uuid)
     try:

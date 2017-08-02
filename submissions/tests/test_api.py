@@ -48,6 +48,7 @@ class TestSubmissionsApi(TestCase):
         """
         Clear the cache.
         """
+        super(TestSubmissionsApi, self).setUp()
         cache.clear()
 
     @ddt.data(ANSWER_ONE, ANSWER_DICT)
@@ -67,9 +68,13 @@ class TestSubmissionsApi(TestCase):
         retrieved = api.get_submission_and_student(submission['uuid'])
         self.assertItemsEqual(submission, retrieved)
 
-        # Should raise an exception if the student item does not exist
-        with self.assertRaises(api.SubmissionNotFoundError):
+        # Should raise an exception if uuid is malformed
+        with self.assertRaises(api.SubmissionInternalError):
             api.get_submission_and_student(u'no such uuid')
+
+        # Should raise a different exception if the student item does not exist
+        with self.assertRaises(api.SubmissionNotFoundError):
+            api.get_submission_and_student(u'deadbeef-1234-5678-9100-1234deadbeef')
 
     def test_get_submissions(self):
         api.create_submission(STUDENT_ITEM, ANSWER_ONE)
@@ -161,9 +166,7 @@ class TestSubmissionsApi(TestCase):
 
         # Test not found
         with self.assertRaises(api.SubmissionNotFoundError):
-            api.get_submission("notarealuuid")
-        with self.assertRaises(api.SubmissionNotFoundError):
-            api.get_submission("0" * 50)  # This is bigger than our field size
+            api.get_submission("deadbeef-1234-5678-9100-1234deadbeef")
 
     @patch.object(Submission.objects, 'get')
     @raises(api.SubmissionInternalError)

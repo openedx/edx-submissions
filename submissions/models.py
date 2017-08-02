@@ -10,12 +10,12 @@ need to then generate a matching migration for it using:
 
 """
 import logging
+from uuid import uuid4
 
 from django.db import models, DatabaseError
 from django.db.models.signals import post_save
 from django.dispatch import receiver, Signal
 from django.utils.timezone import now
-from django_extensions.db.fields import UUIDField
 from jsonfield import JSONField
 
 
@@ -101,7 +101,7 @@ class Submission(models.Model):
     """
     MAXSIZE = 1024*100  # 100KB
 
-    uuid = UUIDField(version=1, db_index=True)
+    uuid = models.UUIDField(db_index=True, default=uuid4)
 
     student_item = models.ForeignKey(StudentItem)
 
@@ -196,7 +196,7 @@ class Score(models.Model):
 
         """
         if self.submission is not None:
-            return self.submission.uuid
+            return unicode(self.submission.uuid)
         else:
             return None
 

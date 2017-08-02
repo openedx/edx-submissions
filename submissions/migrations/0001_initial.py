@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from django.db import migrations, models
 import jsonfield.fields
 import django.utils.timezone
-import django_extensions.db.fields
 
 
 class Migration(migrations.Migration):
@@ -48,7 +47,7 @@ class Migration(migrations.Migration):
             name='Submission',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('uuid', django_extensions.db.fields.UUIDField(db_index=True, version=1, editable=False, blank=True)),
+                ('uuid', models.UUIDField(db_index=True, editable=False, blank=True)),
                 ('attempt_number', models.PositiveIntegerField()),
                 ('submitted_at', models.DateTimeField(default=django.utils.timezone.now, db_index=True)),
                 ('created_at', models.DateTimeField(default=django.utils.timezone.now, editable=False, db_index=True)),

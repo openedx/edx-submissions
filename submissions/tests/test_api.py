@@ -68,11 +68,7 @@ class TestSubmissionsApi(TestCase):
         retrieved = api.get_submission_and_student(submission['uuid'])
         self.assertItemsEqual(submission, retrieved)
 
-        # Should raise an exception if uuid is malformed
-        with self.assertRaises(api.SubmissionInternalError):
-            api.get_submission_and_student(u'no such uuid')
-
-        # Should raise a different exception if the student item does not exist
+        # Should raise an exception if the student item does not exist
         with self.assertRaises(api.SubmissionNotFoundError):
             api.get_submission_and_student(u'deadbeef-1234-5678-9100-1234deadbeef')
 

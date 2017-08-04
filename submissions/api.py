@@ -196,6 +196,20 @@ def create_submission(student_item_dict, answer, submitted_at=None, attempt_numb
         raise SubmissionInternalError(error_message)
 
 
+def _get_submission_model(uuid, read_replica=False):
+    """
+    Helper to retrieve a given Submission object from the database. Helper is needed to centralize logic that fixes
+    EDUCATOR-1090, because uuids are stored both with and without hyphens.
+    """
+    submission_qs = Submission.objects
+    if read_replica:
+        submission_qs = _use_read_replica(submission_qs)
+
+    query_regex = "^{}$|^{}$".format(uuid, uuid.replace("-",""))
+    submission = submission_qs.get(uuid__regex=query_regex)
+    return submission
+
+
 def get_submission(submission_uuid, read_replica=False):
     """Retrieves a single submission by uuid.
 
@@ -244,11 +258,7 @@ def get_submission(submission_uuid, read_replica=False):
         return cached_submission_data
 
     try:
-        submission_qs = Submission.objects
-        if read_replica:
-            submission_qs = _use_read_replica(submission_qs)
-
-        submission = submission_qs.get(uuid=submission_uuid)
+        submission = _get_submission_model(submission_uuid, read_replica)
         submission_data = SubmissionSerializer(submission).data
         cache.set(cache_key, submission_data)
     except Submission.DoesNotExist:
@@ -701,7 +711,7 @@ def get_latest_score_for_submission(submission_uuid, read_replica=False):
     """
     try:
         # Ensure that submission_uuid is valid before fetching score
-        submission_model = Submission.objects.get(uuid=submission_uuid)
+        submission_model = _get_submission_model(submission_uuid, read_replica)
         score_qs = Score.objects.filter(
             submission__uuid=submission_model.uuid
         ).order_by("-id").select_related("submission")
@@ -824,7 +834,7 @@ def set_score(submission_uuid, points_earned, points_possible,
 
     """
     try:
-        submission_model = Submission.objects.get(uuid=submission_uuid)
+        submission_model = _get_submission_model(submission_uuid)
     except Submission.DoesNotExist:
         raise SubmissionNotFoundError(
             u"No submission matching uuid {}".format(submission_uuid)

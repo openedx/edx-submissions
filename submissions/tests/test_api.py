@@ -9,7 +9,7 @@ from django.core.cache import cache
 from django.test import TestCase
 from freezegun import freeze_time
 from nose.tools import raises
-from mock import patch
+import mock
 import pytz
 
 from submissions import api as api
@@ -164,12 +164,45 @@ class TestSubmissionsApi(TestCase):
         with self.assertRaises(api.SubmissionNotFoundError):
             api.get_submission("deadbeef-1234-5678-9100-1234deadbeef")
 
-    @patch.object(Submission.objects, 'get')
+    @mock.patch.object(Submission.objects, 'get')
     @raises(api.SubmissionInternalError)
     def test_get_submission_deep_error(self, mock_get):
         # Test deep explosions are wrapped
         mock_get.side_effect = DatabaseError("Kaboom!")
         api.get_submission("000000000000000")
+
+    def test_get_old_submission(self):
+        # hack in an old-style submission, this can't be created with the ORM (EDUCATOR-1090)
+        with transaction.atomic():
+            student_item = StudentItem.objects.create()
+            connection.cursor().execute("""
+                INSERT INTO submissions_submission
+                    (id, uuid, attempt_number, submitted_at, created_at, raw_answer, student_item_id, status)
+                VALUES (
+                    {}, {}, {}, {}, {}, {}, {}, {}
+                );""".format(
+                    1,
+                    "\'deadbeef-1234-5678-9100-1234deadbeef\'",
+                    1,
+                    "\'2017-07-13 17:56:02.656129\'",
+                    "\'2017-07-13 17:56:02.656129\'",
+                    "\'{\"parts\":[{\"text\":\"raw answer text\"}]}\'",
+                    int(student_item.id),
+                    "\'A\'"
+                ), []
+            )
+
+        with mock.patch.object(
+            Submission.objects, 'raw',
+            wraps=Submission.objects.raw
+        ) as mock_raw:
+            _ = api.get_submission('deadbeef-1234-5678-9100-1234deadbeef')
+            self.assertEqual(1, mock_raw.call_count)
+
+            # On subsequent accesses we still get the submission, but raw() isn't needed
+            mock_raw.reset_mock()
+            _ = api.get_submission('deadbeef-1234-5678-9100-1234deadbeef')
+            self.assertEqual(0, mock_raw.call_count)
 
     def test_two_students(self):
         api.create_submission(STUDENT_ITEM, ANSWER_ONE)
@@ -221,7 +254,7 @@ class TestSubmissionsApi(TestCase):
         # Attempt number should be >= 0
         api.create_submission(STUDENT_ITEM, ANSWER_ONE, None, -1)
 
-    @patch.object(Submission.objects, 'filter')
+    @mock.patch.object(Submission.objects, 'filter')
     @raises(api.SubmissionInternalError)
     def test_error_on_submission_creation(self, mock_filter):
         mock_filter.side_effect = DatabaseError("Bad things happened")
@@ -247,7 +280,7 @@ class TestSubmissionsApi(TestCase):
         with self.assertRaises(api.SubmissionInternalError):
             api.get_submission_and_student(sub_model.uuid)
 
-    @patch.object(StudentItemSerializer, 'save')
+    @mock.patch.object(StudentItemSerializer, 'save')
     @raises(api.SubmissionInternalError)
     def test_create_student_item_validation(self, mock_save):
         mock_save.side_effect = DatabaseError("Bad things happened")
@@ -302,7 +335,7 @@ class TestSubmissionsApi(TestCase):
         self.assertFalse(ScoreAnnotation.objects.all().exists())
 
     @freeze_time(datetime.datetime.now())
-    @patch.object(score_set, 'send')
+    @mock.patch.object(score_set, 'send')
     def test_set_score_signal(self, send_mock):
         submission = api.create_submission(STUDENT_ITEM, ANSWER_ONE)
         api.set_score(submission['uuid'], 11, 12)
@@ -688,7 +721,7 @@ class TestSubmissionsApi(TestCase):
             read_replica=False
         )
 
-    @patch.object(ScoreSummary.objects, 'filter')
+    @mock.patch.object(ScoreSummary.objects, 'filter')
     @raises(api.SubmissionInternalError)
     def test_error_on_get_top_submissions_db_error(self, mock_filter):
         mock_filter.side_effect = DatabaseError("Bad things happened")
@@ -700,7 +733,7 @@ class TestSubmissionsApi(TestCase):
             read_replica=False
         )
 
-    @patch.object(ScoreSummary.objects, 'filter')
+    @mock.patch.object(ScoreSummary.objects, 'filter')
     @raises(api.SubmissionInternalError)
     def test_error_on_get_scores(self, mock_filter):
         mock_filter.side_effect = DatabaseError("Bad things happened")

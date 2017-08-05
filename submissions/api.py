@@ -204,9 +204,36 @@ def _get_submission_model(uuid, read_replica=False):
     submission_qs = Submission.objects
     if read_replica:
         submission_qs = _use_read_replica(submission_qs)
+    try:
+        submission = submission_qs.get(uuid=uuid)
+    except Submission.DoesNotExist:
+        try:
+            hyphenated_value = unicode(UUID(uuid))
+            query = """
+                SELECT
+                    `submissions_submission`.`id`,
+                    `submissions_submission`.`uuid`,
+                    `submissions_submission`.`student_item_id`,
+                    `submissions_submission`.`attempt_number`,
+                    `submissions_submission`.`submitted_at`,
+                    `submissions_submission`.`created_at`,
+                    `submissions_submission`.`raw_answer`,
+                    `submissions_submission`.`status`
+                FROM
+                    `submissions_submission`
+                WHERE (
+                    NOT (`submissions_submission`.`status` = 'D')
+                    AND `submissions_submission`.`uuid` = '{}'
+                )
+            """
+            query = query.replace("{}", hyphenated_value)
 
-    query_regex = "^{}$|^{}$".format(uuid, uuid.replace("-",""))
-    submission = submission_qs.get(uuid__regex=query_regex)
+            # We can use Submission.objects instead of the SoftDeletedManager, we'll include that logic manually
+            submission = Submission.objects.raw(query)[0]
+        except IndexError:
+            raise Submission.DoesNotExist()
+        # Avoid the extra hit next time
+        submission.save(update_fields=['uuid'])
     return submission
 
 

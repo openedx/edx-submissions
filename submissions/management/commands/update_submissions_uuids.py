@@ -14,10 +14,12 @@ import time
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.db.models import Max
 
 from submissions.models import Submission
 
 log = logging.getLogger(__name__)
+
 
 class Command(BaseCommand):
     """
@@ -35,16 +37,19 @@ class Command(BaseCommand):
         parser.add_argument(
             '--start', '-s',
             default=0,
+            type=int,
             help=u"The Submission.id at which to begin updating rows. 0 by default."
         )
         parser.add_argument(
             '--chunk', '-c',
             default=1000,
+            type=int,
             help=u"Batch size, how many rows to update in a given transaction. Default 1000.",
         )
         parser.add_argument(
             '--wait', '-w',
             default=2,
+            type=int,
             help=u"Wait time between transactions, in seconds. Default 2.",
         )
 
@@ -53,15 +58,17 @@ class Command(BaseCommand):
         By default, we're going to do this in chunks. This way, if there ends up being an error,
         we can check log messages and continue from that point after fixing the issue.
         """
-        total_len = Submission.objects.count()
-        log.info("Beginning uuid update, {} rows exist in total".format(total_len))
+        # Note that by taking last_id here, we're going to miss any submissions created *during* the command execution
+        # But that's okay! All new entries have already been created using the new style, no acion needed there
+        last_id = Submission._objects.all().aggregate(Max('id'))['id__max']
+        log.info("Beginning uuid update")
 
-        current = options['start'];
-        while current < total_len:
-            end_chunk = current + options['chunk'] if total_len - options['chunk'] >= current else total_len
-            log.info("Updating entries in range [{}, {})".format(current, end_chunk))
+        current = options['start']
+        while current < last_id:
+            end_chunk = current + options['chunk'] if last_id - options['chunk'] >= current else last_id
+            log.info("Updating entries in range [{}, {}]".format(current, end_chunk))
             with transaction.atomic():
-                for submission in Submission.objects.filter(id__gte=current, id__lt=end_chunk).iterator():
+                for submission in Submission._objects.filter(id__gte=current, id__lte=end_chunk).iterator():
                     submission.save(update_fields=['uuid'])
             time.sleep(options['wait'])
-            current = current + options['chunk']
+            current = end_chunk + 1

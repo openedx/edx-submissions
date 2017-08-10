@@ -140,6 +140,7 @@ class Submission(models.Model):
             return super(Submission.SoftDeletedManager, self).get_queryset().exclude(status=Submission.DELETED)
 
     objects = SoftDeletedManager()
+    _objects = models.Manager()  # Don't use this unless you know and can explain why objects doesn't work for you
 
     @staticmethod
     def get_cache_key(sub_uuid):

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from setuptools import setup
+from submissions import __version__ as VERSION
 
 def is_requirement(line):
     """
@@ -33,7 +34,7 @@ def load_requirements(*requirements_paths):
 
 setup(
     name='edx-submissions',
-    version='2.0.11',
+    version=VERSION,
     author='edX',
     description='An API for creating submissions and scores.',
     url='http://github.com/edx/edx-submissions.git',

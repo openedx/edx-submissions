@@ -12,7 +12,6 @@ from uuid import UUID
 from django.conf import settings
 from django.core.cache import cache
 from django.db import IntegrityError, DatabaseError
-from dogapi import dog_stats_api
 
 from submissions.serializers import (
     SubmissionSerializer, StudentItemSerializer, ScoreSerializer, UnannotatedScoreSerializer
@@ -941,21 +940,6 @@ def _log_submission(submission, student_item):
             anonymous_student_id=student_item["student_id"]
         )
     )
-    tags = [
-        u"course_id:{course_id}".format(course_id=student_item['course_id']),
-        u"item_id:{item_id}".format(item_id=student_item['item_id']),
-        u"item_type:{item_type}".format(item_type=student_item['item_type']),
-    ]
-    dog_stats_api.increment('submissions.submission.count', tags=tags)
-
-    # Submission answer is a JSON serializable, so we need to serialize it to measure its size in bytes
-    try:
-        answer_size = len(json.dumps(submission['answer']))
-    except (ValueError, TypeError):
-        msg = u"Could not serialize submission answer to calculate its length: {}".format(submission['answer'])
-        logger.exception(msg)
-    else:
-        dog_stats_api.histogram('submissions.submission.size', answer_size, tags=tags)
 
 
 def _log_score(score):
@@ -972,28 +956,6 @@ def _log_score(score):
         "Score of ({}/{}) set for submission {}"
         .format(score.points_earned, score.points_possible, score.submission.uuid)
     )
-    tags = [
-        u"course_id:{course_id}".format(course_id=score.student_item.course_id),
-        u"item_id:{item_id}".format(item_id=score.student_item.item_id),
-        u"item_type:{item_type}".format(item_type=score.student_item.item_type),
-    ]
-
-    time_delta = score.created_at - score.submission.created_at
-    dog_stats_api.histogram(
-        'submissions.score.seconds_since_submission',
-        time_delta.total_seconds(),
-        tags=tags
-    )
-
-    score_percentage = score.to_float()
-    if score_percentage is not None:
-        dog_stats_api.histogram(
-            'submissions.score.score_percentage',
-            score_percentage,
-            tags=tags
-        )
-
-    dog_stats_api.increment('submissions.score.count', tags=tags)
 
 
 def _get_or_create_student_item(student_item_dict):

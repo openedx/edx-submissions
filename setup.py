@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+import os
+import sys
+
 from setuptools import setup
 from submissions import __version__ as VERSION
 
@@ -31,6 +34,12 @@ def load_requirements(*requirements_paths):
             if is_requirement(line)
         )
     return list(requirements)
+
+if sys.argv[-1] == 'tag':
+    print("Tagging the version on github:")
+    os.system("git tag -a %s -m 'version %s'" % (VERSION, VERSION))
+    os.system("git push --tags")
+    sys.exit()
 
 setup(
     name='edx-submissions',

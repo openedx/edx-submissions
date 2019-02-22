@@ -2,6 +2,7 @@
 Test reset scores.
 """
 
+from __future__ import absolute_import
 import copy
 from mock import patch
 from datetime import datetime

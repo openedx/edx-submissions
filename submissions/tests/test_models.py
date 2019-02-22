@@ -2,6 +2,7 @@
 Tests for submission models.
 """
 
+from __future__ import absolute_import
 from django.test import TestCase
 from submissions.models import Submission, Score, ScoreSummary, StudentItem
 

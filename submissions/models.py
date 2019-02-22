@@ -9,6 +9,7 @@ need to then generate a matching migration for it using:
     ./manage.py makemigrations submissions
 
 """
+from __future__ import absolute_import
 import logging
 from uuid import uuid4
 
@@ -17,6 +18,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver, Signal
 from django.utils.timezone import now
 from jsonfield import JSONField
+import six
 
 
 logger = logging.getLogger(__name__)
@@ -197,7 +199,7 @@ class Score(models.Model):
 
         """
         if self.submission is not None:
-            return unicode(self.submission.uuid)
+            return six.text_type(self.submission.uuid)
         else:
             return None
 

@@ -1,4 +1,4 @@
-ddt==1.2.0
+ddt==0.8.0
 django-nose==1.4.6
 freezegun==0.3.11
 mock==2.0.0

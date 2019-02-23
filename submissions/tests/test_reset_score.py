@@ -188,7 +188,7 @@ class TestResetScore(TestCase):
 
         # Verify that the send method was properly called
         send_mock.assert_called_with(
-            sender = None,
+            sender=None,
             anonymous_user_id=self.STUDENT_ITEM['student_id'],
             course_id=self.STUDENT_ITEM['course_id'],
             item_id=self.STUDENT_ITEM['item_id'],

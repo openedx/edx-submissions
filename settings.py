@@ -3,6 +3,10 @@ Settings for the submissions app.
 """
 
 from __future__ import absolute_import
+import warnings
+from django.core.cache import CacheKeyWarning
+from django.utils.crypto import get_random_string
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -34,13 +38,10 @@ ROOT_URLCONF = 'urls'
 SITE_ID = 1
 USE_TZ = True
 
-from django.utils.crypto import get_random_string
 SECRET_KEY = get_random_string(50, 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)')
 
 # Silence cache key warnings
 # https://docs.djangoproject.com/en/1.4/topics/cache/#cache-key-warnings
-import warnings
-from django.core.cache import CacheKeyWarning
 warnings.simplefilter("ignore", CacheKeyWarning)
 
 INSTALLED_APPS = (

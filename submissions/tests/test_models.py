@@ -33,7 +33,6 @@ class TestScoreSummary(TestCase):
         latest_score = ScoreSummary.objects.get(student_item=item).latest
         self.assertEqual(second_score, latest_score)
 
-
     def test_highest(self):
         item = StudentItem.objects.create(
             student_id="score_test_student",

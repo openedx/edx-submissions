@@ -7,6 +7,7 @@ import sys
 from setuptools import setup
 from submissions import __version__ as VERSION
 
+
 def is_requirement(line):
     """
     Return True if the requirement line is a package requirement;
@@ -24,6 +25,7 @@ def is_requirement(line):
         line.startswith('git+')
     )
 
+
 def load_requirements(*requirements_paths):
     """
     Load all requirements from the specified requirements files.
@@ -36,6 +38,7 @@ def load_requirements(*requirements_paths):
             if is_requirement(line)
         )
     return list(requirements)
+
 
 if sys.argv[-1] == 'tag':
     print("Tagging the version on github:")

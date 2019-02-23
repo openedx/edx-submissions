@@ -331,7 +331,7 @@ def get_submission_and_student(uuid, read_replica=False):
     cache_key = "submissions.student_item.{}".format(submission['student_item'])
     try:
         cached_student_item = cache.get(cache_key)
-    except:
+    except Exception:
         # The cache backend could raise an exception
         # (for example, memcache keys that contain spaces)
         logger.exception("Error occurred while retrieving student item from the cache")

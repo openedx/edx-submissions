@@ -22,6 +22,7 @@ def _mock_use_read_replica(queryset):
         else queryset
     )
 
+
 class ReadReplicaTest(TransactionTestCase):
     """ Test queries that use the read replica. """
     STUDENT_ITEM = {

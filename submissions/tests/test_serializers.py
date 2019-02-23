@@ -30,7 +30,6 @@ class ScoreSerializerTest(TestCase):
             points_possible=6,
         )
 
-
     def test_score_with_null_submission(self):
         # Create a score with a null submission
         null_sub_score = Score.objects.create(

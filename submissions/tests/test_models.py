@@ -2,6 +2,7 @@
 Tests for submission models.
 """
 
+from __future__ import absolute_import
 from django.test import TestCase
 from submissions.models import Submission, Score, ScoreSummary, StudentItem
 
@@ -31,7 +32,6 @@ class TestScoreSummary(TestCase):
         )
         latest_score = ScoreSummary.objects.get(student_item=item).latest
         self.assertEqual(second_score, latest_score)
-
 
     def test_highest(self):
         item = StudentItem.objects.create(

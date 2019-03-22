@@ -2,6 +2,7 @@
 Serializers are created to ensure models do not have to be accessed outside the
 scope of the submissions API.
 """
+from __future__ import absolute_import
 import json
 
 from rest_framework import serializers

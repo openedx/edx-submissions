@@ -1,6 +1,7 @@
 """
 Test API calls using the read replica.
 """
+from __future__ import absolute_import
 import copy
 
 from django.conf import settings
@@ -20,6 +21,7 @@ def _mock_use_read_replica(queryset):
         if 'read_replica' in settings.DATABASES
         else queryset
     )
+
 
 class ReadReplicaTest(TransactionTestCase):
     """ Test queries that use the read replica. """

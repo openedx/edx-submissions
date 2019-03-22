@@ -2,6 +2,7 @@
 Public interface for the submissions app.
 
 """
+from __future__ import absolute_import
 import copy
 import itertools
 import logging
@@ -17,6 +18,7 @@ from submissions.serializers import (
     SubmissionSerializer, StudentItemSerializer, ScoreSerializer, UnannotatedScoreSerializer
 )
 from submissions.models import Submission, StudentItem, Score, ScoreSummary, ScoreAnnotation, score_set, score_reset
+import six
 
 logger = logging.getLogger("submissions.api")
 
@@ -207,7 +209,7 @@ def _get_submission_model(uuid, read_replica=False):
         submission = submission_qs.get(uuid=uuid)
     except Submission.DoesNotExist:
         try:
-            hyphenated_value = unicode(UUID(uuid))
+            hyphenated_value = six.text_type(UUID(uuid))
             query = """
                 SELECT
                     `submissions_submission`.`id`,
@@ -262,9 +264,9 @@ def get_submission(submission_uuid, read_replica=False):
         }
 
     """
-    if not isinstance(submission_uuid, basestring):
+    if not isinstance(submission_uuid, six.string_types):
         if isinstance(submission_uuid, UUID):
-            submission_uuid = unicode(submission_uuid)
+            submission_uuid = six.text_type(submission_uuid)
         else:
             raise SubmissionRequestError(
                 msg="submission_uuid ({!r}) must be serializable".format(submission_uuid)
@@ -329,7 +331,7 @@ def get_submission_and_student(uuid, read_replica=False):
     cache_key = "submissions.student_item.{}".format(submission['student_item'])
     try:
         cached_student_item = cache.get(cache_key)
-    except:
+    except Exception:
         # The cache backend could raise an exception
         # (for example, memcache keys that contain spaces)
         logger.exception("Error occurred while retrieving student item from the cache")

@@ -1,6 +1,7 @@
 """
 Tests for submissions serializers.
 """
+from __future__ import absolute_import
 import ddt
 from django.test import TestCase
 from submissions.models import Score, ScoreAnnotation, StudentItem, Submission
@@ -28,7 +29,6 @@ class ScoreSerializerTest(TestCase):
             points_earned=2,
             points_possible=6,
         )
-
 
     def test_score_with_null_submission(self):
         # Create a score with a null submission

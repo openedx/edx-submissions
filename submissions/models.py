@@ -84,7 +84,7 @@ class StudentItem(models.Model):
         return u"({0.student_id}, {0.course_id}, {0.item_type}, {0.item_id})".format(self)
 
     class Meta:
-        app_label = "submissions"
+        app_label = u"submissions"
         unique_together = (
             # For integrity reasons, and looking up all of a student's items
             ("course_id", "student_id", "item_id"),
@@ -128,11 +128,11 @@ class Submission(models.Model):
 
     # Has this submission been soft-deleted? This allows instructors to reset student
     # state on an item, while preserving the previous value for potential analytics use.
-    DELETED = 'D'
-    ACTIVE = 'A'
+    DELETED = u'D'
+    ACTIVE = u'A'
     STATUS_CHOICES = (
-        (DELETED, 'Deleted'),
-        (ACTIVE, 'Active'),
+        (DELETED, u'Deleted'),
+        (ACTIVE, u'Active'),
     )
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=ACTIVE)
 
@@ -146,7 +146,7 @@ class Submission(models.Model):
 
     @staticmethod
     def get_cache_key(sub_uuid):
-        return "submissions.submission.{}".format(sub_uuid)
+        return u"submissions.submission.{}".format(sub_uuid)
 
     def __repr__(self):
         return repr(dict(
@@ -162,7 +162,7 @@ class Submission(models.Model):
         return u"Submission {}".format(self.uuid)
 
     class Meta:
-        app_label = "submissions"
+        app_label = u"submissions"
         ordering = ["-submitted_at", "-id"]
 
 
@@ -184,7 +184,7 @@ class Score(models.Model):
     reset = models.BooleanField(default=False)
 
     class Meta:
-        app_label = "submissions"
+        app_label = u"submissions"
 
     @property
     def submission_uuid(self):
@@ -275,12 +275,12 @@ class ScoreSummary(models.Model):
     """Running store of the highest and most recent Scores for a StudentItem."""
     student_item = models.OneToOneField(StudentItem)
 
-    highest = models.ForeignKey(Score, related_name="+")
-    latest = models.ForeignKey(Score, related_name="+")
+    highest = models.ForeignKey(Score, related_name=u"+")
+    latest = models.ForeignKey(Score, related_name=u"+")
 
     class Meta:
-        app_label = "submissions"
-        verbose_name_plural = "Score Summaries"
+        app_label = u"submissions"
+        verbose_name_plural = u"Score Summaries"
 
     @receiver(post_save, sender=Score)
     def update_score_summary(sender, **kwargs):
@@ -327,7 +327,7 @@ class ScoreAnnotation(models.Model):
     """ Annotate individual scores with extra information if necessary. """
 
     class Meta:
-        app_label = "submissions"
+        app_label = u"submissions"
 
     score = models.ForeignKey(Score)
     # A string that will represent the 'type' of annotation,

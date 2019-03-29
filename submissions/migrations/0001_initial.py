@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
                 ('attempt_number', models.PositiveIntegerField()),
                 ('submitted_at', models.DateTimeField(default=django.utils.timezone.now, db_index=True)),
                 ('created_at', models.DateTimeField(default=django.utils.timezone.now, editable=False, db_index=True)),
-                ('answer', jsonfield.fields.JSONField(db_column=b'raw_answer', blank=True)),
+                ('answer', jsonfield.fields.JSONField(db_column='raw_answer', blank=True)),
                 ('student_item', models.ForeignKey(to='submissions.StudentItem')),
             ],
             options={

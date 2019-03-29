@@ -8,6 +8,7 @@ import ddt
 from django.db import DatabaseError, connection, transaction
 from django.core.cache import cache
 from django.test import TestCase
+from django.utils.timezone import now
 from freezegun import freeze_time
 from nose.tools import raises
 import mock
@@ -263,7 +264,7 @@ class TestSubmissionsApi(TestCase):
 
     def test_create_non_json_answer(self):
         with self.assertRaises(api.SubmissionRequestError):
-            api.create_submission(STUDENT_ITEM, datetime.datetime.now())
+            api.create_submission(STUDENT_ITEM, now())
 
     def test_load_non_json_answer(self):
         submission = api.create_submission(STUDENT_ITEM, ANSWER_ONE)
@@ -335,7 +336,7 @@ class TestSubmissionsApi(TestCase):
         self._assert_score(score, 11, 12)
         self.assertFalse(ScoreAnnotation.objects.all().exists())
 
-    @freeze_time(datetime.datetime.now())
+    @freeze_time(now())
     @mock.patch.object(score_set, 'send')
     def test_set_score_signal(self, send_mock):
         submission = api.create_submission(STUDENT_ITEM, ANSWER_ONE)
@@ -349,7 +350,7 @@ class TestSubmissionsApi(TestCase):
             anonymous_user_id=STUDENT_ITEM['student_id'],
             course_id=STUDENT_ITEM['course_id'],
             item_id=STUDENT_ITEM['item_id'],
-            created_at=datetime.datetime.now().replace(tzinfo=pytz.UTC),
+            created_at=now(),
         )
 
     @ddt.data(u"First score was incorrect", u"☃")
@@ -396,7 +397,7 @@ class TestSubmissionsApi(TestCase):
         student_item['student_id'] = None
         self.assertIs(api.get_score(student_item), None)
 
-    @freeze_time(datetime.datetime.now().replace(tzinfo=pytz.UTC))
+    @freeze_time(now())
     def test_get_scores(self):
         student_item = copy.deepcopy(STUDENT_ITEM)
         student_item["course_id"] = "get_scores_course"
@@ -426,7 +427,7 @@ class TestSubmissionsApi(TestCase):
             scores,
             {
                 u'i4x://a/b/c/s1': {
-                    'created_at': datetime.datetime.now(),
+                    'created_at': now(),
                     'points_earned': 2,
                     'points_possible': 5,
                     'student_item': 1,
@@ -434,7 +435,7 @@ class TestSubmissionsApi(TestCase):
                     'submission_uuid': s1['uuid'],
                 },
                 u'i4x://a/b/c/s2': {
-                    'created_at': datetime.datetime.now(),
+                    'created_at': now(),
                     'points_earned': 0,
                     'points_possible': 10,
                     'student_item': 2,
@@ -442,7 +443,7 @@ class TestSubmissionsApi(TestCase):
                     'submission_uuid': s2['uuid'],
                 },
                 u'i4x://a/b/c/s3': {
-                    'created_at': datetime.datetime.now(),
+                    'created_at': now(),
                     'points_earned': 4,
                     'points_possible': 4,
                     'student_item': 3,

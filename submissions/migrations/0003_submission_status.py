@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='submission',
             name='status',
-            field=models.CharField(default=b'A', max_length=1, choices=[(b'D', b'Deleted'), (b'A', b'Active')]),
+            field=models.CharField(default='A', max_length=1, choices=[('D', 'Deleted'), ('A', 'Active')]),
         ),
     ]

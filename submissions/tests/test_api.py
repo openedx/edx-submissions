@@ -68,7 +68,7 @@ class TestSubmissionsApi(TestCase):
 
         # Retrieve the submission by its uuid
         retrieved = api.get_submission_and_student(submission['uuid'])
-        self.assertItemsEqual(submission, retrieved)
+        self.assertCountEqual(submission, retrieved)
 
         # Should raise an exception if the student item does not exist
         with self.assertRaises(api.SubmissionNotFoundError):

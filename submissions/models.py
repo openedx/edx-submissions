@@ -305,9 +305,16 @@ class ScoreSummary(models.Model):
             if score.reset:
                 score_summary.highest = score
             # The conversion to a float may return None if points possible is zero
-            # In Python, None is always less than an integer, so any score
-            # with non-null points possible will take precedence.
-            elif score.to_float() > score_summary.highest.to_float():
+            elif score_summary.highest.to_float() is None and score.to_float() is not None:
+                # Any score with non-null points possible will take precedence if the current
+                # highest score is None
+                score_summary.highest = score
+            elif (
+                score.to_float() is not None and
+                score_summary.highest.to_float() is not None and
+                score.to_float() > score_summary.highest.to_float()
+            ):
+                # If both scores are non-null we can do a normal comparison
                 score_summary.highest = score
             score_summary.save()
         except ScoreSummary.DoesNotExist:

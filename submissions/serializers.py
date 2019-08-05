@@ -3,11 +3,12 @@ Serializers are created to ensure models do not have to be accessed outside the
 scope of the submissions API.
 """
 from __future__ import absolute_import
+
 import json
 
 from rest_framework import serializers
-from rest_framework.fields import Field, DateTimeField, IntegerField
-from submissions.models import StudentItem, Submission, Score, ScoreAnnotation
+from rest_framework.fields import DateTimeField, Field, IntegerField
+from submissions.models import Score, ScoreAnnotation, StudentItem, Submission
 
 
 class RawField(Field):

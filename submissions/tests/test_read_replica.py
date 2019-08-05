@@ -2,12 +2,13 @@
 Test API calls using the read replica.
 """
 from __future__ import absolute_import
+
 import copy
 
 from django.conf import settings
 from django.test import TransactionTestCase
-import mock
 
+import mock
 from submissions import api as sub_api
 
 

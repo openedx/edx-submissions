@@ -10,16 +10,17 @@ need to then generate a matching migration for it using:
 
 """
 from __future__ import absolute_import
+
 import logging
 from uuid import uuid4
 
-from django.db import models, DatabaseError
+from django.db import DatabaseError, models
 from django.db.models.signals import post_save
-from django.dispatch import receiver, Signal
+from django.dispatch import Signal, receiver
 from django.utils.timezone import now
 from jsonfield import JSONField
-import six
 
+import six
 
 logger = logging.getLogger(__name__)
 

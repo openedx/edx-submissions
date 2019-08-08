@@ -3,8 +3,10 @@ Tests for submission models.
 """
 
 from __future__ import absolute_import
+
 from django.test import TestCase
-from submissions.models import Submission, Score, ScoreSummary, StudentItem
+
+from submissions.models import Score, ScoreSummary, StudentItem, Submission
 
 
 class TestScoreSummary(TestCase):

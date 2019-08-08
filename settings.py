@@ -3,7 +3,9 @@ Settings for the submissions app.
 """
 
 from __future__ import absolute_import
+
 import warnings
+
 from django.core.cache import CacheKeyWarning
 from django.utils.crypto import get_random_string
 

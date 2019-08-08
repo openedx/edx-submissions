@@ -1,8 +1,10 @@
 from __future__ import absolute_import
-import logging
-from django.contrib.auth.decorators import login_required
 
+import logging
+
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render_to_response
+
 from submissions.api import SubmissionRequestError, get_submissions
 
 log = logging.getLogger(__name__)

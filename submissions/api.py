@@ -3,22 +3,25 @@ Public interface for the submissions app.
 
 """
 from __future__ import absolute_import
+
 import copy
 import itertools
+import json
 import logging
 import operator
-import json
 from uuid import UUID
 
 from django.conf import settings
 from django.core.cache import cache
-from django.db import IntegrityError, DatabaseError
+from django.db import DatabaseError, IntegrityError
 
-from submissions.serializers import (
-    SubmissionSerializer, StudentItemSerializer, ScoreSerializer, UnannotatedScoreSerializer
-)
-from submissions.models import Submission, StudentItem, Score, ScoreSummary, ScoreAnnotation, score_set, score_reset
 import six
+from submissions.models import (Score, ScoreAnnotation, ScoreSummary,
+                                StudentItem, Submission, score_reset,
+                                score_set)
+from submissions.serializers import (ScoreSerializer, StudentItemSerializer,
+                                     SubmissionSerializer,
+                                     UnannotatedScoreSerializer)
 
 logger = logging.getLogger("submissions.api")
 

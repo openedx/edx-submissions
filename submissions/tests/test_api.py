@@ -1,21 +1,23 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
-import datetime
-import copy
 
-import ddt
-from django.db import DatabaseError, connection, transaction
+import copy
+import datetime
+
+import pytz
 from django.core.cache import cache
+from django.db import DatabaseError, connection, transaction
 from django.test import TestCase
 from django.utils.timezone import now
+
+import ddt
+import mock
 from freezegun import freeze_time
 from nose.tools import raises
-import mock
-import pytz
-
 from submissions import api as api
-from submissions.models import ScoreSummary, ScoreAnnotation, Submission, StudentItem, score_set
+from submissions.models import (ScoreAnnotation, ScoreSummary, StudentItem,
+                                Submission, score_set)
 from submissions.serializers import StudentItemSerializer
 
 STUDENT_ITEM = dict(

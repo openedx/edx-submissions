@@ -20,7 +20,7 @@ class TestScoreSummary(TestCase):
             course_id="score_test_course",
             item_id="i4x://mycourse/class_participation.section_attendance"
         )
-        first_score = Score.objects.create(
+        Score.objects.create(
             student_item=item,
             submission=None,
             points_earned=8,

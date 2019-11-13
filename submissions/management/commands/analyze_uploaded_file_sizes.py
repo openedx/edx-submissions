@@ -68,7 +68,7 @@ class Command(BaseCommand):
             help=u"The most recent day to include in the report. Defaults to today."
         )
 
-    # pylint: disable=arguments-differ, unused-argument
+    # pylint: disable=arguments-differ
     def handle(self, min_date, max_date, *args, **options):
         """
         Analyze ORA file upload submissions and and print tab-limited report

@@ -9,18 +9,18 @@ need to then generate a matching migration for it using:
     ./manage.py makemigrations submissions
 
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import logging
 from uuid import uuid4
 
+import six
 from django.db import DatabaseError, models
 from django.db.models.signals import post_save
 from django.dispatch import Signal, receiver
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timezone import now
 from jsonfield import JSONField
-
-import six
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +53,7 @@ class AnonymizedUserIDField(models.CharField):
         return name, path, args, kwargs
 
 
+@python_2_unicode_compatible
 class StudentItem(models.Model):
     """Represents a single item for a single course for a single user.
 
@@ -81,7 +82,7 @@ class StudentItem(models.Model):
             item_type=self.item_type,
         ))
 
-    def __unicode__(self):
+    def __str__(self):
         return u"({0.student_id}, {0.course_id}, {0.item_type}, {0.item_id})".format(self)
 
     class Meta:
@@ -92,6 +93,7 @@ class StudentItem(models.Model):
         )
 
 
+@python_2_unicode_compatible
 class Submission(models.Model):
     """A single response by a student for a given problem in a given course.
 
@@ -106,7 +108,7 @@ class Submission(models.Model):
 
     uuid = models.UUIDField(db_index=True, default=uuid4)
 
-    student_item = models.ForeignKey(StudentItem)
+    student_item = models.ForeignKey(StudentItem, on_delete=models.CASCADE)
 
     # Which attempt is this? Consecutive Submissions do not necessarily have
     # increasing attempt_number entries -- e.g. re-scoring a buggy problem.
@@ -159,7 +161,7 @@ class Submission(models.Model):
             answer=self.answer,
         ))
 
-    def __unicode__(self):
+    def __str__(self):
         return u"Submission {}".format(self.uuid)
 
     class Meta:
@@ -167,6 +169,7 @@ class Submission(models.Model):
         ordering = ["-submitted_at", "-id"]
 
 
+@python_2_unicode_compatible
 class Score(models.Model):
     """What the user scored for a given StudentItem at a given time.
 
@@ -175,8 +178,8 @@ class Score(models.Model):
     the courseware (like "class participation"), there would be no corresponding
     Submission.
     """
-    student_item = models.ForeignKey(StudentItem)
-    submission = models.ForeignKey(Submission, null=True)
+    student_item = models.ForeignKey(StudentItem, on_delete=models.CASCADE)
+    submission = models.ForeignKey(Submission, null=True, on_delete=models.CASCADE)
     points_earned = models.PositiveIntegerField(default=0)
     points_possible = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(editable=False, default=now, db_index=True)
@@ -268,23 +271,23 @@ class Score(models.Model):
             reset=True,
         )
 
-    def __unicode__(self):
+    def __str__(self):
         return u"{0.points_earned}/{0.points_possible}".format(self)
 
 
 class ScoreSummary(models.Model):
     """Running store of the highest and most recent Scores for a StudentItem."""
-    student_item = models.OneToOneField(StudentItem)
+    student_item = models.OneToOneField(StudentItem, on_delete=models.CASCADE)
 
-    highest = models.ForeignKey(Score, related_name=u"+")
-    latest = models.ForeignKey(Score, related_name=u"+")
+    highest = models.ForeignKey(Score, related_name=u"+", on_delete=models.CASCADE)
+    latest = models.ForeignKey(Score, related_name=u"+", on_delete=models.CASCADE)
 
     class Meta:
         app_label = u"submissions"
         verbose_name_plural = u"Score Summaries"
 
     @receiver(post_save, sender=Score)
-    def update_score_summary(sender, **kwargs):
+    def update_score_summary(sender, **kwargs):  # pylint: disable=no-self-argument
         """
         Listen for new Scores and update the relevant ScoreSummary.
 
@@ -324,7 +327,7 @@ class ScoreSummary(models.Model):
                 highest=score,
                 latest=score,
             )
-        except DatabaseError as err:
+        except DatabaseError:
             logger.exception(
                 u"Error while updating score summary for student item {}"
                 .format(score.student_item)
@@ -337,7 +340,7 @@ class ScoreAnnotation(models.Model):
     class Meta:
         app_label = u"submissions"
 
-    score = models.ForeignKey(Score)
+    score = models.ForeignKey(Score, on_delete=models.CASCADE)
     # A string that will represent the 'type' of annotation,
     # e.g. staff_override, etc.
     annotation_type = models.CharField(max_length=255, blank=False, db_index=True)

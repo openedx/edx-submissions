@@ -1,13 +1,13 @@
+""" Submissions Admin Views. """
 from __future__ import absolute_import
 
 from django.contrib import admin
-from django.core.urlresolvers import reverse
-from django.utils import html
+from django.urls import reverse
 
 from submissions.models import Score, ScoreSummary, StudentItem, Submission
 
 
-class StudentItemAdminMixin(object):
+class StudentItemAdminMixin(object):  # pylint: disable=useless-object-inheritance
     """Mix this class into anything that has a student_item fkey."""
     search_fields = (
         'student_item__course_id',
@@ -29,6 +29,7 @@ class StudentItemAdminMixin(object):
     student_id.admin_order_field = 'student_item__student_id'
 
     def student_item_id(self, obj):
+        """ Formated student item id. """
         url = reverse(
             'admin:submissions_studentitem_change',
             args=[obj.student_item.id]
@@ -47,6 +48,7 @@ class StudentItemAdmin(admin.ModelAdmin):
 
 
 class SubmissionAdmin(admin.ModelAdmin, StudentItemAdminMixin):
+    """ Student Submission Admin View. """
     list_display = (
         'id', 'uuid',
         'course_id', 'item_id', 'student_id', 'student_item_id',
@@ -76,6 +78,7 @@ class SubmissionAdmin(admin.ModelAdmin, StudentItemAdminMixin):
 
 
 class ScoreAdmin(admin.ModelAdmin, StudentItemAdminMixin):
+    """ Student Score Admin View. """
     list_display = (
         'id',
         'course_id', 'item_id', 'student_id', 'student_item_id',
@@ -97,6 +100,7 @@ class ScoreAdmin(admin.ModelAdmin, StudentItemAdminMixin):
 
 
 class ScoreSummaryAdmin(admin.ModelAdmin, StudentItemAdminMixin):
+    """ Student Score Summary Admin View. """
     list_display = (
         'id',
         'course_id', 'item_id', 'student_id', 'student_item_id',

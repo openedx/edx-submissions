@@ -26,8 +26,8 @@ class Migration(migrations.Migration):
             name='ScoreSummary',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('highest', models.ForeignKey(related_name='+', to='submissions.Score')),
-                ('latest', models.ForeignKey(related_name='+', to='submissions.Score')),
+                ('highest', models.ForeignKey(related_name='+', to='submissions.Score', on_delete=models.CASCADE)),
+                ('latest', models.ForeignKey(related_name='+', to='submissions.Score', on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name_plural': 'Score Summaries',
@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
                 ('submitted_at', models.DateTimeField(default=django.utils.timezone.now, db_index=True)),
                 ('created_at', models.DateTimeField(default=django.utils.timezone.now, editable=False, db_index=True)),
                 ('answer', jsonfield.fields.JSONField(db_column='raw_answer', blank=True)),
-                ('student_item', models.ForeignKey(to='submissions.StudentItem')),
+                ('student_item', models.ForeignKey(to='submissions.StudentItem', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['-submitted_at', '-id'],
@@ -65,16 +65,16 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='scoresummary',
             name='student_item',
-            field=models.OneToOneField(to='submissions.StudentItem'),
+            field=models.OneToOneField(to='submissions.StudentItem', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='score',
             name='student_item',
-            field=models.ForeignKey(to='submissions.StudentItem'),
+            field=models.ForeignKey(to='submissions.StudentItem', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='score',
             name='submission',
-            field=models.ForeignKey(to='submissions.Submission', null=True),
+            field=models.ForeignKey(to='submissions.Submission', null=True, on_delete=models.CASCADE),
         ),
     ]

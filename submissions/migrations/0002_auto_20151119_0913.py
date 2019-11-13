@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('annotation_type', models.CharField(max_length=255, db_index=True)),
                 ('creator', submissions.models.AnonymizedUserIDField()),
                 ('reason', models.TextField()),
-                ('score', models.ForeignKey(to='submissions.Score')),
+                ('score', models.ForeignKey(to='submissions.Score', on_delete=models.CASCADE)),
             ],
         ),
         migrations.AlterField(

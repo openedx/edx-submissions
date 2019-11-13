@@ -55,3 +55,6 @@ submissions_test_db
 docs/_build/
 
 venvs
+
+# Requirements tmp file
+test.txt.tmp

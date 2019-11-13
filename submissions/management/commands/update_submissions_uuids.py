@@ -62,6 +62,7 @@ class Command(BaseCommand):
         """
         # Note that by taking last_id here, we're going to miss any submissions created *during* the command execution
         # But that's okay! All new entries have already been created using the new style, no acion needed there
+        # pylint: disable=protected-access
         last_id = Submission._objects.all().aggregate(Max('id'))['id__max']
         log.info("Beginning uuid update")
 
@@ -70,6 +71,7 @@ class Command(BaseCommand):
             end_chunk = current + options['chunk'] if last_id - options['chunk'] >= current else last_id
             log.info("Updating entries in range [{}, {}]".format(current, end_chunk))
             with transaction.atomic():
+                # pylint: disable=protected-access
                 for submission in Submission._objects.filter(id__gte=current, id__lte=end_chunk).iterator():
                     submission.save(update_fields=['uuid'])
             time.sleep(options['wait'])

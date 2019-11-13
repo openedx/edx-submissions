@@ -7,15 +7,14 @@ from __future__ import absolute_import
 import copy
 from datetime import datetime
 
+import ddt
 import pytz
 from django.core.cache import cache
 from django.db import DatabaseError
-from django.dispatch import Signal
 from django.test import TestCase
-
-import ddt
 from freezegun import freeze_time
 from mock import patch
+
 from submissions import api as sub_api
 from submissions.models import Score, score_reset
 
@@ -37,6 +36,7 @@ class TestResetScore(TestCase):
         """
         Clear the cache.
         """
+        super(TestResetScore, self).setUp()
         cache.clear()
 
     def test_reset_with_no_scores(self):

@@ -1,0 +1,19 @@
+-c constraints.txt
+
+-r base.txt
+
+-r docs.txt
+
+ddt
+django-nose
+edx-lint
+factory_boy>=2.8.1
+freezegun>=0.3.11
+isort
+mock
+nose
+pycodestyle>=2.5.0
+pytest-cov
+pytest-django
+python-dateutil>=2.8.0 
+tox>=3.7.0

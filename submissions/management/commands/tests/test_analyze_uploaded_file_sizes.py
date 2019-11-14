@@ -21,6 +21,7 @@ import contextlib
 
 @contextlib.contextmanager
 def capture():
+    """ Context manager to capture stdout and stderr """
     oldout, olderr = sys.stdout, sys.stderr
     try:
         out = [StringIO(), StringIO()]
@@ -35,6 +36,7 @@ def capture():
 class BaseMixin(object):
 
     def assert_command_output(self, expected_output, start_date=None, end_date=None):
+        """ Run the management command and assert the output """
         with capture() as out:
             if not start_date and not end_date:
                 call_command(Command())
@@ -44,7 +46,10 @@ class BaseMixin(object):
         self.assertDictEqual(result, expected_output)
 
     def parse_output(self, out):
-        # import pdb; pdb.set_trace()
+        """ 
+        Read captured stdout and parse tab limited output table into a dict
+        Returns: (<parsed_table>, <list of any lines before the table>)
+        """ 
         lines = out[0].splitlines()
         header_index = lines.index(HEADER)
         preamble = lines[:header_index]
@@ -65,6 +70,9 @@ class BaseMixin(object):
             same_course=False,
             time_delta=None,
     ):
+        """
+        Creates a new Submission, copying certain fields from the 'base'
+        """
         kwargs = {}
         if same_user:
             kwargs['student_id'] = submission.student_item.student_id
@@ -97,9 +105,7 @@ class TestOutput(BaseMixin, TestCase):
         submission_1 = SubmissionFactory.create(answer=self.create_answer())
         submission_2 = SubmissionFactory.create(answer=self.create_answer(100, 200))
         self.assert_command_output(
-            {
-                submission_2.student_item.course_id: (1, 300, 300),
-            }
+            {submission_2.student_item.course_id: (1, 300, 300)}
         )
 
     @ddt.data([100], [100, 200, 300])
@@ -153,8 +159,8 @@ class TestOutput(BaseMixin, TestCase):
 
     def test_many_courses(self):
         """
-        Ten courses, each course has 1,000,000 total bytes
-        First course has one user, tenth course has ten users
+        Five courses, each course has 5000 total bytes
+        First course has one user, fifth course has five users
         """
 
         # 'makes' ten courses

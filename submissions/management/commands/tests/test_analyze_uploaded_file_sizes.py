@@ -46,10 +46,10 @@ class BaseMixin(object):
         self.assertDictEqual(result, expected_output)
 
     def parse_output(self, out):
-        """ 
+        """
         Read captured stdout and parse tab limited output table into a dict
         Returns: (<parsed_table>, <list of any lines before the table>)
-        """ 
+        """
         lines = out[0].splitlines()
         header_index = lines.index(HEADER)
         preamble = lines[:header_index]

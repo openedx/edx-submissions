@@ -32,6 +32,7 @@ EARLIEST_ALLOWED_DATE = datetime.date(2019, 11, 1)
 EARLIEST_ALLOWED_DATE_STR = EARLIEST_ALLOWED_DATE.strftime(DATE_FORMAT)
 HEADER = u'Course ID\tUsers with Uploaded Files\tTotal Uploaded Bytes\tAverage Upload per User'
 
+
 class Command(BaseCommand):
     """
     Example usage:

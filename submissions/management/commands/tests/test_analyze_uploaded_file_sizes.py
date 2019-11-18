@@ -200,6 +200,11 @@ class TestDateRange(BaseMixin, TestCase):
         with self.assertRaisesMessage(CommandError, msg):
             call_command(Command(), max_date=self.min_date, min_date=self.max_date)
 
+    def test_max_range(self):
+        msg = 'Max date and min date cannot be more than 90 days apart'
+        with self.assertRaisesMessage(CommandError, msg):
+            call_command(Command(), max_date=dt.date(2020, 9, 1), min_date=dt.date(2020, 1, 1))
+
     @ddt.unpack
     @ddt.data((True, 600), (False, 900))
     def test_submission_excluded_same_course_same_user(self, exclude_submission, expected_bytes):

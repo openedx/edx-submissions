@@ -16,6 +16,7 @@ Arguments:
                           Before this day, file size data is unavailable.
 
     both arguments must be in the form yyyy-mm-dd
+    The two dates cannot be more than 90 days apart.
 """
 
 from __future__ import absolute_import
@@ -92,6 +93,8 @@ class Command(BaseCommand):
         """
         if max_date < min_date:
             raise CommandError("Max date must be less than (before) start date")
+        if max_date - min_date > datetime.timedelta(days=90):
+            raise CommandError("Max date and min date cannot be more than 90 days apart")
         if datetime.date.today() < max_date:
             print(u"Warning: max_date is in the future")
         if min_date < EARLIEST_ALLOWED_DATE:

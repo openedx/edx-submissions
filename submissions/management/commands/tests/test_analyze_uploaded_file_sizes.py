@@ -35,13 +35,13 @@ def capture():
 
 class BaseMixin(object):
 
-    def assert_command_output(self, expected_output, start_date=None, end_date=None):
+    def assert_command_output(self, expected_output, max_date=None, min_date=None):
         """ Run the management command and assert the output """
         with capture() as out:
-            if not start_date and not end_date:
+            if not max_date and not min_date:
                 call_command(Command())
             else:
-                call_command(Command(), start_date=start_date, end_date=end_date)
+                call_command(Command(), max_date=max_date, min_date=min_date)
         result, _ = self.parse_output(out)
         self.assertDictEqual(result, expected_output)
 
@@ -186,14 +186,19 @@ class TestOutput(BaseMixin, TestCase):
 @ddt.ddt
 class TestDateRange(BaseMixin, TestCase):
 
-    start_date = dt.date(2020, 1, 30)
-    start_date_str = '2020-01-30'
-    end_date = dt.date(2020, 1, 1)
-    end_date_str = '2020-01-01'
+    max_date = dt.date(2020, 1, 30)
+    max_date_str = '2020-01-30'
+    min_date = dt.date(2020, 1, 1)
+    min_date_str = '2020-01-01'
 
     td_month = dt.timedelta(weeks=4)
     td_day = dt.timedelta(days=1)
     td_none = dt.timedelta()
+
+    def test_max_date_before_min_date(self):
+        msg = 'Max date must be less than (before) start date'
+        with self.assertRaisesMessage(CommandError, msg):
+            call_command(Command(), max_date=self.min_date, min_date=self.max_date)
 
     @ddt.unpack
     @ddt.data((True, 600), (False, 900))
@@ -216,8 +221,8 @@ class TestDateRange(BaseMixin, TestCase):
         )
         self.assert_command_output(
             {submission_1.student_item.course_id: (1, expected_bytes, expected_bytes)},
-            start_date=self.start_date,
-            end_date=self.end_date,
+            max_date=self.max_date,
+            min_date=self.min_date,
         )
 
     @ddt.unpack
@@ -241,8 +246,8 @@ class TestDateRange(BaseMixin, TestCase):
         )
         self.assert_command_output(
             {submission_1.student_item.course_id: (expected_users, expected_bytes, 300)},
-            start_date=self.start_date,
-            end_date=self.end_date,
+            max_date=self.max_date,
+            min_date=self.min_date,
         )
 
     @ddt.data(True, False)
@@ -281,6 +286,6 @@ class TestDateRange(BaseMixin, TestCase):
 
         self.assert_command_output(
             expected_output,
-            start_date=self.start_date,
-            end_date=self.end_date,
+            max_date=self.max_date,
+            min_date=self.min_date,
         )

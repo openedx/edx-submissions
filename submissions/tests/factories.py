@@ -1,14 +1,16 @@
+""" Test Factories. """
 import datetime
-import factory
-
 from uuid import uuid4
+
+import factory
 from factory.django import DjangoModelFactory
-from .. import models
+
+from submissions import models
 
 
 class StudentItemFactory(DjangoModelFactory):
     """ A Factory for the StudentItem model. """
-    class Meta(object):
+    class Meta:
         model = models.StudentItem
 
     student_id = factory.Faker('sha1')
@@ -19,7 +21,7 @@ class StudentItemFactory(DjangoModelFactory):
 
 class SubmissionFactory(DjangoModelFactory):
     """ A factory for the Submission model. """
-    class Meta(object):
+    class Meta:
         model = models.Submission
 
     uuid = factory.LazyFunction(uuid4)

@@ -8,6 +8,7 @@ import json
 
 from rest_framework import serializers
 from rest_framework.fields import DateTimeField, Field, IntegerField
+
 from submissions.models import Score, ScoreAnnotation, StudentItem, Submission
 
 
@@ -28,7 +29,7 @@ class RawField(Field):
     up with a string instead of a dictionary!
 
     """
-    def to_representation(self, obj):
+    def to_representation(self, obj):  # pylint: disable=arguments-differ
         return obj
 
     def to_internal_value(self, data):
@@ -42,6 +43,7 @@ class StudentItemSerializer(serializers.ModelSerializer):
 
 
 class SubmissionSerializer(serializers.ModelSerializer):
+    """ Submission Serializer. """
 
     # Django Rest Framework v3 uses the Django setting `DATETIME_FORMAT`
     # when serializing datetimes.  This differs from v2, which always
@@ -99,6 +101,7 @@ class ScoreAnnotationSerializer(serializers.ModelSerializer):
 
 
 class UnannotatedScoreSerializer(serializers.ModelSerializer):
+    """ Submissions unannotated score serializer. """
 
     # Ensure that the created_at datetime is not converted to a string.
     created_at = DateTimeField(format=None, required=False)
@@ -118,7 +121,7 @@ class UnannotatedScoreSerializer(serializers.ModelSerializer):
 
 
 class ScoreSerializer(serializers.ModelSerializer):
-
+    """ Submissions score serializer class. """
     # Ensure that the created_at datetime is not converted to a string.
     created_at = DateTimeField(format=None, required=False)
     annotations = serializers.SerializerMethodField()

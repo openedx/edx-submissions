@@ -5,6 +5,7 @@ import os
 import sys
 
 from setuptools import setup
+
 from submissions import __version__ as VERSION
 
 
@@ -22,7 +23,8 @@ def is_requirement(line):
         line.startswith('-r') or
         line.startswith('#') or
         line.startswith('-e') or
-        line.startswith('git+')
+        line.startswith('git+') or
+        line.startswith('-c')
     )
 
 
@@ -59,6 +61,7 @@ setup(
         'Framework :: Django :: 1.11',
         'Framework :: Django :: 2.0',
         'Framework :: Django :: 2.1',
+        'Framework :: Django :: 2.2',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU Affero General Public License v3',
         'Operating System :: OS Independent',
@@ -66,10 +69,9 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.5',
     ],
     packages=['submissions', 'submissions.migrations'],
-    install_requires=load_requirements('requirements.txt', 'django-requirements.txt'),
-    tests_require=load_requirements('test-requirements.txt'),
+    install_requires=load_requirements('requirements/base.in'),
+    tests_require=load_requirements('requirements/test.in'),
 )

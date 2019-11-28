@@ -1,22 +1,18 @@
 """
 Tests for the analyze_uploaded_file_sizes management command.
 """
-import ddt
-import mock
+import contextlib
 import datetime as dt
 import sys
-try:
-    from cStringIO import StringIO
-except ModuleNotFoundError:
-    from io import StringIO
+
+import ddt
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase
+from six import StringIO
 
-from ..analyze_uploaded_file_sizes import Command, HEADER
-from ....tests.factories import StudentItemFactory, SubmissionFactory
-from ....models import Submission
-import contextlib
+from submissions.management.commands.analyze_uploaded_file_sizes import HEADER, Command
+from submissions.tests.factories import StudentItemFactory, SubmissionFactory
 
 
 @contextlib.contextmanager
@@ -33,7 +29,8 @@ def capture():
         out[1] = out[1].getvalue()
 
 
-class BaseMixin(object):
+class BaseMixin(object):  # pylint: disable=useless-object-inheritance
+    """ Base Mixin for tests. """
 
     def assert_command_output(self, expected_output, max_date=None, min_date=None):
         """ Run the management command and assert the output """
@@ -102,7 +99,7 @@ class TestOutput(BaseMixin, TestCase):
         self.assert_command_output({})
 
     def test_one_empty_submission(self):
-        submission_1 = SubmissionFactory.create(answer=self.create_answer())
+        SubmissionFactory.create(answer=self.create_answer())
         submission_2 = SubmissionFactory.create(answer=self.create_answer(100, 200))
         self.assert_command_output(
             {submission_2.student_item.course_id: (1, 300, 300)}
@@ -185,6 +182,7 @@ class TestOutput(BaseMixin, TestCase):
 
 @ddt.ddt
 class TestDateRange(BaseMixin, TestCase):
+    """ Test Submission date ranges. """
 
     max_date = dt.date(2020, 1, 30)
     max_date_str = '2020-01-30'

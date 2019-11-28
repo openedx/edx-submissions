@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
+""" Api Module Tests. """
 
 from __future__ import absolute_import
 
 import copy
 import datetime
 
+import ddt
+import mock
 import pytz
 from django.core.cache import cache
 from django.db import DatabaseError, connection, transaction
 from django.test import TestCase
 from django.utils.timezone import now
-
-import ddt
-import mock
 from freezegun import freeze_time
 from nose.tools import raises
-from submissions import api as api
-from submissions.models import (ScoreAnnotation, ScoreSummary, StudentItem,
-                                Submission, score_set)
+
+from submissions import api
+from submissions.models import ScoreAnnotation, ScoreSummary, StudentItem, Submission, score_set
 from submissions.serializers import StudentItemSerializer
 
 STUDENT_ITEM = dict(
@@ -295,8 +295,7 @@ class TestSubmissionsApi(TestCase):
         submissions = api.get_submissions(STUDENT_ITEM, 1)
         self.assertEqual(u"Testing unicode answers.", submissions[0]["answer"])
 
-    def _assert_submission(self, submission, expected_answer, expected_item,
-                           expected_attempt):
+    def _assert_submission(self, submission, expected_answer, expected_item, expected_attempt):
         self.assertIsNotNone(submission)
         self.assertEqual(submission["answer"], expected_answer)
         self.assertEqual(submission["student_item"], expected_item)
@@ -324,9 +323,7 @@ class TestSubmissionsApi(TestCase):
         self.assertEqual(sub, db_sub)
         self.assertEqual(sub, cached_sub)
 
-    """
-    Testing Scores
-    """
+    # Testing Scores
 
     def test_create_score(self):
         submission = api.create_submission(STUDENT_ITEM, ANSWER_ONE)

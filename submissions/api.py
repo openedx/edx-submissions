@@ -6,22 +6,22 @@ from __future__ import absolute_import
 
 import copy
 import itertools
-import json
 import logging
 import operator
 from uuid import UUID
 
+import six
 from django.conf import settings
 from django.core.cache import cache
 from django.db import DatabaseError, IntegrityError
 
-import six
-from submissions.models import (Score, ScoreAnnotation, ScoreSummary,
-                                StudentItem, Submission, score_reset,
-                                score_set)
-from submissions.serializers import (ScoreSerializer, StudentItemSerializer,
-                                     SubmissionSerializer,
-                                     UnannotatedScoreSerializer)
+from submissions.models import Score, ScoreAnnotation, ScoreSummary, StudentItem, Submission, score_reset, score_set
+from submissions.serializers import (
+    ScoreSerializer,
+    StudentItemSerializer,
+    SubmissionSerializer,
+    UnannotatedScoreSerializer
+)
 
 logger = logging.getLogger("submissions.api")
 
@@ -41,7 +41,6 @@ class SubmissionError(Exception):
     action.
 
     """
-    pass
 
 
 class SubmissionInternalError(SubmissionError):
@@ -52,7 +51,6 @@ class SubmissionInternalError(SubmissionError):
     services.
 
     """
-    pass
 
 
 class SubmissionNotFoundError(SubmissionError):
@@ -62,7 +60,6 @@ class SubmissionNotFoundError(SubmissionError):
     Submissions, this error may be raised.
 
     """
-    pass
 
 
 class SubmissionRequestError(SubmissionError):
@@ -101,7 +98,7 @@ class SubmissionRequestError(SubmissionError):
         Show the field errors upon output.
         """
         return '{}(msg="{}", field_errors={})'.format(
-            self.__class__.__name__, self.message, self.field_errors
+            self.__class__.__name__, self.message, self.field_errors  # pylint: disable=no-member
         )
 
 
@@ -278,7 +275,7 @@ def get_submission(submission_uuid, read_replica=False):
     cache_key = Submission.get_cache_key(submission_uuid)
     try:
         cached_submission_data = cache.get(cache_key)
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         # The cache backend could raise an exception
         # (for example, memcache keys that contain spaces)
         logger.exception("Error occurred while retrieving submission from the cache")
@@ -334,7 +331,7 @@ def get_submission_and_student(uuid, read_replica=False):
     cache_key = "submissions.student_item.{}".format(submission['student_item'])
     try:
         cached_student_item = cache.get(cache_key)
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         # The cache backend could raise an exception
         # (for example, memcache keys that contain spaces)
         logger.exception("Error occurred while retrieving student item from the cache")
@@ -461,7 +458,7 @@ def get_all_submissions(course_id, item_id, item_type, read_replica=True):
     ).order_by('student_item__student_id', '-submitted_at', '-id').iterator()
 
     for unused_student_id, row_iter in itertools.groupby(query, operator.attrgetter('student_item.student_id')):
-        submission = next(row_iter)
+        submission = next(row_iter)  # pylint: disable= stop-iteration-return
         data = SubmissionSerializer(submission).data
         data['student_id'] = submission.student_item.student_id
         yield data

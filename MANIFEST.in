@@ -1,6 +1,5 @@
-include requirements.txt
-include test-requirements.txt
-include django-requirements.txt
+include requirements/base.in
+include requirements/test.in
+include requirements/docs.in
 include LICENSE
-include AUTHORS
 include README.rst

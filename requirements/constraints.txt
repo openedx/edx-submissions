@@ -1,0 +1,20 @@
+# Version constraints for pip installation.
+#
+# This file doesn't install any packages. It specifies version constraints
+# that will be applied if a package is needed.
+#
+# When pinning something here, please provide an explanation of why.  Ideally,
+# link to other information that will help people in the future to remove the
+# pin when possible.  Writing an issue against the offending project and
+# linking to it here is good.
+
+# This package is a backport from python 3 that can only be installed in python 2.7
+futures ; python_version == "2.7"
+
+# edx-lint
+pylint>=1.9.5;python_version<"3.0"  # The last pylint version to support python 2
+pylint>=2.4.2;python_version>="3.0"
+pylint-django>=0.11.1;python_version<"3.0"  # The last pylint-django to support python 2
+pylint-django>=2.0.11;python_version>="3.0"
+astroid<2.4,>=2.3.0;python_version>="3.0"
+astroid>=1.6.6;python_version<="3.0"

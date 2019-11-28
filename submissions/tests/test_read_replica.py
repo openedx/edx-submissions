@@ -5,10 +5,10 @@ from __future__ import absolute_import
 
 import copy
 
+import mock
 from django.conf import settings
 from django.test import TransactionTestCase
 
-import mock
 from submissions import api as sub_api
 
 
@@ -40,8 +40,9 @@ class ReadReplicaTest(TransactionTestCase):
 
     def setUp(self):
         """ Create a submission and score. """
+        super(ReadReplicaTest, self).setUp()
         self.submission = sub_api.create_submission(self.STUDENT_ITEM, "test answer")
-        self.score = sub_api.set_score(
+        sub_api.set_score(
             self.submission['uuid'],
             self.SCORE["points_earned"],
             self.SCORE["points_possible"]

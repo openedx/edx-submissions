@@ -1,27 +1,69 @@
 language: python
-dist: xenial  # required for Python >= 3.7 (travis-ci/travis-ci#9069)
+dist: latest
+
 python:
   - 2.7
-  - 3.6
-  - 3.7
+  - 3.5
+
 env:
-  - TOXENV=django111
-  - TOXENV=django20
-  - TOXENV=django21
+  - TOXENV=django111-drf37
+  - TOXENV=django111-drf38
+  - TOXENV=django111-drf39
+  - TOXENV=django111-drflatest
+  - TOXENV=django20-drf37
+  - TOXENV=django20-drf38
+  - TOXENV=django20-drf39
+  - TOXENV=django20-drflatest
+  - TOXENV=django21-drf37
+  - TOXENV=django21-drf38
+  - TOXENV=django21-drf39
+  - TOXENV=django21-drflatest
+  - TOXENV=django22-drf37
+  - TOXENV=django22-drf38
+  - TOXENV=django22-drf39
+  - TOXENV=django22-drflatest
+
 matrix:
+  include:
+    - python: 3.5
+      env: TOXENV=quality
+    - python: 3.5
+      env: TOXENV=docs
   exclude:
     - python: 2.7
-      env: TOXENV=django20
+      env: TOXENV=django20-drf37
     - python: 2.7
-      env: TOXENV=django21
+      env: TOXENV=django20-drf38
+    - python: 2.7
+      env: TOXENV=django20-drf39
+    - python: 2.7
+      env: TOXENV=django20-drflatest
+    - python: 2.7
+      env: TOXENV=django21-drf37
+    - python: 2.7
+      env: TOXENV=django21-drf38
+    - python: 2.7
+      env: TOXENV=django21-drf39
+    - python: 2.7
+      env: TOXENV=django21-drflatest
+    - python: 2.7
+      env: TOXENV=django22-drf37
+    - python: 2.7
+      env: TOXENV=django22-drf38
+    - python: 2.7
+      env: TOXENV=django22-drf39
+    - python: 2.7
+      env: TOXENV=django22-drflatest
+
 install:
-  - pip install -r requirements.txt
-  - pip install -r test-requirements.txt
+  - pip install -r requirements/test.txt
   - python setup.py install
   - pip install coveralls
 script:
   - tox
-after_success: coveralls
+after_success: 
+  - codecov
+  
 # Set password via "travis encrypt --add deploy.password"; for details, see
 # https://docs.travis-ci.com/user/deployment/pypi
 deploy:
@@ -33,3 +75,5 @@ deploy:
     secure: BlYK3lplRoPiNfzqslxyReJZrC1QUT9Ls1A1xIxc3IHxKl9WEkqC2xO5vBvQDFKtMyooq8bGeN/gfksaZpRYqBmrO7hPITiz0FH0wPFdjoIikI4NTqKVxjhqUho0ZWmpxNXrX/iMd9Y2R4uZRXZGaWaTSRHfF9fPVlkbo66s7vw=
   on:
     tags: true
+    python: 3.5
+    condition: "$TOXENV = django111-drflatest"

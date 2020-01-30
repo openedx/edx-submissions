@@ -11,10 +11,10 @@ need to then generate a matching migration for it using:
 """
 from __future__ import absolute_import, unicode_literals
 
+import json
 import logging
 from uuid import uuid4
 
-import six
 from django.db import DatabaseError, models
 from django.db.models.signals import post_save
 from django.dispatch import Signal, receiver
@@ -93,6 +93,20 @@ class StudentItem(models.Model):
         )
 
 
+class UpdatedJSONField(JSONField):
+    """
+    Class inherits JSONFiled from jsonfiled2 and provides overridden implementation
+    """
+    # We need to this custom class to represent JSONField instead of standard JSONField
+    # because we're using jsonfield2 version 3.0.3 and it has a known issue while performing
+    # select_related queries, it has been fixed in version 3.1.0 but python3.5 support is also
+    # dropped in that version, for now we've put the fix here
+    def from_db_value(self, value, expression, connection, context=None):
+        if value is None:
+            return None
+        return json.loads(value, **self.load_kwargs)
+
+
 @python_2_unicode_compatible
 class Submission(models.Model):
     """A single response by a student for a given problem in a given course.
@@ -127,7 +141,7 @@ class Submission(models.Model):
     # replacement for TextField that performs JSON serialization/deserialization.
     # For backwards compatibility, we override the default database column
     # name so it continues to use `raw_answer`.
-    answer = JSONField(blank=True, db_column="raw_answer")
+    answer = UpdatedJSONField(blank=True, db_column="raw_answer")
 
     # Has this submission been soft-deleted? This allows instructors to reset student
     # state on an item, while preserving the previous value for potential analytics use.
@@ -203,7 +217,7 @@ class Score(models.Model):
 
         """
         if self.submission is not None:
-            return six.text_type(self.submission.uuid)
+            return str(self.submission.uuid)
         else:
             return None
 

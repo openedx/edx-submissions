@@ -4,8 +4,9 @@
 #
 #    make upgrade
 #
-django-model-utils==3.2.0
-django==1.11.26
+django-model-utils==4.0.0
+django==2.2.9
 djangorestframework==3.9.4
-jsonfield==2.0.2
+jsonfield2==3.0.3
 pytz==2019.3
+sqlparse==0.3.0           # via django

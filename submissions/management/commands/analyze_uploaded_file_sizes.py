@@ -22,7 +22,6 @@ Arguments:
 from __future__ import absolute_import
 
 import datetime
-import json
 
 from django.core.management.base import BaseCommand, CommandError
 
@@ -144,7 +143,6 @@ class Command(BaseCommand):
         prev_course_id = None
 
         for course_id, student_id, answer in submission_data:
-            answer = json.loads(answer)
             if course_id != prev_course_id and prev_course_id is not None:
                 yield prev_course_id, len(users), course_bytes
                 course_bytes = 0

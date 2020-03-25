@@ -159,15 +159,18 @@ def create_submission(student_item_dict, answer, submitted_at=None, attempt_numb
     """
     student_item_model = _get_or_create_student_item(student_item_dict)
     if attempt_number is None:
+        attempt_number = 1
+
         try:
-            submissions = Submission.objects.filter(
-                student_item=student_item_model)[:1]
+            first_submission = Submission.objects.filter(student_item=student_item_model).first()
         except DatabaseError:
             error_message = u"An error occurred while filtering submissions for student item: {}".format(
                 student_item_dict)
             logger.exception(error_message)
             raise SubmissionInternalError(error_message)
-        attempt_number = submissions[0].attempt_number + 1 if submissions else 1
+
+        if first_submission:
+            attempt_number = first_submission.attempt_number + 1
 
     model_kwargs = {
         "student_item": student_item_model.pk,

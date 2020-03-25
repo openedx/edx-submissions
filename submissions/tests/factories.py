@@ -31,4 +31,4 @@ class SubmissionFactory(DjangoModelFactory):
     created_at = datetime.datetime.now()
     answer = {}
 
-    status = models.Submission.ACTIVE
+    status = models.ACTIVE

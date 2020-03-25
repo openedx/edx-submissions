@@ -15,7 +15,16 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import DatabaseError, IntegrityError
 
-from submissions.models import Score, ScoreAnnotation, ScoreSummary, StudentItem, Submission, score_reset, score_set
+from submissions.models import (
+    DELETED,
+    Score,
+    ScoreAnnotation,
+    ScoreSummary,
+    StudentItem,
+    Submission,
+    score_reset,
+    score_set
+)
 from submissions.serializers import (
     ScoreSerializer,
     StudentItemSerializer,
@@ -803,7 +812,7 @@ def reset_score(student_id, course_id, item_id, clear_state=False, emit_signal=T
         if clear_state:
             for sub in student_item.submission_set.all():
                 # soft-delete the Submission
-                sub.status = Submission.DELETED
+                sub.status = DELETED
                 sub.save(update_fields=["status"])
 
                 # Also clear out cached values

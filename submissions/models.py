@@ -15,12 +15,14 @@ import json
 import logging
 from uuid import uuid4
 
+from django.contrib.auth.models import User
 from django.db import DatabaseError, models
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import Signal, receiver
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timezone import now
 from jsonfield import JSONField
+from model_utils.models import TimeStampedModel
 
 logger = logging.getLogger(__name__)
 
@@ -107,6 +109,96 @@ class UpdatedJSONField(JSONField):
         return json.loads(value, **self.load_kwargs)
 
 
+# Has this submission been soft-deleted? This allows instructors to reset student
+# state on an item, while preserving the previous value for potential analytics use.
+DELETED = 'D'
+ACTIVE = 'A'
+STATUS_CHOICES = (
+    (DELETED, 'Deleted'),
+    (ACTIVE, 'Active'),
+)
+
+
+@python_2_unicode_compatible
+class TeamSubmission(TimeStampedModel):
+    """
+    A single response by a team for a given problem (ORA2) in a given course.
+    An abstraction layer over Submission used to for teams. Since we create a submission record for every team member,
+    there is a need to have a single point to connect the team to the workflows.
+    TeamSubmission is a 1 to many with Submission
+    """
+
+    uuid = models.UUIDField(db_index=True, default=uuid4, null=False)
+
+    # Which attempt is this? Consecutive Submissions do not necessarily have
+    # increasing attempt_number entries -- e.g. re-scoring a buggy problem.
+    attempt_number = models.PositiveIntegerField()
+
+    # submitted_at is separate from created_at to support re-scoring and other
+    # processes that might create Submission objects for past user actions.
+    submitted_at = models.DateTimeField(default=now, db_index=True)
+
+    course_id = models.CharField(max_length=255, null=False, db_index=True)
+
+    item_id = models.CharField(max_length=255, null=False, db_index=True)
+
+    team_id = models.CharField(max_length=255, null=False, db_index=True)
+
+    submitted_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=ACTIVE)
+
+    # Override the default Manager with our custom one to filter out soft-deleted items
+    class SoftDeletedManager(models.Manager):
+        def get_queryset(self):
+            return super(TeamSubmission.SoftDeletedManager, self).get_queryset().exclude(status=DELETED)
+
+    objects = SoftDeletedManager()
+    _objects = models.Manager()  # Don't use this unless you know and can explain why objects doesn't work for you
+
+    @staticmethod
+    def get_cache_key(sub_uuid):
+        return "submissions.team_submission.{}".format(sub_uuid)
+
+    def __repr__(self):
+        return repr(dict(
+            uuid=self.uuid,
+            submitted_by=self.submitted_by,
+            attempt_number=self.attempt_number,
+            submitted_at=self.submitted_at,
+            created=self.created,
+            modified=self.modified,
+        ))
+
+    def __str__(self):
+        return "Team Submission {}".format(self.uuid)
+
+    class Meta:
+        app_label = "submissions"
+        ordering = ["-submitted_at", "-id"]
+
+
+@receiver(pre_save, sender=TeamSubmission)
+def validate_only_one_submission_per_team(sender, **kwargs):
+    """
+    Ensures that there is only one active submission per team.
+    """
+    ts = kwargs['instance']
+    if TeamSubmission.objects.filter(
+            course_id=ts.course_id,
+            item_id=ts.item_id,
+            team_id=ts.team_id,
+            status='A'
+    ).exists():
+        raise DuplicateTeamSubmissionsError('Can only have one submission per team.')
+
+
+class DuplicateTeamSubmissionsError(Exception):
+    """
+    An error that is raised when duplicate team submissions are detected.
+    """
+
+
 @python_2_unicode_compatible
 class Submission(models.Model):
     """A single response by a student for a given problem in a given course.
@@ -143,20 +235,20 @@ class Submission(models.Model):
     # name so it continues to use `raw_answer`.
     answer = UpdatedJSONField(blank=True, db_column="raw_answer")
 
-    # Has this submission been soft-deleted? This allows instructors to reset student
-    # state on an item, while preserving the previous value for potential analytics use.
-    DELETED = u'D'
-    ACTIVE = u'A'
-    STATUS_CHOICES = (
-        (DELETED, u'Deleted'),
-        (ACTIVE, u'Active'),
-    )
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=ACTIVE)
+
+    team_submission = models.ForeignKey(
+        TeamSubmission,
+        related_name='submissions',
+        null=True,
+        db_index=True,
+        on_delete=models.SET_NULL
+    )
 
     # Override the default Manager with our custom one to filter out soft-deleted items
     class SoftDeletedManager(models.Manager):
         def get_queryset(self):
-            return super(Submission.SoftDeletedManager, self).get_queryset().exclude(status=Submission.DELETED)
+            return super(Submission.SoftDeletedManager, self).get_queryset().exclude(status=DELETED)
 
     objects = SoftDeletedManager()
     _objects = models.Manager()  # Don't use this unless you know and can explain why objects doesn't work for you

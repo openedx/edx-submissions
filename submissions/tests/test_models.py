@@ -4,9 +4,21 @@ Tests for submission models.
 
 from __future__ import absolute_import
 
-from django.test import TestCase
+from datetime import datetime
 
-from submissions.models import Score, ScoreSummary, StudentItem, Submission
+import pytest
+from django.contrib.auth.models import User
+from django.test import TestCase
+from pytz import UTC
+
+from submissions.models import (
+    DuplicateTeamSubmissionsError,
+    Score,
+    ScoreSummary,
+    StudentItem,
+    Submission,
+    TeamSubmission
+)
 
 
 class TestScoreSummary(TestCase):
@@ -166,3 +178,51 @@ class TestScoreSummary(TestCase):
         highest = ScoreSummary.objects.get(student_item=item).highest
         self.assertEqual(highest.points_earned, 1)
         self.assertEqual(highest.points_possible, 2)
+
+
+class TestTeamSubmission(TestCase):
+    """
+    Test the TeamSubmission class
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = cls.create_user('user1')
+        cls.default_team_id = 'team1'
+        cls.default_Course_id = 'c1'
+        cls.defaullt_item_id = 'i1'
+        cls.default_attempt_number = 1
+        cls.default_submission = cls.create_team_submission(user=cls.user)
+        super().setUpTestData()
+
+    def test_create_team_submission(self):
+        # force evaluation of __str__ to ensure there are no issues with the class, since there
+        # isn't much specific to assert.
+        self.assertNotEqual(self.default_submission.__str__, None)
+
+    def test_create_duplicate_team_submission_not_allowed(self):
+        with pytest.raises(DuplicateTeamSubmissionsError):
+            TestTeamSubmission.create_team_submission(user=self.user)
+
+    @staticmethod
+    def create_user(username):
+        return User.objects.create(
+            username=username,
+            password='secret',
+            first_name='fname',
+            last_name='lname',
+            is_staff=False,
+            is_active=True,
+            last_login=datetime(2012, 1, 1, tzinfo=UTC),
+            date_joined=datetime(2011, 1, 1, tzinfo=UTC)
+        )
+
+    @staticmethod
+    def create_team_submission(user, team_id='team1', course_id='c1', item_id='i1', attempt_number=1):
+        return TeamSubmission.objects.create(
+            submitted_by=user,
+            team_id=team_id,
+            course_id=course_id,
+            item_id=item_id,
+            attempt_number=attempt_number
+        )

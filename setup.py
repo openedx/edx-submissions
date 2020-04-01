@@ -4,7 +4,7 @@ from __future__ import absolute_import, print_function
 import os
 import sys
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
 from submissions import __version__ as VERSION
 
@@ -69,7 +69,7 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
     ],
-    packages=['submissions', 'submissions.migrations'],
+    packages=find_packages(include=['submissions*'], exclude=['*.test', '*.tests']),
     install_requires=load_requirements('requirements/base.in'),
     tests_require=load_requirements('requirements/test.in'),
 )

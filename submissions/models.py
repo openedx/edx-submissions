@@ -24,6 +24,8 @@ from django.utils.timezone import now
 from jsonfield import JSONField
 from model_utils.models import TimeStampedModel
 
+from submissions.errors import TeamSubmissionInternalError, TeamSubmissionNotFoundError, DuplicateTeamSubmissionsError
+
 logger = logging.getLogger(__name__)
 
 
@@ -160,6 +162,92 @@ class TeamSubmission(TimeStampedModel):
     def get_cache_key(sub_uuid):
         return "submissions.team_submission.{}".format(sub_uuid)
 
+    @staticmethod
+    def get_team_submission_by_uuid(team_submission_uuid):
+        """
+        Given a uuid, return the matching team submission.
+
+        Raises:
+            - TeamSubmissionNotFoundError if there is no matching team submission
+            - TeamSubmissionInternalError if there is some other error looking up the team submission.
+        """
+        try:
+            return TeamSubmission.objects.prefetch_related('submissions').get(uuid=team_submission_uuid)
+        except TeamSubmission.DoesNotExist:
+            logger.error("Team Submission {} not found.".format(team_submission_uuid))
+            raise TeamSubmissionNotFoundError(
+                u"No team submission matching uuid {}".format(team_submission_uuid)
+            )
+        except Exception as exc:
+            err_msg = "Attempt to get team submission for uuid {uuid} caused error: {exc}".format(
+                uuid=team_submission_uuid,
+                exc=exc
+            )
+            logger.error(err_msg)
+            raise TeamSubmissionInternalError(err_msg)
+
+    @staticmethod
+    def get_team_submission_by_course_item_team(course_id, item_id, team_id):
+        """
+        Given a course_id, item_id, and team_id, return team submission for the team assignment
+
+        Raises:
+            - TeamSubmissionNotFoundError if there is no matching team submission
+            - TeamSubmissionInternalError if there is some other error looking up the team submission.
+
+        """
+        model_query_params = dict(course_id=course_id, item_id=item_id, team_id=team_id)
+        query_params_string = "course_id={course_id} item_id={item_id} team_id={team_id}".format(**model_query_params)
+        try:
+            # In the equivalent non-teams api call, we're filtering on student item and then getting first(),
+            # which will get us the most recent active submission due to the sort order of the model.
+            # However, for this model, we have a uniqueness constraint (non-db, as a signal handler)
+            # that means we can only ever have one submission per team per assignment. I don't fully understand
+            # the logic behind the non-teams api, but this shouldn't have to do that filter.
+            team_submission = TeamSubmission.objects.prefetch_related(
+                'submissions'
+            ).get(
+                **model_query_params
+            )
+        except TeamSubmission.DoesNotExist:
+            logger.error("Team submission for {} not found.".format(query_params_string))
+            raise TeamSubmissionNotFoundError(
+                u"No team submission matching {}".format(query_params_string)
+            )
+        except Exception as exc:
+            err_msg = "Attempt to get team submission for {params} caused error: {exc}".format(
+                params=query_params_string,
+                exc=exc
+            )
+            logger.error(err_msg)
+            raise TeamSubmissionInternalError(err_msg)
+        return team_submission
+
+    @staticmethod
+    def get_all_team_submissions_for_course_item(course_id, item_id):
+        """
+        Given a course_id and item_id, return all team submissions for the team assignment in the course
+
+        Raises:
+            - TeamSubmissionInternalError if there is some error looking up the team submissions.
+        """
+        try:
+            return TeamSubmission.objects.prefetch_related('submissions').filter(
+                course_id=course_id,
+                item_id=item_id,
+            ).all()
+        except Exception as exc:
+            query_params_string = "course_id={course_id} item_id={item_id}".format(
+                course_id=course_id,
+                item_id=item_id,
+            )
+            err_msg = "Attempt to get team submissions for {params} caused error: {exc}".format(
+                params=query_params_string,
+                exc=exc
+            )
+            logger.error(err_msg)
+            raise TeamSubmissionInternalError(err_msg)
+
     def __repr__(self):
         return repr(dict(
             uuid=self.uuid,
@@ -191,12 +279,6 @@ def validate_only_one_submission_per_team(sender, **kwargs):
             status='A'
     ).exists():
         raise DuplicateTeamSubmissionsError('Can only have one submission per team.')
-
-
-class DuplicateTeamSubmissionsError(Exception):
-    """
-    An error that is raised when duplicate team submissions are detected.
-    """
 
 
 @python_2_unicode_compatible

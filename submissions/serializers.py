@@ -9,7 +9,7 @@ import json
 from rest_framework import serializers
 from rest_framework.fields import DateTimeField, Field, IntegerField
 
-from submissions.models import Score, ScoreAnnotation, StudentItem, Submission
+from submissions.models import Score, ScoreAnnotation, StudentItem, Submission, TeamSubmission
 
 
 class RawField(Field):
@@ -40,6 +40,37 @@ class StudentItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentItem
         fields = ('student_id', 'course_id', 'item_id', 'item_type')
+
+
+class TeamSubmissionSerializer(serializers.ModelSerializer):
+    """ Serializer for TeamSubmissions """
+
+    team_submission_uuid = serializers.UUIDField(source='uuid', read_only=True)
+    submission_uuids = serializers.SlugRelatedField(
+        source='submissions',
+        many=True,
+        read_only=True,
+        slug_field='uuid'
+    )
+
+    # See comments on SubmissionSerializer below
+    submitted_at = DateTimeField(format=None, required=False)
+    created_at = DateTimeField(source='created', format=None, required=False)
+    attempt_number = IntegerField(min_value=0)
+
+    class Meta:
+        model = TeamSubmission
+        fields = (
+            'team_submission_uuid',
+            'attempt_number',
+            'submitted_at',
+            'course_id',
+            'item_id',
+            'team_id',
+            'submitted_by',
+            'created_at',
+            'submission_uuids'
+        )
 
 
 class SubmissionSerializer(serializers.ModelSerializer):
@@ -86,6 +117,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
             'submitted_at',
             'created_at',
             'answer',
+            'team_submission'
         )
 
 

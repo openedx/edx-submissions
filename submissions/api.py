@@ -4,7 +4,6 @@ Public interface for the submissions app.
 """
 from __future__ import absolute_import
 
-import copy
 import itertools
 import logging
 import operator
@@ -15,6 +14,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import DatabaseError, IntegrityError
 
+from submissions.errors import SubmissionNotFoundError, SubmissionInternalError, SubmissionRequestError
 from submissions.models import (
     DELETED,
     Score,
@@ -43,75 +43,7 @@ MAX_TOP_SUBMISSIONS = 100
 TOP_SUBMISSIONS_CACHE_TIMEOUT = 300
 
 
-class SubmissionError(Exception):
-    """An error that occurs during submission actions.
-
-    This error is raised when the submission API cannot perform a requested
-    action.
-
-    """
-
-
-class SubmissionInternalError(SubmissionError):
-    """An error internal to the Submission API has occurred.
-
-    This error is raised when an error occurs that is not caused by incorrect
-    use of the API, but rather internal implementation of the underlying
-    services.
-
-    """
-
-
-class SubmissionNotFoundError(SubmissionError):
-    """This error is raised when no submission is found for the request.
-
-    If a state is specified in a call to the API that results in no matching
-    Submissions, this error may be raised.
-
-    """
-
-
-class SubmissionRequestError(SubmissionError):
-    """This error is raised when there was a request-specific error
-
-    This error is reserved for problems specific to the use of the API.
-
-    """
-    def __init__(self, msg="", field_errors=None):
-        """
-        Configure the submission request error.
-
-        Keyword Args:
-            msg (unicode): The error message.
-            field_errors (dict): A dictionary of errors (list of unicode)
-                specific to a fields provided in the request.
-
-        Example usage:
-
-        >>> raise SubmissionRequestError(
-        >>>     "An unexpected error occurred"
-        >>>     {"answer": ["Maximum answer length exceeded."]}
-        >>> )
-
-        """
-        super(SubmissionRequestError, self).__init__(msg)
-        self.field_errors = (
-            copy.deepcopy(field_errors)
-            if field_errors is not None
-            else {}
-        )
-        self.args += (self.field_errors,)
-
-    def __repr__(self):
-        """
-        Show the field errors upon output.
-        """
-        return '{}(msg="{}", field_errors={})'.format(
-            self.__class__.__name__, self.message, self.field_errors  # pylint: disable=no-member
-        )
-
-
-def create_submission(student_item_dict, answer, submitted_at=None, attempt_number=None):
+def create_submission(student_item_dict, answer, submitted_at=None, attempt_number=None, team_submission=None):
     """Creates a submission for assessment.
 
     Generic means by which to submit an answer for assessment.
@@ -168,15 +100,18 @@ def create_submission(student_item_dict, answer, submitted_at=None, attempt_numb
     """
     student_item_model = _get_or_create_student_item(student_item_dict)
     if attempt_number is None:
+        first_submission = None
+        attempt_number = 1
         try:
-            submissions = Submission.objects.filter(
-                student_item=student_item_model)[:1]
+            first_submission = Submission.objects.filter(student_item=student_item_model).first()
         except DatabaseError:
             error_message = u"An error occurred while filtering submissions for student item: {}".format(
                 student_item_dict)
             logger.exception(error_message)
             raise SubmissionInternalError(error_message)
-        attempt_number = submissions[0].attempt_number + 1 if submissions else 1
+
+        if first_submission:
+            attempt_number = first_submission.attempt_number + 1
 
     model_kwargs = {
         "student_item": student_item_model.pk,
@@ -185,6 +120,8 @@ def create_submission(student_item_dict, answer, submitted_at=None, attempt_numb
     }
     if submitted_at:
         model_kwargs["submitted_at"] = submitted_at
+    if team_submission:
+        model_kwargs["team_submission"] = team_submission.pk
 
     try:
         submission_serializer = SubmissionSerializer(data=model_kwargs)

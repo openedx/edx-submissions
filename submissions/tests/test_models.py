@@ -6,10 +6,10 @@ from __future__ import absolute_import
 
 from datetime import datetime
 
-from mock import mock
 import pytest
 from django.contrib.auth.models import User
 from django.test import TestCase
+from mock import mock
 from pytz import UTC
 
 from submissions.errors import TeamSubmissionInternalError, TeamSubmissionNotFoundError

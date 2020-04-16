@@ -24,7 +24,7 @@ from django.utils.timezone import now
 from jsonfield import JSONField
 from model_utils.models import TimeStampedModel
 
-from submissions.errors import TeamSubmissionInternalError, TeamSubmissionNotFoundError, DuplicateTeamSubmissionsError
+from submissions.errors import DuplicateTeamSubmissionsError, TeamSubmissionInternalError, TeamSubmissionNotFoundError
 
 logger = logging.getLogger(__name__)
 

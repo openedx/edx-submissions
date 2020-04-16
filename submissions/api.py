@@ -14,7 +14,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import DatabaseError, IntegrityError
 
-from submissions.errors import SubmissionNotFoundError, SubmissionInternalError, SubmissionRequestError
+from submissions.errors import SubmissionInternalError, SubmissionNotFoundError, SubmissionRequestError
 from submissions.models import (
     DELETED,
     Score,

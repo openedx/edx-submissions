@@ -5,7 +5,7 @@ Public interface for team submissions API.
 # We're going to need common things like `SubmissionError`
 import logging
 
-from django.db import transaction, DatabaseError
+from django.db import DatabaseError, transaction
 
 from submissions import api as _api
 from submissions.errors import TeamSubmissionInternalError, TeamSubmissionRequestError

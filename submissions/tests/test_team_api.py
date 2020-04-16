@@ -2,22 +2,23 @@
 
 import ddt
 import mock
-from freezegun import freeze_time
-from django.db import DatabaseError
 from django.core.cache import cache
+from django.db import DatabaseError
 from django.test import TestCase
 from django.utils.timezone import now
+from freezegun import freeze_time
 
 from submissions import team_api
 from submissions.errors import (
-    TeamSubmissionNotFoundError, TeamSubmissionRequestError, TeamSubmissionInternalError,
-    DuplicateTeamSubmissionsError, SubmissionInternalError
+    DuplicateTeamSubmissionsError,
+    SubmissionInternalError,
+    TeamSubmissionInternalError,
+    TeamSubmissionNotFoundError,
+    TeamSubmissionRequestError
 )
-from submissions.models import (
-    Score, StudentItem, Submission, TeamSubmission, DELETED, ACTIVE
-)
+from submissions.models import ACTIVE, DELETED, Score, StudentItem, Submission, TeamSubmission
 from submissions.serializers import TeamSubmissionSerializer
-from submissions.tests.factories import TeamSubmissionFactory, UserFactory, SubmissionFactory
+from submissions.tests.factories import SubmissionFactory, TeamSubmissionFactory, UserFactory
 
 COURSE_ID = 'edX/Teamwork101/Cooperation'
 ITEM_1_ID = 'item_1'

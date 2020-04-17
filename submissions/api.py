@@ -121,7 +121,7 @@ def create_submission(student_item_dict, answer, submitted_at=None, attempt_numb
     if submitted_at:
         model_kwargs["submitted_at"] = submitted_at
     if team_submission:
-        model_kwargs["team_submission"] = team_submission.pk
+        model_kwargs["team_submission_uuid"] = team_submission.uuid
 
     try:
         submission_serializer = SubmissionSerializer(data=model_kwargs)

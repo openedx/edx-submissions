@@ -26,13 +26,6 @@ ITEM_2_ID = 'item_2'
 TEAM_1_ID = 'team_apple'
 TEAM_2_ID = 'team_banana'
 
-STUDENT_ITEM_DICT = {
-    'student_id': 'student_id_1',
-    'course_id': COURSE_ID,
-    'item_id': ITEM_1_ID,
-    'item_type': 'openassessment'
-}
-
 ANSWER = {
     'file_descriptions': ['a1', 'a2'],
     'file_names': ['a1.txt', 'a2.png'],
@@ -111,7 +104,8 @@ class TestTeamSubmissionsApi(TestCase):
     def _call_create_submission_for_team_with_default_args(self):
         """ Convenience method to call team_api.create_submission_for_team with some default arguments """
         return team_api.create_submission_for_team(
-            STUDENT_ITEM_DICT,
+            COURSE_ID,
+            ITEM_1_ID,
             TEAM_1_ID,
             self.user_1.id,
             self.user_ids,
@@ -181,7 +175,8 @@ class TestTeamSubmissionsApi(TestCase):
         """
         with self.assertRaises(TeamSubmissionRequestError):
             team_api.create_submission_for_team(
-                STUDENT_ITEM_DICT,
+                COURSE_ID,
+                ITEM_1_ID,
                 TEAM_1_ID,
                 self.user_1.id,
                 self.user_ids,

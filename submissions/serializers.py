@@ -92,6 +92,14 @@ class SubmissionSerializer(serializers.ModelSerializer):
     # to a string.
     answer = RawField()
 
+    team_submission_uuid = serializers.SlugRelatedField(
+        slug_field='uuid',
+        source='team_submission',
+        queryset=TeamSubmission.objects.all(),
+        allow_null=True,
+        required=False,
+    )
+
     def validate_answer(self, value):
         """
         Check that the answer is JSON-serializable and not too long.
@@ -117,7 +125,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
             'submitted_at',
             'created_at',
             'answer',
-            'team_submission'
+            'team_submission_uuid'
         )
 
 

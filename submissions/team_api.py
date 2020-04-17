@@ -2,7 +2,6 @@
 Public interface for team submissions API.
 """
 
-# We're going to need common things like `SubmissionError`
 import logging
 
 from django.db import DatabaseError, transaction
@@ -17,13 +16,15 @@ logger = logging.getLogger(__name__)
 
 @transaction.atomic
 def create_submission_for_team(
-    student_item_dict,
+    course_id,
+    item_id,
     team_id,
     submitting_user_id,
     team_member_ids,
     answer,
     submitted_at=None,
-    attempt_number=1
+    attempt_number=1,
+    item_type='openassessment',
 ):
     """
     This api function:
@@ -59,10 +60,10 @@ def create_submission_for_team(
             internal error when creating the underlying submissions.
 
     Examples:
-        >>>submitting_user_id = "Tim"
-        >>>item_id = "item_1"
         >>>course_id = "course_1"
+        >>>item_id = "item_1"
         >>>team_id = "A Team"
+        >>>submitting_user_id = "Tim"
         >>>team_member_ids = ["Alice", "Bob", "Carol", "Tim"]
         >>>answer = "The answer is 42."
         >>> )
@@ -71,8 +72,8 @@ def create_submission_for_team(
             )
         {
             'team_submission_uuid': 'blah',
-            'item_id': "item_1",
             'course_id': "course_1",
+            'item_id': "item_1",
             'team_id': "A Team",
             'submitted_by': "Tim",
             'attempt_number': 1,
@@ -90,8 +91,8 @@ def create_submission_for_team(
     # For now ... I'm just gonna default it to 1?
 
     model_kwargs = {
-        'course_id': student_item_dict['course_id'],
-        'item_id': student_item_dict['item_id'],
+        'course_id': course_id,
+        'item_id': item_id,
         'team_id': team_id,
         'submitted_by': submitting_user_id,
         'attempt_number': attempt_number,
@@ -113,8 +114,13 @@ def create_submission_for_team(
         logger.exception(error_message)
         raise TeamSubmissionInternalError(error_message)
 
+    base_student_item_dict = {
+        'course_id': course_id,
+        'item_id': item_id,
+        'item_type': item_type
+    }
     for team_member_id in team_member_ids:
-        team_member_student_item_dict = dict(student_item_dict)
+        team_member_student_item_dict = dict(base_student_item_dict)
         team_member_student_item_dict['student_id'] = team_member_id
         _api.create_submission(
             team_member_student_item_dict,

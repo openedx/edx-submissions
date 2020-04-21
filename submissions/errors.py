@@ -1,42 +1,41 @@
-
 """ Submission-specific errors """
 
 import copy
 
 
 class SubmissionError(Exception):
-    """An error that occurs during submission actions.
+    """
+    An error that occurs during submission actions.
 
     This error is raised when the submission API cannot perform a requested
     action.
-
     """
 
 
 class SubmissionInternalError(SubmissionError):
-    """An error internal to the Submission API has occurred.
+    """
+    An error internal to the Submission API has occurred.
 
     This error is raised when an error occurs that is not caused by incorrect
     use of the API, but rather internal implementation of the underlying
     services.
-
     """
 
 
 class SubmissionNotFoundError(SubmissionError):
-    """This error is raised when no submission is found for the request.
+    """
+    This error is raised when no submission is found for the request.
 
     If a state is specified in a call to the API that results in no matching
     Submissions, this error may be raised.
-
     """
 
 
 class SubmissionRequestError(SubmissionError):
-    """This error is raised when there was a request-specific error
+    """
+    This error is raised when there was a request-specific error
 
     This error is reserved for problems specific to the use of the API.
-
     """
     def __init__(self, msg="", field_errors=None):
         """

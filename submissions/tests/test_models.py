@@ -224,11 +224,6 @@ class TestTeamSubmission(TestCase):
             attempt_number=attempt_number
         )
 
-    def test_create_team_submission(self):
-        # force evaluation of __str__ to ensure there are no issues with the class, since there
-        # isn't much specific to assert.
-        self.assertNotEqual(self.default_submission.__str__, None)
-
     def test_create_duplicate_team_submission_not_allowed(self):
         with pytest.raises(DuplicateTeamSubmissionsError):
             TestTeamSubmission.create_team_submission(user=self.user)
@@ -244,11 +239,8 @@ class TestTeamSubmission(TestCase):
 
     @mock.patch('submissions.models.TeamSubmission.SoftDeletedManager.get_queryset')
     def test_get_team_submission_by_uuid_error(self, mocked_qs):
-        mocked_qs.side_effect = Exception('!!!error!!!')
-        expected_msg = 'Attempt to get team submission for uuid {} caused error: !!!error!!!'.format(
-            self.default_submission.uuid
-        )
-        with self.assertRaisesMessage(TeamSubmissionInternalError, expected_msg):
+        mocked_qs.side_effect = Exception()
+        with self.assertRaises(TeamSubmissionInternalError):
             TeamSubmission.get_team_submission_by_uuid(self.default_submission.uuid)
 
     def test_get_team_submission_by_course_item_team(self):
@@ -269,11 +261,8 @@ class TestTeamSubmission(TestCase):
 
     @mock.patch('submissions.models.TeamSubmission.SoftDeletedManager.get_queryset')
     def test_get_team_submission_by_course_item_team_error(self, mocked_qs):
-        mocked_qs.side_effect = Exception('!!!error!!!')
-        expected_msg = (
-            'Attempt to get team submission for course_id=c1 item_id=i1 team_id=team1 caused error: !!!error!!!'
-        )
-        with self.assertRaisesMessage(TeamSubmissionInternalError, expected_msg):
+        mocked_qs.side_effect = Exception()
+        with self.assertRaises(TeamSubmissionInternalError):
             TeamSubmission.get_team_submission_by_course_item_team(
                 self.default_course_id,
                 self.default_item_id,
@@ -299,11 +288,8 @@ class TestTeamSubmission(TestCase):
 
     @mock.patch('submissions.models.TeamSubmission.SoftDeletedManager.get_queryset')
     def test_get_all_team_submissions_for_course_item_error(self, mocked_qs):
-        mocked_qs.side_effect = Exception('!!!error!!!')
-        expected_msg = (
-            'Attempt to get team submissions for course_id=c1 item_id=i1 caused error: !!!error!!!'
-        )
-        with self.assertRaisesMessage(TeamSubmissionInternalError, expected_msg):
+        mocked_qs.side_effect = Exception()
+        with self.assertRaises(TeamSubmissionInternalError):
             TeamSubmission.get_all_team_submissions_for_course_item(
                 self.default_course_id,
                 self.default_item_id,

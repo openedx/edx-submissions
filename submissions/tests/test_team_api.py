@@ -59,7 +59,7 @@ class TestTeamSubmissionsApi(TestCase):
         cls.user_ids = [str(user_id) for user_id in [cls.user_1.id, cls.user_2.id, cls.user_3.id, cls.user_4.id]]
 
     @classmethod
-    def make_team_submission(
+    def _make_team_submission(
         cls,
         attempt_number=1,
         course_id=COURSE_ID,
@@ -155,7 +155,7 @@ class TestTeamSubmissionsApi(TestCase):
         Test for calling create_submission_for_team with an existing active team submission
         for the same team course and item.
         """
-        self.make_team_submission(status=ACTIVE)
+        self._make_team_submission(status=ACTIVE)
         with self.assertRaises(DuplicateTeamSubmissionsError):
             self._call_create_submission_for_team_with_default_args()
 
@@ -164,7 +164,7 @@ class TestTeamSubmissionsApi(TestCase):
         Test for calling create_submission_for_team with an existing deleted team submission
         for the same team course and item.
         """
-        team_submission_1 = self.make_team_submission(status=DELETED)
+        team_submission_1 = self._make_team_submission(status=DELETED)
         team_submission_2 = self._call_create_submission_for_team_with_default_args()
         self.assertEqual(team_submission_1.attempt_number, 1)
         self.assertEqual(team_submission_2['attempt_number'], 1)
@@ -187,7 +187,12 @@ class TestTeamSubmissionsApi(TestCase):
     def test_create_submission_for_team_existing_individual_submission(self):
         """
         Test for calling create_submission_for_team when a user somehow already has
-        an existing active submission for the item
+        an existing active submission for the item.
+
+        For normal Submissions, if a submission exists and we create another one, the second
+        will increment the first's attempt_number. However, for team submissions, we currently
+        pass the attempt_number from team_api.create_submission to api.create_submission, so
+        all created individual submissions will have the same attempt_number
         """
         user_3_item = self._get_or_create_student_item(self.user_3.id)
         SubmissionFactory.create(student_item=user_3_item)
@@ -217,7 +222,7 @@ class TestTeamSubmissionsApi(TestCase):
         """
         Test that calling team_api.get_team_submission returns the expected team submission
         """
-        team_submission_model = self.make_team_submission()
+        team_submission_model = self._make_team_submission()
         team_submission_dict = team_api.get_team_submission(team_submission_model.uuid)
         self.assertDictEqual(
             team_submission_dict,
@@ -244,7 +249,7 @@ class TestTeamSubmissionsApi(TestCase):
         """
         Test that calling team_api.get_team_submission_for_team returns the expected team submission
         """
-        team_submission = self.make_team_submission()
+        team_submission = self._make_team_submission()
         team_submission_dict = team_api.get_team_submission_for_team(COURSE_ID, ITEM_1_ID, TEAM_1_ID)
         self.assertDictEqual(
             team_submission_dict,
@@ -256,7 +261,7 @@ class TestTeamSubmissionsApi(TestCase):
         Test that calling team_api.get_team_submission_for_team when there is no matching TeamSubmission will
         raise a TeamSubmissionNotFoundError
         """
-        self.make_team_submission()
+        self._make_team_submission()
         with self.assertRaises(TeamSubmissionNotFoundError):
             team_api.get_team_submission_for_team(COURSE_ID, ITEM_1_ID, TEAM_2_ID)
 
@@ -300,25 +305,25 @@ class TestTeamSubmissionsApi(TestCase):
         """
         # Make a bunch of team submissions
         team_submission_models = [
-            self.make_team_submission(
+            self._make_team_submission(
                 course_id=COURSE_ID,
                 item_id=ITEM_1_ID,
                 team_id=TEAM_1_ID,
                 create_submissions=True
             ),
-            self.make_team_submission(
+            self._make_team_submission(
                 course_id=COURSE_ID,
                 item_id=ITEM_1_ID,
                 team_id=TEAM_2_ID,
                 create_submissions=True
             ),
-            self.make_team_submission(
+            self._make_team_submission(
                 course_id=COURSE_ID,
                 item_id=ITEM_2_ID,
                 team_id=TEAM_1_ID,
                 create_submissions=True
             ),
-            self.make_team_submission(
+            self._make_team_submission(
                 course_id=COURSE_ID,
                 item_id=ITEM_2_ID,
                 team_id=TEAM_2_ID,
@@ -353,7 +358,7 @@ class TestTeamSubmissionsApi(TestCase):
         Test that calling team_api.set_score will set the score for each individual submission,
         and that calling it again will create another score for all individual submissions.
         """
-        team_submission = self.make_team_submission(create_submissions=True)
+        team_submission = self._make_team_submission(create_submissions=True)
         team_api.set_score(team_submission.uuid, 6, 10)
         first_round_scores = {}
         for user_id in self.user_ids:
@@ -393,7 +398,7 @@ class TestTeamSubmissionsApi(TestCase):
         No scores should be created.
         """
         mock_log.side_effect = [None, None, None, Exception()]
-        team_submission = self.make_team_submission(create_submissions=True)
+        team_submission = self._make_team_submission(create_submissions=True)
         with self.assertRaises(Exception):
             team_api.set_score(team_submission.uuid, 6, 10)
         self.assertFalse(

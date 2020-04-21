@@ -107,7 +107,7 @@ def create_submission_for_team(
         team_submission = team_submission_serializer.save()
         _log_team_submission(team_submission_serializer.data)
     except DatabaseError as exc:
-        error_message = u"An error occurred while creating team submission {}: {}".format(
+        error_message = "An error occurred while creating team submission {}: {}".format(
             model_kwargs,
             exc
         )
@@ -146,9 +146,9 @@ def _log_team_submission(team_submission_data):
         None
     """
     logger.info(
-        u"Created team submission uuid={team_submission_uuid} for "
-        u"(course_id={course_id}, item_id={item_id}, team_id={team_id}) "
-        u"submitted_by={submitted_by}"
+        "Created team submission uuid={team_submission_uuid} for "
+        "(course_id={course_id}, item_id={item_id}, team_id={team_id}) "
+        "submitted_by={submitted_by}"
         .format(
             team_submission_uuid=team_submission_data["team_submission_uuid"],
             course_id=team_submission_data["course_id"],

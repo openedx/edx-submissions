@@ -19,10 +19,10 @@ class UserFactory(DjangoModelFactory):
 
     _DEFAULT_PASSWORD = 'test'
 
-    username = factory.Sequence(u'robot{0}'.format)
-    email = factory.Sequence(u'robot+test+{0}@edx.org'.format)
+    username = factory.Sequence('robot{0}'.format)
+    email = factory.Sequence('robot+test+{0}@edx.org'.format)
     password = factory.PostGenerationMethodCall('set_password', _DEFAULT_PASSWORD)
-    first_name = factory.Sequence(u'Robot{0}'.format)
+    first_name = factory.Sequence('Robot{0}'.format)
     last_name = 'Test'
     is_staff = False
     is_active = True

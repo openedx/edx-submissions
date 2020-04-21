@@ -176,7 +176,7 @@ class TeamSubmission(TimeStampedModel):
         except TeamSubmission.DoesNotExist:
             logger.error("Team Submission {} not found.".format(team_submission_uuid))
             raise TeamSubmissionNotFoundError(
-                u"No team submission matching uuid {}".format(team_submission_uuid)
+                "No team submission matching uuid {}".format(team_submission_uuid)
             )
         except Exception as exc:
             err_msg = "Attempt to get team submission for uuid {uuid} caused error: {exc}".format(
@@ -212,7 +212,7 @@ class TeamSubmission(TimeStampedModel):
         except TeamSubmission.DoesNotExist:
             logger.error("Team submission for {} not found.".format(query_params_string))
             raise TeamSubmissionNotFoundError(
-                u"No team submission matching {}".format(query_params_string)
+                "No team submission matching {}".format(query_params_string)
             )
         except Exception as exc:
             err_msg = "Attempt to get team submission for {params} caused error: {exc}".format(

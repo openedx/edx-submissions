@@ -9,8 +9,10 @@ from datetime import datetime
 import pytest
 from django.contrib.auth.models import User
 from django.test import TestCase
+from mock import mock
 from pytz import UTC
 
+from submissions.errors import TeamSubmissionInternalError, TeamSubmissionNotFoundError
 from submissions.models import (
     DuplicateTeamSubmissionsError,
     Score,
@@ -184,25 +186,20 @@ class TestTeamSubmission(TestCase):
     """
     Test the TeamSubmission class
     """
+    default_team_id = 'team1'
+    default_course_id = 'c1'
+    default_item_id = 'i1'
+    default_attempt_number = 1
+
+    other_item_id = 'some_other_item'
+
+    other_course_id = 'MIT/PerpetualMotion/Fall2020'
 
     @classmethod
     def setUpTestData(cls):
         cls.user = cls.create_user('user1')
-        cls.default_team_id = 'team1'
-        cls.default_Course_id = 'c1'
-        cls.defaullt_item_id = 'i1'
-        cls.default_attempt_number = 1
         cls.default_submission = cls.create_team_submission(user=cls.user)
         super().setUpTestData()
-
-    def test_create_team_submission(self):
-        # force evaluation of __str__ to ensure there are no issues with the class, since there
-        # isn't much specific to assert.
-        self.assertNotEqual(self.default_submission.__str__, None)
-
-    def test_create_duplicate_team_submission_not_allowed(self):
-        with pytest.raises(DuplicateTeamSubmissionsError):
-            TestTeamSubmission.create_team_submission(user=self.user)
 
     @staticmethod
     def create_user(username):
@@ -226,3 +223,74 @@ class TestTeamSubmission(TestCase):
             item_id=item_id,
             attempt_number=attempt_number
         )
+
+    def test_create_duplicate_team_submission_not_allowed(self):
+        with pytest.raises(DuplicateTeamSubmissionsError):
+            TestTeamSubmission.create_team_submission(user=self.user)
+
+    def test_get_team_submission_by_uuid(self):
+        team_submission = TeamSubmission.get_team_submission_by_uuid(self.default_submission.uuid)
+        self.assertEqual(team_submission.id, self.default_submission.id)
+
+    def test_get_team_submission_by_uuid_nonexistant(self):
+        fake_uuid = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+        with self.assertRaises(TeamSubmissionNotFoundError):
+            TeamSubmission.get_team_submission_by_uuid(fake_uuid)
+
+    @mock.patch('submissions.models.TeamSubmission.SoftDeletedManager.get_queryset')
+    def test_get_team_submission_by_uuid_error(self, mocked_qs):
+        mocked_qs.side_effect = Exception()
+        with self.assertRaises(TeamSubmissionInternalError):
+            TeamSubmission.get_team_submission_by_uuid(self.default_submission.uuid)
+
+    def test_get_team_submission_by_course_item_team(self):
+        team_submission = TeamSubmission.get_team_submission_by_course_item_team(
+            self.default_course_id,
+            self.default_item_id,
+            self.default_team_id
+        )
+        self.assertEqual(team_submission.id, self.default_submission.id)
+
+    def test_get_team_submission_by_course_item_team_nonexistant(self):
+        with self.assertRaises(TeamSubmissionNotFoundError):
+            TeamSubmission.get_team_submission_by_course_item_team(
+                self.other_course_id,
+                self.other_item_id,
+                'some_other_team',
+            )
+
+    @mock.patch('submissions.models.TeamSubmission.SoftDeletedManager.get_queryset')
+    def test_get_team_submission_by_course_item_team_error(self, mocked_qs):
+        mocked_qs.side_effect = Exception()
+        with self.assertRaises(TeamSubmissionInternalError):
+            TeamSubmission.get_team_submission_by_course_item_team(
+                self.default_course_id,
+                self.default_item_id,
+                self.default_team_id
+            )
+
+    def test_get_all_team_submissions_for_course_item(self):
+        team_submission_1 = self.create_team_submission(self.user, team_id='another_team_1')
+        team_submission_2 = self.create_team_submission(self.user, team_id='another_team_2')
+        team_submission_3 = self.create_team_submission(self.user, team_id='another_team_3')
+        self.create_team_submission(self.user, item_id=self.other_item_id, team_id='another_team_4')
+        self.create_team_submission(self.user, course_id=self.other_course_id, team_id='another_team_another_course')
+        result = TeamSubmission.get_all_team_submissions_for_course_item(self.default_course_id, self.default_item_id)
+        self.assertEqual(len(result), 4)
+        self.assertIn(self.default_submission, result)
+        self.assertIn(team_submission_1, result)
+        self.assertIn(team_submission_2, result)
+        self.assertIn(team_submission_3, result)
+
+    def test_get_all_team_submissions_for_course_item_no_results(self):
+        result = TeamSubmission.get_all_team_submissions_for_course_item(self.other_course_id, self.other_item_id)
+        self.assertEqual(len(result), 0)
+
+    @mock.patch('submissions.models.TeamSubmission.SoftDeletedManager.get_queryset')
+    def test_get_all_team_submissions_for_course_item_error(self, mocked_qs):
+        mocked_qs.side_effect = Exception()
+        with self.assertRaises(TeamSubmissionInternalError):
+            TeamSubmission.get_all_team_submissions_for_course_item(
+                self.default_course_id,
+                self.default_item_id,
+            )

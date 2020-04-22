@@ -3,9 +3,32 @@ import datetime
 from uuid import uuid4
 
 import factory
+from django.contrib.auth.models import User
+from django.utils.timezone import now
 from factory.django import DjangoModelFactory
+from pytz import UTC
 
 from submissions import models
+
+
+class UserFactory(DjangoModelFactory):
+    """ Copied from edx-platform/common/djangoapps/student/tests/factories.py """
+    class Meta:
+        model = User
+        django_get_or_create = ('email', 'username')
+
+    _DEFAULT_PASSWORD = 'test'
+
+    username = factory.Sequence('robot{0}'.format)
+    email = factory.Sequence('robot+test+{0}@edx.org'.format)
+    password = factory.PostGenerationMethodCall('set_password', _DEFAULT_PASSWORD)
+    first_name = factory.Sequence('Robot{0}'.format)
+    last_name = 'Test'
+    is_staff = False
+    is_active = True
+    is_superuser = False
+    last_login = datetime.datetime(2012, 1, 1, tzinfo=UTC)
+    date_joined = datetime.datetime(2011, 1, 1, tzinfo=UTC)
 
 
 class StudentItemFactory(DjangoModelFactory):
@@ -32,3 +55,17 @@ class SubmissionFactory(DjangoModelFactory):
     answer = {}
 
     status = models.ACTIVE
+
+
+class TeamSubmissionFactory(DjangoModelFactory):
+    """ A factory for TeamSubmission model """
+    class Meta:
+        model = models.TeamSubmission
+
+    uuid = factory.LazyFunction(uuid4)
+    attempt_number = 1
+    submitted_at = now()
+    course_id = factory.Faker('sha1')
+    item_id = factory.Faker('sha1')
+    team_id = factory.Faker('sha1')
+    submitted_by = factory.SubFactory(UserFactory)

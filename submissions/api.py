@@ -14,7 +14,13 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import DatabaseError, IntegrityError
 
-from submissions.errors import SubmissionInternalError, SubmissionNotFoundError, SubmissionRequestError
+# SubmissionError imported so that code importing this api has access
+from submissions.errors import (  # pylint: disable=unused-import
+    SubmissionError,
+    SubmissionInternalError,
+    SubmissionNotFoundError,
+    SubmissionRequestError
+)
 from submissions.models import (
     DELETED,
     Score,

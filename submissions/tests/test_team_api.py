@@ -125,6 +125,7 @@ class TestTeamSubmissionsApi(TestCase):
 
         self.assertDictEqual(
             {
+                'answer': ANSWER,
                 'submitted_at': now(),
                 'created_at': now(),
                 'attempt_number': 1,

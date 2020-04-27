@@ -101,7 +101,7 @@ def create_submission_for_team(
         model_kwargs["submitted_at"] = submitted_at
 
     try:
-        team_submission_serializer = TeamSubmissionSerializer(data=model_kwargs)
+        team_submission_serializer = TeamSubmissionSerializer(data=model_kwargs, context={'answer': answer})
         if not team_submission_serializer.is_valid():
             raise TeamSubmissionRequestError(field_errors=team_submission_serializer.errors)
         team_submission = team_submission_serializer.save()
@@ -130,8 +130,11 @@ def create_submission_for_team(
             team_submission=team_submission
         )
 
+    model_kwargs = {
+        "answer": answer,
+    }
     # We must serialize the model, since the existing serializer doesn't have info about the individual submissions
-    model_serializer = TeamSubmissionSerializer(team_submission)
+    model_serializer = TeamSubmissionSerializer(team_submission, context={"answer": answer})
     return model_serializer.data
 
 

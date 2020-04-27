@@ -57,6 +57,30 @@ class TeamSubmissionSerializer(serializers.ModelSerializer):
     submitted_at = DateTimeField(format=None, required=False)
     created_at = DateTimeField(source='created', format=None, required=False)
     attempt_number = IntegerField(min_value=0)
+    # Prevent Django Rest Framework from converting the answer (dict or str)
+    # to a string.
+    # answer is not a part of TeamSubmission model. We populate it externally.
+    answer = serializers.SerializerMethodField()
+
+    def get_answer(self, obj):  # pylint: disable=unused-argument
+        answer = self.context.get("answer")
+        return answer
+
+    def validate_answer(self, value):
+        """
+        Check that the answer is JSON-serializable and not too long.
+        """
+        # Check that the answer is JSON-serializable
+        try:
+            serialized = json.dumps(value)
+        except (ValueError, TypeError):
+            raise serializers.ValidationError("Answer value must be JSON-serializable")
+
+        # Check the length of the serialized representation
+        if len(serialized) > Submission.MAXSIZE:
+            raise serializers.ValidationError("Maximum answer size exceeded.")
+
+        return value
 
     class Meta:
         model = TeamSubmission
@@ -69,6 +93,7 @@ class TeamSubmissionSerializer(serializers.ModelSerializer):
             'team_id',
             'submitted_by',
             'created_at',
+            'answer',
             'submission_uuids'
         )
 

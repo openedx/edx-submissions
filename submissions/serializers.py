@@ -62,8 +62,16 @@ class TeamSubmissionSerializer(serializers.ModelSerializer):
     # answer is not a part of TeamSubmission model. We populate it externally.
     answer = serializers.SerializerMethodField()
 
-    def get_answer(self, obj):  # pylint: disable=unused-argument
+    def get_answer(self, obj):
+        """
+        Regular submissions are created after a team submission. In this case, the answer is passed as part of context
+        otherwise, get the answer from its related submission. All individual submissions are identical except for
+        student data. Therefore, get the answer of the first submitter
+        """
         answer = self.context.get("answer")
+        if answer is None and obj.submissions is not None:
+            #  retrieve answer submissions from the linked submission model. There are n identical submissions
+            answer = obj.submissions.first().answer
         return answer
 
     def validate_answer(self, value):

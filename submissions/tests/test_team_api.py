@@ -81,7 +81,7 @@ class TestTeamSubmissionsApi(TestCase):
         if create_submissions:
             for student_id in cls.user_ids:
                 student_item = cls._get_or_create_student_item(student_id, course_id=course_id, item_id=item_id)
-                SubmissionFactory.create(student_item=student_item, team_submission=team_submission)
+                SubmissionFactory.create(student_item=student_item, team_submission=team_submission, answer='Foo')
         return team_submission
 
     @classmethod
@@ -223,7 +223,8 @@ class TestTeamSubmissionsApi(TestCase):
         """
         Test that calling team_api.get_team_submission returns the expected team submission
         """
-        team_submission_model = self._make_team_submission()
+        team_submission_model = self._make_team_submission(create_submissions=True)
+
         team_submission_dict = team_api.get_team_submission(team_submission_model.uuid)
         self.assertDictEqual(
             team_submission_dict,
@@ -250,7 +251,7 @@ class TestTeamSubmissionsApi(TestCase):
         """
         Test that calling team_api.get_team_submission_for_team returns the expected team submission
         """
-        team_submission = self._make_team_submission()
+        team_submission = self._make_team_submission(create_submissions=True)
         team_submission_dict = team_api.get_team_submission_for_team(COURSE_ID, ITEM_1_ID, TEAM_1_ID)
         self.assertDictEqual(
             team_submission_dict,

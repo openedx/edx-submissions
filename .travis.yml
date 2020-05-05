@@ -3,27 +3,14 @@ dist: latest
 
 python:
   - 3.5
+  - 3.8
 
 env:
-  - TOXENV=django111-drf39
-  - TOXENV=django111-drf310
-  - TOXENV=django111-drflatest
-  - TOXENV=django20-drf39
-  - TOXENV=django20-drf310
-  - TOXENV=django20-drflatest
-  - TOXENV=django21-drf39
-  - TOXENV=django21-drf310
-  - TOXENV=django21-drflatest
   - TOXENV=django22-drf39
   - TOXENV=django22-drf310
   - TOXENV=django22-drflatest
-
-matrix:
-  include:
-    - python: 3.5
-      env: TOXENV=quality
-    - python: 3.5
-      env: TOXENV=docs
+  - TOXENV=quality
+  - TOXENV=docs
 
 install:
   - pip install -r requirements/test.txt
@@ -46,4 +33,4 @@ deploy:
   on:
     tags: true
     python: 3.5
-    condition: "$TOXENV = django111-drflatest"
+    condition: "$TOXENV = django22-drflatest"

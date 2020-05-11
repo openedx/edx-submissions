@@ -3,6 +3,7 @@ from __future__ import absolute_import
 
 from django.contrib import admin
 from django.urls import reverse
+from django.utils.html import format_html
 
 from submissions.models import Score, ScoreSummary, StudentItem, Submission
 
@@ -34,8 +35,8 @@ class StudentItemAdminMixin(object):  # pylint: disable=useless-object-inheritan
             'admin:submissions_studentitem_change',
             args=[obj.student_item.id]
         )
-        return u'<a href="{}">{}</a>'.format(url, obj.student_item.id)
-    student_item_id.allow_tags = True
+        return format_html(u'<a href="{}">{}</a>'.format(url, obj.student_item.id))
+
     student_item_id.admin_order_field = 'student_item__id'
     student_item_id.short_description = 'S.I. ID'
 
@@ -116,16 +117,16 @@ class ScoreSummaryAdmin(admin.ModelAdmin, StudentItemAdminMixin):
         url = reverse(
             'admin:submissions_score_change', args=[score_summary.highest.id]
         )
-        return u'<a href="{}">{}</a>'.format(url, score_summary.highest)
-    highest_link.allow_tags = True
+        return format_html(u'<a href="{}">{}</a>'.format(url, score_summary.highest))
+
     highest_link.short_description = 'Highest'
 
     def latest_link(self, score_summary):
         url = reverse(
             'admin:submissions_score_change', args=[score_summary.latest.id]
         )
-        return u'<a href="{}">{}</a>'.format(url, score_summary.latest)
-    latest_link.allow_tags = True
+        return format_html(u'<a href="{}">{}</a>'.format(url, score_summary.latest))
+
     latest_link.short_description = 'Latest'
 
 

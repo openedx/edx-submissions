@@ -81,7 +81,7 @@ class SubmissionAdmin(admin.ModelAdmin, StudentItemAdminMixin):
 class TeamSubmissionAdmin(admin.ModelAdmin):
     """ Student Submission Admin View. """
 
-    list_display = ('id', 'uuid', 'course_id', 'item_id', 'team_id', 'status') 
+    list_display = ('id', 'uuid', 'course_id', 'item_id', 'team_id', 'status')
     search_fields = ('uuid', 'course_id', 'item_id', 'team_id')
     fields = ('uuid', 'attempt_number', 'submitted_at', 'course_id', 'item_id', 'team_id', 'submitted_by', 'status')
 

@@ -64,3 +64,11 @@ test_quality: ## Run Quality checks
 	pylint submissions
 	isort --check-only --recursive submissions manage.py setup.py settings.py
 	pycodestyle . --config=pycodestyle
+
+##################
+#Devstack commands
+##################
+
+install-local-submissions: ## installs your local submissions code into the LMS and Studio python virtualenvs
+	docker exec -t edx.devstack.lms bash -c '. /edx/app/edxapp/venvs/edxapp/bin/activate && cd /edx/app/edxapp/edx-platform && pip uninstall -y edx-submissions && pip install -e /edx/src/edx-submissions && pip freeze | grep edx-submissions'
+	docker exec -t edx.devstack.studio bash -c '. /edx/app/edxapp/venvs/edxapp/bin/activate && cd /edx/app/edxapp/edx-platform && pip uninstall -y edx-submissions && pip install -e /edx/src/edx-submissions && pip freeze | grep edx-submissions'

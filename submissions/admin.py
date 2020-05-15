@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
 
-from submissions.models import Score, ScoreSummary, StudentItem, Submission
+from submissions.models import Score, ScoreSummary, StudentItem, Submission, TeamSubmission
 
 
 class StudentItemAdminMixin(object):  # pylint: disable=useless-object-inheritance
@@ -78,6 +78,23 @@ class SubmissionAdmin(admin.ModelAdmin, StudentItemAdminMixin):
         )
 
 
+class SubmissionInlineAdmin(admin.TabularInline, StudentItemAdminMixin):
+    """ Inline admin for TeamSubmissions to view individual Submissions """
+    model = Submission
+    readonly_fields = ('uuid', 'student_id', 'status')
+    exclude = ('student_item', 'attempt_number', 'submitted_at', 'answer')
+    extra = 0
+
+
+class TeamSubmissionAdmin(admin.ModelAdmin):
+    """ Student Submission Admin View. """
+
+    list_display = ('id', 'uuid', 'course_id', 'item_id', 'team_id', 'status')
+    search_fields = ('uuid', 'course_id', 'item_id', 'team_id')
+    fields = ('uuid', 'attempt_number', 'submitted_at', 'course_id', 'item_id', 'team_id', 'submitted_by', 'status')
+    inlines = (SubmissionInlineAdmin,)
+
+
 class ScoreAdmin(admin.ModelAdmin, StudentItemAdminMixin):
     """ Student Score Admin View. """
     list_display = (
@@ -133,4 +150,5 @@ class ScoreSummaryAdmin(admin.ModelAdmin, StudentItemAdminMixin):
 admin.site.register(Score, ScoreAdmin)
 admin.site.register(StudentItem, StudentItemAdmin)
 admin.site.register(Submission, SubmissionAdmin)
+admin.site.register(TeamSubmission, TeamSubmissionAdmin)
 admin.site.register(ScoreSummary, ScoreSummaryAdmin)

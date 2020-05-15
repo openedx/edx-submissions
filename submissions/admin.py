@@ -79,6 +79,7 @@ class SubmissionAdmin(admin.ModelAdmin, StudentItemAdminMixin):
 
 
 class SubmissionInlineAdmin(admin.TabularInline, StudentItemAdminMixin):
+    """ Inline admin for TeamSubmissions to view individual Submissions """
     model = Submission
     readonly_fields = ('uuid', 'student_id', 'status')
     exclude = ('student_item', 'attempt_number', 'submitted_at', 'answer')

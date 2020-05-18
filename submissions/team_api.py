@@ -34,6 +34,19 @@ def create_submission_for_team(
     This means that the ORA `SubmissionMixin` must first collect all of the files of the submitting user
     and the team into the `answer` dict.
 
+    Parameters:
+        - course_id (str): the course id for this team submission
+        - item_id (str): the item id for this team submission
+        - team_id (str): the team_id for the team for which we are making the submission
+        - submitting_user_id (User): the user who has hit the "submit" button
+        - team_member_ids (list of str): a list of the anonymous user ids associated with all members of the team
+        - answer (json serializable object): string, dict, or other json-serializable object that represents the team's
+                                             answer to the problem
+        - submitted_at (datetime): (optional [default = now]) the datetime at which the team submission was submitted
+        - attempt number (int): (optional [default = 1]) the attempt number for this submission
+        - item_type (str): (optional [default = 'openassessment']) the type of item for which this submission is being
+                                                                   submitted
+
     Returns:
         dict: A representation of the created TeamSubmission, with the following keys:
           'team_submission_uuid' Is the `uuid` field of the created `TeamSubmission`.

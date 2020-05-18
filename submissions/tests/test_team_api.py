@@ -56,7 +56,13 @@ class TestTeamSubmissionsApi(TestCase):
         cls.user_2 = UserFactory.create()
         cls.user_3 = UserFactory.create()
         cls.user_4 = UserFactory.create()
-        cls.user_ids = [str(user_id) for user_id in [cls.user_1.id, cls.user_2.id, cls.user_3.id, cls.user_4.id]]
+        cls.anonymous_user_id_map = {
+            cls.user_1: '11111111111111111111111111111111',
+            cls.user_2: '22222222222222222222222222222222',
+            cls.user_3: '33333333333333333333333333333333',
+            cls.user_4: '44444444444444444444444444444444',
+        }
+        cls.student_ids = list(cls.anonymous_user_id_map.values())
 
     @classmethod
     def _make_team_submission(
@@ -79,7 +85,7 @@ class TestTeamSubmissionsApi(TestCase):
             model_args['status'] = status
         team_submission = TeamSubmissionFactory.create(**model_args)
         if create_submissions:
-            for student_id in cls.user_ids:
+            for student_id in cls.student_ids:
                 student_item = cls._get_or_create_student_item(student_id, course_id=course_id, item_id=item_id)
                 SubmissionFactory.create(student_item=student_item, team_submission=team_submission, answer='Foo')
         return team_submission
@@ -108,7 +114,7 @@ class TestTeamSubmissionsApi(TestCase):
             ITEM_1_ID,
             TEAM_1_ID,
             self.user_1.id,
-            self.user_ids,
+            self.student_ids,
             ANSWER
         )
 
@@ -140,8 +146,8 @@ class TestTeamSubmissionsApi(TestCase):
         TeamSubmission.objects.get(uuid=team_submission_uuid)
 
         # Make sure the submisisons have been created
-        self.assertEqual(len(submission_uuids), len(self.user_ids))
-        remaining_users = {str(user_id) for user_id in self.user_ids}
+        self.assertEqual(len(submission_uuids), len(self.student_ids))
+        remaining_users = set(self.student_ids)
         for submission_uuid in submission_uuids:
             submission = Submission.objects.select_related('student_item').get(uuid=submission_uuid)
             self.assertIn(submission.student_item.student_id, remaining_users)
@@ -180,7 +186,7 @@ class TestTeamSubmissionsApi(TestCase):
                 ITEM_1_ID,
                 TEAM_1_ID,
                 self.user_1.id,
-                self.user_ids,
+                self.student_ids,
                 ANSWER,
                 attempt_number=-1
             )
@@ -195,7 +201,7 @@ class TestTeamSubmissionsApi(TestCase):
         pass the attempt_number from team_api.create_submission to api.create_submission, so
         all created individual submissions will have the same attempt_number
         """
-        user_3_item = self._get_or_create_student_item(self.user_3.id)
+        user_3_item = self._get_or_create_student_item(self.anonymous_user_id_map[self.user_3])
         SubmissionFactory.create(student_item=user_3_item)
         team_submission_data = self._call_create_submission_for_team_with_default_args()
         self.assertEqual(team_submission_data['attempt_number'], 1)
@@ -363,14 +369,14 @@ class TestTeamSubmissionsApi(TestCase):
         team_submission = self._make_team_submission(create_submissions=True)
         team_api.set_score(team_submission.uuid, 6, 10)
         first_round_scores = {}
-        for user_id in self.user_ids:
-            individual_submission = team_submission.submissions.get(student_item__student_id=user_id)
+        for student_id in self.student_ids:
+            individual_submission = team_submission.submissions.get(student_item__student_id=student_id)
             self.assertEqual(individual_submission.score_set.count(), 1)
             score = individual_submission.score_set.first()
             self.assertEqual(score.points_earned, 6)
             self.assertEqual(score.points_possible, 10)
             self.assertFalse(score.scoreannotation_set.exists())
-            first_round_scores[user_id] = score
+            first_round_scores[student_id] = score
 
         team_api.set_score(
             team_submission.uuid,
@@ -381,10 +387,10 @@ class TestTeamSubmissionsApi(TestCase):
             annotation_type='staff_override',
         )
 
-        for user_id in self.user_ids:
-            individual_submission = team_submission.submissions.get(student_item__student_id=user_id)
+        for student_id in self.student_ids:
+            individual_submission = team_submission.submissions.get(student_item__student_id=student_id)
             self.assertEqual(individual_submission.score_set.count(), 2)
-            second_score = individual_submission.score_set.exclude(pk=first_round_scores[user_id].pk).first()
+            second_score = individual_submission.score_set.exclude(pk=first_round_scores[student_id].pk).first()
             self.assertEqual(second_score.points_earned, 9)
             self.assertEqual(second_score.points_possible, 10)
             self.assertEqual(second_score.scoreannotation_set.count(), 1)

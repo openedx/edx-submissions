@@ -13,9 +13,7 @@ env:
   - TOXENV=docs
 
 install:
-  - pip install -r requirements/test.txt
-  - python setup.py install
-  - pip install coveralls
+  - pip install -r requirements/travis.txt
 script:
   - tox
 after_success: 

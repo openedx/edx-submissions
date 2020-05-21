@@ -15,5 +15,5 @@ nose
 pycodestyle>=2.5.0
 pytest-cov
 pytest-django
-python-dateutil>=2.8.0 
-tox>=3.7.0
+python-dateutil>=2.8.0
+

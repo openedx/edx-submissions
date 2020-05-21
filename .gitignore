@@ -58,3 +58,6 @@ venvs
 
 # Requirements tmp file
 test.txt.tmp
+
+# Pycharm
+.idea/

@@ -45,6 +45,8 @@ upgrade: ## Update the requirements/*.txt files with the latest packages satisfy
 	pip-compile --upgrade --verbose --rebuild -o requirements/docs.txt requirements/docs.in
 	pip-compile --upgrade --verbose --rebuild -o requirements/test.txt requirements/test.in
 	pip-compile --upgrade --verbose --rebuild -o requirements/dev.txt requirements/dev.in
+	pip-compile --upgrade --verbose --rebuild -o requirements/tox.txt requirements/tox.in
+	pip-compile --upgrade --verbose --rebuild -o requirements/travis.txt requirements/travis.in
 	# Let tox control the Django and DRF versions for tests
 	sed -i.tmp '/^django==/d' requirements/test.txt
 	sed -i.tmp '/^djangorestframework==/d' requirements/test.txt

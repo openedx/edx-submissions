@@ -7,8 +7,8 @@ import logging
 from django.db import DatabaseError, transaction
 
 from submissions import api as _api
-from submissions.errors import TeamSubmissionInternalError, TeamSubmissionRequestError, SubmissionInternalError
-from submissions.models import TeamSubmission, DELETED
+from submissions.errors import SubmissionInternalError, TeamSubmissionInternalError, TeamSubmissionRequestError
+from submissions.models import DELETED, TeamSubmission
 from submissions.serializers import TeamSubmissionSerializer
 
 logger = logging.getLogger(__name__)

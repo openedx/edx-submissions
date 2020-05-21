@@ -7,8 +7,8 @@ import logging
 from django.db import DatabaseError, transaction
 
 from submissions import api as _api
-from submissions.errors import TeamSubmissionInternalError, TeamSubmissionRequestError
-from submissions.models import TeamSubmission
+from submissions.errors import TeamSubmissionInternalError, TeamSubmissionRequestError, SubmissionInternalError
+from submissions.models import TeamSubmission, DELETED
 from submissions.serializers import TeamSubmissionSerializer
 
 logger = logging.getLogger(__name__)
@@ -260,3 +260,51 @@ def set_score(team_submission_uuid, points_earned, points_possible,
                 annotation_type,
                 annotation_reason
             )
+
+
+@transaction.atomic
+def reset_scores(team_submission_uuid, clear_state=False):
+    """
+    Reset scores for a specific team submission to a problem.
+
+    Note: this does *not* delete `Score` models from the database,
+    since these are immutable.  It simply creates a new score with
+    the "reset" flag set to True.
+
+    Args:
+        team_submission_uuid (str): The uuid for the team submission for which to reset scores.
+        clear_state (bool): If True, will appear to delete the team submission and any individual submissions
+                            by setting their status to DELETED
+
+    Returns:
+        None
+
+    Raises:
+        TeamSubmissionInternalError: An unexpected error occurred while resetting scores.
+
+    """
+    # Get the team submission
+    try:
+        team_submission = TeamSubmission.get_team_submission_by_uuid(team_submission_uuid)
+        for submission in team_submission.submissions.select_related('student_item').all():
+            _api.reset_score(
+                submission.student_item.student_id,
+                submission.student_item.course_id,
+                submission.student_item.item_id,
+                clear_state=clear_state,
+            )
+        if clear_state:
+            # soft-delete the TeamSubmission
+            team_submission.status = DELETED
+            team_submission.save(update_fields=["status"])
+    except (DatabaseError, SubmissionInternalError):
+        msg = (
+            u"Error occurred while reseting scores for team submission {team_submission_uuid}"
+        ).format(team_submission_uuid=team_submission_uuid)
+        logger.exception(msg)
+        raise TeamSubmissionInternalError(msg)
+    else:
+        msg = u"Score reset for team submission {team_submission_uuid}".format(
+            team_submission_uuid=team_submission_uuid
+        )
+        logger.info(msg)

@@ -412,3 +412,60 @@ class TestTeamSubmissionsApi(TestCase):
         self.assertFalse(
             Score.objects.filter(submission__team_submission=team_submission).exists()
         )
+
+    @ddt.unpack
+    @ddt.data(
+        (True, True),
+        (True, False),
+        (False, True),
+        (False, False),
+    )
+    def test_reset_scores(self, set_scores, clear_state):
+        """
+        Test for resetting scores.
+        """
+        team_submission = self._make_team_submission(create_submissions=True)
+        if set_scores:
+            team_api.set_score(team_submission.uuid, 6, 10)
+
+        team_submission.refresh_from_db()
+
+        self.assertEqual(team_submission.status, ACTIVE)
+        student_items = []
+        for submission in team_submission.submissions.all():
+            self.assertEqual(submission.status, ACTIVE)
+            student_items.append(submission.student_item)
+
+        # We have no / some scores, and no resets.
+        self.assertEqual(
+            Score.objects.filter(student_item__in=student_items, reset=False).count(),
+            0 if not set_scores else len(student_items)
+        )
+        self.assertEqual(
+            Score.objects.filter(student_item__in=student_items, reset=True).count(),
+            0
+        )
+
+        # Reset
+        team_api.reset_scores(team_submission.uuid, clear_state=clear_state)
+
+        expected_state = DELETED if clear_state else ACTIVE
+        # If we've cleared the state, the team submission status should be DELETED,
+        # as should all of the individual submissions
+        team_submission.refresh_from_db()
+        self.assertEqual(team_submission.status, expected_state)
+        for submission in team_submission.submissions.all():
+            self.assertEqual(submission.status, expected_state)
+
+        # We have created reset scores
+        self.assertEqual(
+            Score.objects.filter(student_item__in=student_items, reset=True).count(),
+            len(student_items)
+        )
+
+    @mock.patch('submissions.team_api._api.reset_score')
+    def test_reset_scores_error(self, mock_individual_reset):
+        mock_individual_reset.side_effect = DatabaseError()
+        team_submission = self._make_team_submission(create_submissions=True)
+        with self.assertRaises(TeamSubmissionInternalError):
+            team_api.reset_scores(team_submission.uuid)

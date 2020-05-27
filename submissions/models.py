@@ -277,7 +277,7 @@ def validate_only_one_submission_per_team(sender, **kwargs):
             item_id=ts.item_id,
             team_id=ts.team_id,
             status='A'
-    ).exists():
+    ).exclude(id=ts.id).exists():
         raise DuplicateTeamSubmissionsError('Can only have one submission per team.')
 
 

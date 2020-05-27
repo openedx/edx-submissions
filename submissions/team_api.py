@@ -273,7 +273,7 @@ def reset_scores(team_submission_uuid, clear_state=False):
 
     Args:
         team_submission_uuid (str): The uuid for the team submission for which to reset scores.
-        clear_state (bool): If True, will appear to delete the team submission and any individual submissions
+        clear_state (bool): If True, soft delete the team submission and any individual submissions
                             by setting their status to DELETED
 
     Returns:
@@ -299,12 +299,12 @@ def reset_scores(team_submission_uuid, clear_state=False):
             team_submission.save(update_fields=["status"])
     except (DatabaseError, SubmissionInternalError):
         msg = (
-            u"Error occurred while reseting scores for team submission {team_submission_uuid}"
+            "Error occurred while reseting scores for team submission {team_submission_uuid}"
         ).format(team_submission_uuid=team_submission_uuid)
         logger.exception(msg)
         raise TeamSubmissionInternalError(msg)
     else:
-        msg = u"Score reset for team submission {team_submission_uuid}".format(
+        msg = "Score reset for team submission {team_submission_uuid}".format(
             team_submission_uuid=team_submission_uuid
         )
         logger.info(msg)

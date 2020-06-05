@@ -7,7 +7,12 @@ import logging
 from django.db import DatabaseError, transaction
 
 from submissions import api as _api
-from submissions.errors import SubmissionInternalError, TeamSubmissionInternalError, TeamSubmissionRequestError
+from submissions.errors import (
+    SubmissionInternalError,
+    TeamSubmissionInternalError,
+    TeamSubmissionNotFoundError,
+    TeamSubmissionRequestError
+)
 from submissions.models import DELETED, TeamSubmission
 from submissions.serializers import TeamSubmissionSerializer
 
@@ -184,6 +189,21 @@ def get_team_submission(team_submission_uuid):
         - TeamSubmissionInternalError if there is some other error looking up the team submission.
     """
     team_submission = TeamSubmission.get_team_submission_by_uuid(team_submission_uuid)
+    return TeamSubmissionSerializer(team_submission).data
+
+
+def get_team_submission_from_individual_submission(individual_submission_uuid):
+    """
+    Returns a single, serialized, team submission for the individual submission uuid.
+
+    Raises:
+        - TeamSubmissionNotFoundError when no such team submission exists.
+        - TeamSubmissionInternalError if there is some other error looking up the team submission.
+    """
+    team_submission = TeamSubmission.objects.filter(submissions__uuid=individual_submission_uuid).first()
+    if not team_submission:
+        raise TeamSubmissionNotFoundError
+
     return TeamSubmissionSerializer(team_submission).data
 
 

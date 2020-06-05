@@ -237,6 +237,26 @@ class TestTeamSubmissionsApi(TestCase):
             TeamSubmissionSerializer(team_submission_model).data
         )
 
+    def test_get_team_submission_from_individual_submission(self):
+        """
+        Test that calling team_api.get_team_submission_from_individual_submission returns the expected team submission
+        """
+        team_submission_model = self._make_team_submission(create_submissions=True)
+        regular_submission_uuid = team_submission_model.submissions.first().uuid
+        team_submission_dict = team_api.get_team_submission_from_individual_submission(regular_submission_uuid)
+        self.assertDictEqual(
+            team_submission_dict,
+            TeamSubmissionSerializer(team_submission_model).data
+        )
+
+    def test_get_team_submission_from_individual_submission_exception(self):
+        """
+        Test that calling team_api.get_team_submission when there is no matching TeamSubmission will
+        raise a TeamSubmissionNotFoundError
+        """
+        with self.assertRaises(TeamSubmissionNotFoundError):
+            team_api.get_team_submission_from_individual_submission('aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee')
+
     def test_get_team_submission_missing(self):
         """
         Test that calling team_api.get_team_submission when there is no matching TeamSubmission will

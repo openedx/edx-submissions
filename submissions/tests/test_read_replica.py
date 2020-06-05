@@ -27,10 +27,10 @@ def _mock_use_read_replica(queryset):
 class ReadReplicaTest(TransactionTestCase):
     """ Test queries that use the read replica. """
     STUDENT_ITEM = {
-        "student_id": "test student",
-        "course_id": "test course",
-        "item_id": "test item",
-        "item_type": "test type"
+        "student_id": "test_student",
+        "course_id": "test_course",
+        "item_id": "test_item",
+        "item_type": "test_type"
     }
 
     SCORE = {

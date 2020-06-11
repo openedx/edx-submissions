@@ -3,7 +3,6 @@ dist: latest
 
 python:
   - 3.5
-  - 3.8
 
 env:
   - TOXENV=django22-drf39

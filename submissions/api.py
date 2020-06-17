@@ -857,16 +857,16 @@ def set_score(submission_uuid, points_earned, points_possible,
                     reason=annotation_reason
                 )
                 score_annotation.save()
-            # Send a signal out to any listeners who are waiting for scoring events.
-            score_set.send(
-                sender=None,
-                points_possible=points_possible,
-                points_earned=points_earned,
-                anonymous_user_id=submission_model.student_item.student_id,
-                course_id=submission_model.student_item.course_id,
-                item_id=submission_model.student_item.item_id,
-                created_at=score_model.created_at,
-            )
+        # Send a signal out to any listeners who are waiting for scoring events.
+        score_set.send(
+            sender=None,
+            points_possible=points_possible,
+            points_earned=points_earned,
+            anonymous_user_id=submission_model.student_item.student_id,
+            course_id=submission_model.student_item.course_id,
+            item_id=submission_model.student_item.item_id,
+            created_at=score_model.created_at,
+        )
     except IntegrityError:
         pass
 

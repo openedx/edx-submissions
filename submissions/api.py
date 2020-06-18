@@ -12,7 +12,7 @@ from uuid import UUID
 import six
 from django.conf import settings
 from django.core.cache import cache
-from django.db import DatabaseError, IntegrityError
+from django.db import DatabaseError, IntegrityError, transaction
 
 # SubmissionError imported so that code importing this api has access
 from submissions.errors import (  # pylint: disable=unused-import
@@ -845,19 +845,18 @@ def set_score(submission_uuid, points_earned, points_possible,
     # even though we cannot retrieve it.
     # In this case, we assume that someone else has already created
     # a score summary and ignore the error.
-    # TODO: once we're using Django 1.8, use transactions to ensure that these
-    # two models are saved at the same time.
     try:
-        score_model = score.save()
-        _log_score(score_model)
-        if annotation_creator is not None:
-            score_annotation = ScoreAnnotation(
-                score=score_model,
-                creator=annotation_creator,
-                annotation_type=annotation_type,
-                reason=annotation_reason
-            )
-            score_annotation.save()
+        with transaction.atomic():
+            score_model = score.save()
+            _log_score(score_model)
+            if annotation_creator is not None:
+                score_annotation = ScoreAnnotation(
+                    score=score_model,
+                    creator=annotation_creator,
+                    annotation_type=annotation_type,
+                    reason=annotation_reason
+                )
+                score_annotation.save()
         # Send a signal out to any listeners who are waiting for scoring events.
         score_set.send(
             sender=None,

@@ -56,9 +56,6 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.admindocs',
 
-    # Test
-    'django_nose',
-
     # Submissions
     'submissions'
 )
@@ -82,12 +79,3 @@ MIDDLEWARE = (
 )
 
 TEST_APPS = ('submissions',)
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-
-# Configure nose
-NOSE_ARGS = [
-    '--with-coverage',
-    '--cover-package=' + ",".join(TEST_APPS),
-    '--cover-branches',
-    '--cover-erase',
-]

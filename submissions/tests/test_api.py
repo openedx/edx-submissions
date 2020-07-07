@@ -14,7 +14,6 @@ from django.db import DatabaseError, connection, transaction
 from django.test import TestCase
 from django.utils.timezone import now
 from freezegun import freeze_time
-from nose.tools import raises
 
 from submissions import api
 from submissions.models import ScoreAnnotation, ScoreSummary, StudentItem, Submission, score_set
@@ -169,11 +168,11 @@ class TestSubmissionsApi(TestCase):
             api.get_submission("deadbeef-1234-5678-9100-1234deadbeef")
 
     @mock.patch.object(Submission.objects, 'get')
-    @raises(api.SubmissionInternalError)
     def test_get_submission_deep_error(self, mock_get):
         # Test deep explosions are wrapped
-        mock_get.side_effect = DatabaseError("Kaboom!")
-        api.get_submission("000000000000000")
+        with self.assertRaises(api.SubmissionInternalError):
+            mock_get.side_effect = DatabaseError("Kaboom!")
+            api.get_submission("000000000000000")
 
     def test_get_old_submission(self):
         # hack in an old-style submission, this can't be created with the ORM (EDUCATOR-1090)
@@ -248,21 +247,21 @@ class TestSubmissionsApi(TestCase):
         student_item = self._get_student_item(STUDENT_ITEM)
         self._assert_submission(submissions[0], ANSWER_ONE, student_item.pk, 2)
 
-    @raises(api.SubmissionRequestError)
     @ddt.file_data('data/bad_student_items.json')
     def test_error_checking(self, **bad_student_item):
-        api.create_submission(bad_student_item, -100)
+        with self.assertRaises(api.SubmissionRequestError):
+            api.create_submission(bad_student_item, -100)
 
-    @raises(api.SubmissionRequestError)
     def test_error_checking_submissions(self):
-        # Attempt number should be >= 0
-        api.create_submission(STUDENT_ITEM, ANSWER_ONE, None, -1)
+        with self.assertRaises(api.SubmissionRequestError):
+            # Attempt number should be >= 0
+            api.create_submission(STUDENT_ITEM, ANSWER_ONE, None, -1)
 
     @mock.patch.object(Submission.objects, 'filter')
-    @raises(api.SubmissionInternalError)
     def test_error_on_submission_creation(self, mock_filter):
-        mock_filter.side_effect = DatabaseError("Bad things happened")
-        api.create_submission(STUDENT_ITEM, ANSWER_ONE)
+        with self.assertRaises(api.SubmissionInternalError):
+            mock_filter.side_effect = DatabaseError("Bad things happened")
+            api.create_submission(STUDENT_ITEM, ANSWER_ONE)
 
     def test_create_non_json_answer(self):
         with self.assertRaises(api.SubmissionRequestError):
@@ -285,10 +284,10 @@ class TestSubmissionsApi(TestCase):
             api.get_submission_and_student(sub_model.uuid)
 
     @mock.patch.object(StudentItemSerializer, 'save')
-    @raises(api.SubmissionInternalError)
     def test_create_student_item_validation(self, mock_save):
-        mock_save.side_effect = DatabaseError("Bad things happened")
-        api.create_submission(STUDENT_ITEM, ANSWER_ONE)
+        with self.assertRaises(api.SubmissionInternalError):
+            mock_save.side_effect = DatabaseError("Bad things happened")
+            api.create_submission(STUDENT_ITEM, ANSWER_ONE)
 
     def test_unicode_enforcement(self):
         api.create_submission(STUDENT_ITEM, "Testing unicode answers.")
@@ -697,48 +696,48 @@ class TestSubmissionsApi(TestCase):
         subs = api.get_submissions(STUDENT_ITEM)
         self.assertEqual(subs, [])
 
-    @raises(api.SubmissionRequestError)
     def test_error_on_get_top_submissions_too_few(self):
-        student_item = copy.deepcopy(STUDENT_ITEM)
-        student_item["course_id"] = "get_scores_course"
-        student_item["item_id"] = "i4x://a/b/c/s1"
-        api.get_top_submissions(
-            student_item["course_id"],
-            student_item["item_id"],
-            "Peer_Submission", 0,
-            read_replica=False
-        )
+        with self.assertRaises(api.SubmissionRequestError):
+            student_item = copy.deepcopy(STUDENT_ITEM)
+            student_item["course_id"] = "get_scores_course"
+            student_item["item_id"] = "i4x://a/b/c/s1"
+            api.get_top_submissions(
+                student_item["course_id"],
+                student_item["item_id"],
+                "Peer_Submission", 0,
+                read_replica=False
+            )
 
-    @raises(api.SubmissionRequestError)
     def test_error_on_get_top_submissions_too_many(self):
-        student_item = copy.deepcopy(STUDENT_ITEM)
-        student_item["course_id"] = "get_scores_course"
-        student_item["item_id"] = "i4x://a/b/c/s1"
-        api.get_top_submissions(
-            student_item["course_id"],
-            student_item["item_id"],
-            "Peer_Submission",
-            api.MAX_TOP_SUBMISSIONS + 1,
-            read_replica=False
-        )
+        with self.assertRaises(api.SubmissionRequestError):
+            student_item = copy.deepcopy(STUDENT_ITEM)
+            student_item["course_id"] = "get_scores_course"
+            student_item["item_id"] = "i4x://a/b/c/s1"
+            api.get_top_submissions(
+                student_item["course_id"],
+                student_item["item_id"],
+                "Peer_Submission",
+                api.MAX_TOP_SUBMISSIONS + 1,
+                read_replica=False
+            )
 
     @mock.patch.object(ScoreSummary.objects, 'filter')
-    @raises(api.SubmissionInternalError)
     def test_error_on_get_top_submissions_db_error(self, mock_filter):
-        mock_filter.side_effect = DatabaseError("Bad things happened")
-        student_item = copy.deepcopy(STUDENT_ITEM)
-        api.get_top_submissions(
-            student_item["course_id"],
-            student_item["item_id"],
-            "Peer_Submission", 1,
-            read_replica=False
-        )
+        with self.assertRaises(api.SubmissionInternalError):
+            mock_filter.side_effect = DatabaseError("Bad things happened")
+            student_item = copy.deepcopy(STUDENT_ITEM)
+            api.get_top_submissions(
+                student_item["course_id"],
+                student_item["item_id"],
+                "Peer_Submission", 1,
+                read_replica=False
+            )
 
     @mock.patch.object(ScoreSummary.objects, 'filter')
-    @raises(api.SubmissionInternalError)
     def test_error_on_get_scores(self, mock_filter):
-        mock_filter.side_effect = DatabaseError("Bad things happened")
-        api.get_scores("some_course", "some_student")
+        with self.assertRaises(api.SubmissionInternalError):
+            mock_filter.side_effect = DatabaseError("Bad things happened")
+            api.get_scores("some_course", "some_student")
 
     def _assert_score(self, score, expected_points_earned, expected_points_possible):
         self.assertIsNotNone(score)

@@ -5,7 +5,7 @@
 #    make upgrade
 #
 django-model-utils==4.0.0  # via -r requirements/base.in
-django==2.2.12            # via -c requirements/constraints.txt, -r requirements/base.in, django-model-utils, jsonfield2
+django==2.2.14            # via -c requirements/constraints.txt, -r requirements/base.in, django-model-utils, jsonfield2
 djangorestframework==3.9.4  # via -r requirements/base.in
 jsonfield2==3.0.3         # via -c requirements/constraints.txt, -r requirements/base.in
 pytz==2020.1              # via -r requirements/base.in, django

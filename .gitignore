@@ -31,7 +31,6 @@ htmlcov/
 .tox/
 .coverage
 .cache
-nosetests.xml
 coverage.xml
 submissions_test_db
 

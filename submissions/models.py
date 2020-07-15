@@ -105,7 +105,7 @@ class UpdatedJSONField(JSONField):
     # because we're using jsonfield2 version 3.0.3 and it has a known issue while performing
     # select_related queries, it has been fixed in version 3.1.0 but python3.5 support is also
     # dropped in that version, for now we've put the fix here
-    def from_db_value(self, value, expression, connection, context=None):
+    def from_db_value(self, value, expression, connection):  # pylint: disable=unused-argument, arguments-differ
         if value is None:
             return None
         return json.loads(value, **self.load_kwargs)

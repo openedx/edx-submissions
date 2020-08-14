@@ -13,7 +13,7 @@ from submissions.errors import (
     TeamSubmissionNotFoundError,
     TeamSubmissionRequestError
 )
-from submissions.models import DELETED, TeamSubmission
+from submissions.models import DELETED, TeamSubmission, Submission
 from submissions.serializers import TeamSubmissionSerializer
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,8 @@ def create_submission_for_team(
     """
     This api function:
       1. Creates a `TeamSubmission` record, and
-      2. Creates `Submission` records for every member of the team by calling api.create_submission()
+      2. Creates `Submission` records for ONLY those team members that don't have any past submissions
+         by calling api.create_submission()
 
     This means that the ORA `SubmissionMixin` must first collect all of the files of the submitting user
     and the team into the `answer` dict.
@@ -137,7 +138,20 @@ def create_submission_for_team(
         'item_id': item_id,
         'item_type': item_type
     }
+
+    existing_student_ds_team = [submission.student_item.student_id for submission in Submission.objects.filter(
+        team_submission__isnull=False
+    ).exclude(
+        team_submission__team_id=team_id
+    ).filter(
+        student_item__student_id__in=team_member_ids,
+        student_item__course_id=course_id,
+        student_item__item_id=item_id
+    ).select_related('team_submission').select_related('student_item')]
+
     for team_member_id in team_member_ids:
+        if team_member_id in existing_student_ds_team:
+            continue
         team_member_student_item_dict = dict(base_student_item_dict)
         team_member_student_item_dict['student_id'] = team_member_id
         _api.create_submission(

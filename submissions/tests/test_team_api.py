@@ -561,3 +561,5 @@ class TestTeamSubmissionsApi(TestCase):
     def test_get_team_submission_student_ids__no_team_submission(self):
         with self.assertRaises(TeamSubmissionNotFoundError):
             team_api.get_team_submission_student_ids('aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee')
+        with self.assertRaises(TeamSubmissionNotFoundError):
+            team_api.get_team_submission_student_ids(None)

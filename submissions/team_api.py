@@ -251,15 +251,26 @@ def get_team_submission_student_ids(team_submission_uuid):
     Returns a list of student_ids for a specific team submission.
 
     Raises:
-        - TeamSubmissionNotFoundError when no such team submission exists.
+        - TeamSubmissionNotFoundError when no matching student_ids are found, or if team_submission_uuid is falsy
+        - TeamSubmissionInternalError if there is a database error
     """
-    student_ids = StudentItem.objects.filter(
-        submission__team_submission__uuid=team_submission_uuid
-    ).order_by(
-        'student_id'
-    ).distinct().values_list(
-        'student_id', flat=True
-    )
+    if not team_submission_uuid:
+        raise TeamSubmissionNotFoundError()
+    try:
+        student_ids = StudentItem.objects.filter(
+            submission__team_submission__uuid=team_submission_uuid
+        ).order_by(
+            'student_id'
+        ).distinct().values_list(
+            'student_id', flat=True
+        )
+    except DatabaseError as exc:
+        err_msg = "Attempt to get student ids for team submission {team_submission_uuid} caused error: {exc}".format(
+            team_submission_uuid=team_submission_uuid,
+            exc=exc
+        )
+        logger.error(err_msg)
+        raise TeamSubmissionInternalError(err_msg)
     if not student_ids:
         raise TeamSubmissionNotFoundError()
     return list(student_ids)

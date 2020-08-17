@@ -13,7 +13,7 @@ from submissions.errors import (
     TeamSubmissionNotFoundError,
     TeamSubmissionRequestError
 )
-from submissions.models import DELETED, TeamSubmission, Submission
+from submissions.models import DELETED, Submission, TeamSubmission
 from submissions.serializers import TeamSubmissionSerializer
 
 logger = logging.getLogger(__name__)

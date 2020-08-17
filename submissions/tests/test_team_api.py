@@ -223,14 +223,15 @@ class TestTeamSubmissionsApi(TestCase):
             ITEM_1_ID,
             TEAM_2_ID,
             self.user_1.id,
-            self.student_ids,
+            [self.anonymous_user_id_map[self.user_1], '55555555555555555555555555555555',
+             '66666666666666666666666666666666'],
             ANSWER
         )
         ids = [sub.student_item.student_id for sub in Submission.objects.select_related('student_item').all()]
-        # We simulated reassignment by using a different team id in the call to create_submission. Therefore, only
-        # the 4 submissions from the first call should exist, as we would not create submissions for learners if
-        # they already had team submissions
-        self.assertEqual(len(self.student_ids), len(ids))
+        # We simulated reassignment by using a different team id in the call to create_submission. Therefore, 6
+        # submissions should exist: 4 from the first call and 2 from the second call. We would not createa
+        # submission for user_1 in the second call because she already has a submission from the first call.
+        self.assertEqual(6, len(ids))
 
     @mock.patch('submissions.api._log_submission')
     def test_create_submission_for_team_error_creating_individual_submission(self, mocked_log_submission):

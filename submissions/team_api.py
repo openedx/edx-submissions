@@ -13,7 +13,7 @@ from submissions.errors import (
     TeamSubmissionNotFoundError,
     TeamSubmissionRequestError
 )
-from submissions.models import DELETED, Submission, TeamSubmission
+from submissions.models import DELETED, StudentItem, TeamSubmission
 from submissions.serializers import TeamSubmissionSerializer
 
 logger = logging.getLogger(__name__)
@@ -138,16 +138,15 @@ def create_submission_for_team(
         'item_type': item_type
     }
 
-    students_with_team_submissions = [submission.student_item.student_id for submission in Submission.objects.filter(
-        team_submission__isnull=False
+    students_with_team_submissions = {student_item.student_id for student_item in StudentItem.objects.filter(
+        submission__team_submission__isnull=False
     ).exclude(
-        team_submission__team_id=team_id
+        submission__team_submission__team_id=team_id
     ).filter(
-        student_item__student_id__in=team_member_ids,
-        student_item__course_id=course_id,
-        student_item__item_id=item_id
-    ).select_related('team_submission').select_related('student_item')]
-
+        student_id__in=team_member_ids,
+        course_id=course_id,
+        item_id=item_id
+    )}
     for team_member_id in team_member_ids:
         if team_member_id in students_with_team_submissions:
             continue

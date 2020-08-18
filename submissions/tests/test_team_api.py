@@ -86,9 +86,22 @@ class TestTeamSubmissionsApi(TestCase):
         team_submission = TeamSubmissionFactory.create(**model_args)
         if create_submissions:
             for student_id in cls.student_ids:
-                student_item = cls._get_or_create_student_item(student_id, course_id=course_id, item_id=item_id)
-                SubmissionFactory.create(student_item=student_item, team_submission=team_submission, answer='Foo')
+                cls._make_individual_submission(
+                    student_id, course_id=course_id, item_id=item_id, team_submission=team_submission
+                )
         return team_submission
+
+    @classmethod
+    def _make_individual_submission(
+        cls,
+        student_id,
+        course_id=COURSE_ID,
+        item_id=ITEM_1_ID,
+        team_submission=None,
+    ):
+        """ Convenience method to create test Submissions with some default values """
+        student_item = cls._get_or_create_student_item(student_id, course_id=course_id, item_id=item_id)
+        return SubmissionFactory.create(student_item=student_item, team_submission=team_submission, answer='Foo')
 
     @classmethod
     def _get_or_create_student_item(
@@ -489,3 +502,64 @@ class TestTeamSubmissionsApi(TestCase):
         team_submission = self._make_team_submission(create_submissions=True)
         with self.assertRaises(TeamSubmissionInternalError):
             team_api.reset_scores(team_submission.uuid)
+
+    def test_get_team_submission_for_student(self):
+        # Create some Team Submissions without Individual Submissions
+        team_1_submission = self._make_team_submission(team_id=TEAM_1_ID)
+        team_2_submission = self._make_team_submission(team_id=TEAM_2_ID)
+
+        # Make individual submissions
+        user_to_team_submission = {
+            self.user_1: team_1_submission,
+            self.user_2: team_1_submission,
+            self.user_3: team_2_submission,
+            self.user_4: team_2_submission,
+        }
+        user_to_individual_submission = {
+            user: self._make_individual_submission(
+                self.anonymous_user_id_map[user],
+                team_submission=user_to_team_submission[user]
+            ) for user in user_to_team_submission
+        }
+
+        # Assert that each student item returns the correct team submission
+        for user in user_to_individual_submission:
+            individual_submission = user_to_individual_submission[user]
+            student_item_dict = individual_submission.student_item.student_item_dict
+            actual_team_submission = team_api.get_team_submission_for_student(student_item_dict)
+
+            self.assertEqual(
+                str(user_to_team_submission[user].uuid),
+                actual_team_submission['team_submission_uuid']
+            )
+
+    def test_get_team_submission_for_student__no_team_submission(self):
+        student_item = self._get_or_create_student_item(self.student_ids[0])
+        student_item_dict = student_item.student_item_dict
+        with self.assertRaises(TeamSubmissionNotFoundError):
+            team_api.get_team_submission_for_student(student_item_dict)
+
+    def test_get_team_submission_student_ids(self):
+        # Target team submission with default users
+        team_submission = self._make_team_submission(create_submissions=True)
+        # Make another team submission
+        submission_2_student_ids = ['another-user', 'another-user2', 'another-user3']
+        team_submission_2 = self._make_team_submission(team_id=TEAM_2_ID)
+        for student_id in submission_2_student_ids:
+            self._make_individual_submission(student_id, team_submission=team_submission_2)
+
+        # Assert that each team submission's uuid returns the correct student_ids
+        self.assertEqual(
+            team_api.get_team_submission_student_ids(str(team_submission.uuid)),
+            self.student_ids
+        )
+        self.assertEqual(
+            team_api.get_team_submission_student_ids(str(team_submission_2.uuid)),
+            submission_2_student_ids
+        )
+
+    def test_get_team_submission_student_ids__no_team_submission(self):
+        with self.assertRaises(TeamSubmissionNotFoundError):
+            team_api.get_team_submission_student_ids('aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee')
+        with self.assertRaises(TeamSubmissionNotFoundError):
+            team_api.get_team_submission_student_ids(None)

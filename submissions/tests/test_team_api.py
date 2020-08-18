@@ -208,23 +208,46 @@ class TestTeamSubmissionsApi(TestCase):
         """
         Test for calling create_submission_for_team when a user somehow already has
         an existing active submission for the item.
-
-        For normal Submissions, if a submission exists and we create another one, the second
-        will increment the first's attempt_number. However, for team submissions, we currently
-        pass the attempt_number from team_api.create_submission to api.create_submission, so
-        all created individual submissions will have the same attempt_number
+        This can happen if a user was on a team that submitted and then is reassigned to a team
+        that didn't have a submission and is submitting.
+        Expected outcome: submission is created because the previous submission was not team based
         """
         user_3_item = self._get_or_create_student_item(self.anonymous_user_id_map[self.user_3])
         SubmissionFactory.create(student_item=user_3_item)
         team_submission_data = self._call_create_submission_for_team_with_default_args()
         self.assertEqual(team_submission_data['attempt_number'], 1)
-        submissions = Submission.objects.select_related(
+        submission_student_ids = [sub.student_item.student_id for sub in Submission.objects.select_related(
             'student_item'
-        ).filter(
-            uuid__in=team_submission_data['submission_uuids']
-        ).all()
-        for submission in submissions:
-            self.assertEqual(submission.attempt_number, 1)
+        ).filter(uuid__in=team_submission_data['submission_uuids']).all()]
+        self.assertIn(user_3_item.student_id, submission_student_ids)
+
+    def test_create_submission_for_team_after_reassignment(self):
+        """
+        Call create_submission twice to simulate attempting a submission of a learner(s) that was reassigned to a
+        different team.
+        Expected outcome: No submissions created.
+        """
+        self._call_create_submission_for_team_with_default_args()
+        # To simulate reassignment, call create_submission with a different team id.
+        # no new submissions should be created as a result of this call. Therefore, the total number of submission
+        # models is 4 (see self.student_ids).
+        team_api.create_submission_for_team(
+            COURSE_ID,
+            ITEM_1_ID,
+            TEAM_2_ID,
+            self.user_1.id,
+            [self.anonymous_user_id_map[self.user_1], '55555555555555555555555555555555',
+             '66666666666666666666666666666666'],
+            ANSWER
+        )
+        ids = [sub.student_item.student_id for sub in Submission.objects.select_related('student_item').all()]
+        # We simulated reassignment by using a different team id in the call to create_submission. Therefore, 6
+        # submissions should exist: 4 from the first call and 2 from the second call. We would not createa
+        # submission for user_1 in the second call because she already has a submission from the first call.
+        self.assertEqual(6, len(ids))
+        # this assert checks that there is one and only one (no duplicate - which would indicate a double submission)
+        # student id
+        self.assertEqual(len(ids), len(set(ids)))
 
     @mock.patch('submissions.api._log_submission')
     def test_create_submission_for_team_error_creating_individual_submission(self, mocked_log_submission):

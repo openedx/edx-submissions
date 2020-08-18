@@ -232,6 +232,9 @@ class TestTeamSubmissionsApi(TestCase):
         # submissions should exist: 4 from the first call and 2 from the second call. We would not createa
         # submission for user_1 in the second call because she already has a submission from the first call.
         self.assertEqual(6, len(ids))
+        # this assert checks that there is one and only one (no duplicate - which would indicate a double submission)
+        # student id
+        self.assertEqual(len(ids), len(set(ids)))
 
     @mock.patch('submissions.api._log_submission')
     def test_create_submission_for_team_error_creating_individual_submission(self, mocked_log_submission):

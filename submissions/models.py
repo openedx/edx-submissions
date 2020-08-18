@@ -79,12 +79,16 @@ class StudentItem(models.Model):
     item_type = models.CharField(max_length=100)
 
     def __repr__(self):
-        return repr(dict(
+        return repr(self.student_item_dict)
+
+    @property
+    def student_item_dict(self):
+        return dict(
             student_id=self.student_id,
             course_id=self.course_id,
             item_id=self.item_id,
             item_type=self.item_type,
-        ))
+        )
 
     def __str__(self):
         return u"({0.student_id}, {0.course_id}, {0.item_type}, {0.item_id})".format(self)
@@ -222,6 +226,31 @@ class TeamSubmission(TimeStampedModel):
             logger.error(err_msg)
             raise TeamSubmissionInternalError(err_msg)
         return team_submission
+
+    @staticmethod
+    def get_team_submission_by_student_item(student_item):
+        """
+        Return the team submission that has an individual submission tied to the given StudentItem
+
+        Raises:
+            - TeamSubmissionNotFoundError if there is no matching team submission
+            - TeamSubmissionInternalError if there is some other error looking up the team submission.
+
+        """
+        try:
+            return TeamSubmission.objects.prefetch_related('submissions').get(submissions__student_item=student_item)
+        except TeamSubmission.DoesNotExist:
+            logger.error("Team submission for {} not found.".format(student_item))
+            raise TeamSubmissionNotFoundError(
+                "No team submission matching {}".format(student_item)
+            )
+        except Exception as exc:
+            err_msg = "Attempt to get team submission for {student_item} caused error: {exc}".format(
+                student_item=student_item,
+                exc=exc
+            )
+            logger.error(err_msg)
+            raise TeamSubmissionInternalError(err_msg)
 
     @staticmethod
     def get_all_team_submissions_for_course_item(course_id, item_id):

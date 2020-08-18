@@ -7,7 +7,8 @@ import ddt
 from django.test import TestCase
 
 from submissions.models import Score, ScoreAnnotation, StudentItem, Submission
-from submissions.serializers import ScoreSerializer
+from submissions.serializers import ScoreSerializer, TeamSubmissionSerializer
+from submissions.tests.factories import StudentItemFactory, SubmissionFactory, TeamSubmissionFactory
 
 
 @ddt.ddt
@@ -72,3 +73,45 @@ class ScoreSerializerTest(TestCase):
                 for annotation_type in annotation_types
             ]
         )
+
+
+class TeamSubmissionSerializerTest(TestCase):
+    """
+    Tests for the Team Submission Serializer.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.course_id = 'test-course-id'
+        cls.item_id = 'test-item-id'
+        cls.answer = {'something': 'b', 'something_else': 7000, 'some_other_thing': ['one_thing', 'two_thing']}
+
+        cls.student_items = [StudentItemFactory.create(course_id=cls.course_id, item_id=cls.item_id) for _ in range(5)]
+        cls.submissions = [
+            SubmissionFactory.create(
+                student_item=cls.student_items[i],
+                answer=cls.answer
+            ) for i in range(5)
+        ]
+        cls.team_submission = TeamSubmissionFactory.create(course_id=cls.course_id, item_id=cls.item_id)
+        cls.team_submission.submissions.set(cls.submissions)
+        super().setUpTestData()
+
+    def test_team_submission_serializer(self):
+        """
+        Test that the non-trivial fields on TeamSerializer have been serialized correctly
+        """
+        serialized_data = TeamSubmissionSerializer(self.team_submission).data
+
+        self.assertEqual(
+            serialized_data['team_submission_uuid'],
+            str(self.team_submission.uuid)
+        )
+        self.assertEqual(
+            set(serialized_data['submission_uuids']),
+            set(submission.uuid for submission in self.submissions),
+        )
+        self.assertEqual(serialized_data['submitted_at'], self.team_submission.submitted_at)
+        self.assertEqual(serialized_data['created_at'], self.team_submission.created)
+        self.assertEqual(serialized_data['attempt_number'], self.team_submission.attempt_number)
+        self.assertEqual(serialized_data['answer'], self.answer)

@@ -286,6 +286,7 @@ class TestTeamSubmissionsApi(TestCase):
 
         # Should get 1 entry for each of the default users
         self.assertEqual(len(external_submissions), 4)
+
         def check_submission(submission, user):
             self.assertEqual(
                 submission,

@@ -208,7 +208,7 @@ def get_teammates_with_submissions_from_other_teams(
         - team_member_ids (list of str): a list of the anonymous user ids associated with all members of the team
 
     Returns:
-        (dict): { 'student_id', 'team_id' }
+        list(dict): [{ 'student_id', 'team_id' }]
     """
     items = StudentItem.objects.filter(
         submission__team_submission__isnull=False

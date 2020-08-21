@@ -138,14 +138,14 @@ def create_submission_for_team(
         'item_type': item_type
     }
 
-    students_with_team_submissions = [
+    students_with_team_submissions = {
         submission['student_id'] for submission in get_teammates_with_submissions_from_other_teams(
             course_id,
             item_id,
             team_id,
             team_member_ids
         )
-    ]
+    }
     for team_member_id in team_member_ids:
         if team_member_id in students_with_team_submissions:
             continue

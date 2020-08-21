@@ -139,11 +139,11 @@ def create_submission_for_team(
     }
 
     students_with_team_submissions = [
-        submission['student_id'] for submission in get_submissions_from_other_teams(
-            team_member_ids,
-            team_id,
+        submission['student_id'] for submission in get_teammates_with_submissions_from_other_teams(
+            course_id,
             item_id,
-            course_id
+            team_id,
+            team_member_ids
         )
     ]
     for team_member_id in team_member_ids:
@@ -191,24 +191,24 @@ def _log_team_submission(team_submission_data):
     )
 
 
-def get_submissions_from_other_teams(
-    team_member_ids,
-    team_id,
-    item_id,
+def get_teammates_with_submissions_from_other_teams(
     course_id,
+    item_id,
+    team_id,
+    team_member_ids,
 ):
     """
-    This api function returns a list of objects for students on this team that have submitted
+    This api function returns a list of dicts for students on this team that have submitted
     a response to the given item under another team.
 
     Parameters:
+        - course_id (str): the course id for which we are checking for submissions
+        - item_id (str): the item id for which we are checking for submissions
+        - team_id (str): the team_id of the team for which we are making the query
         - team_member_ids (list of str): a list of the anonymous user ids associated with all members of the team
-        - team_id (str): the team_id for the team for which we are making the submission
-        - item_id (str): the item id for this team submission
-        - course_id (str): the course id for this team submission
 
     Returns:
-        set: { 'student_id', 'team_id' }
+        (dict): { 'student_id', 'team_id' }
     """
     items = StudentItem.objects.filter(
         submission__team_submission__isnull=False

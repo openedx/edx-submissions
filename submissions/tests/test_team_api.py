@@ -261,7 +261,7 @@ class TestTeamSubmissionsApi(TestCase):
         self.assertEqual(TeamSubmission.objects.count(), 0)
         self.assertEqual(Submission.objects.count(), 0)
 
-    def test_get_submissions_from_other_teams(self):
+    def test_get_teammates_with_submissions_from_other_teams(self):
         # Make a team submission with default users, under TEAM_1
         self._make_team_submission(
             attempt_number=1,
@@ -277,12 +277,14 @@ class TestTeamSubmissionsApi(TestCase):
                 self.user_1, self.user_2, self.user_3, self.user_4
             ]
         ] + ['55555555555555', '666666666666666666']
-        external_submissions = team_api.get_submissions_from_other_teams(
-            team_ids,
-            TEAM_2_ID,
-            ITEM_1_ID,
-            COURSE_ID
-        )
+
+        with self.assertNumQueries(1):
+            external_submissions = team_api.get_teammates_with_submissions_from_other_teams(
+                COURSE_ID,
+                ITEM_1_ID,
+                TEAM_2_ID,
+                team_ids
+            )
 
         # Should get 1 entry for each of the default users
         self.assertEqual(len(external_submissions), 4)

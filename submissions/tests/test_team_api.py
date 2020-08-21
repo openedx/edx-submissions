@@ -261,6 +261,47 @@ class TestTeamSubmissionsApi(TestCase):
         self.assertEqual(TeamSubmission.objects.count(), 0)
         self.assertEqual(Submission.objects.count(), 0)
 
+    def test_get_teammates_with_submissions_from_other_teams(self):
+        # Make a team submission with default users, under TEAM_1
+        self._make_team_submission(
+            attempt_number=1,
+            course_id=COURSE_ID,
+            item_id=ITEM_1_ID,
+            team_id=TEAM_1_ID,
+            status=None,
+            create_submissions=True
+        )
+        # Check against TEAM_2 with 2 additional user IDs added (that don't have a submission)
+        team_ids = [
+            self.anonymous_user_id_map[student] for student in [
+                self.user_1, self.user_2, self.user_3, self.user_4
+            ]
+        ] + ['55555555555555', '666666666666666666']
+
+        with self.assertNumQueries(1):
+            external_submissions = team_api.get_teammates_with_submissions_from_other_teams(
+                COURSE_ID,
+                ITEM_1_ID,
+                TEAM_2_ID,
+                team_ids
+            )
+
+        # Should get 1 entry for each of the default users
+        self.assertEqual(len(external_submissions), 4)
+
+        def check_submission(submission, user):
+            self.assertEqual(
+                submission,
+                {
+                    'student_id': self.anonymous_user_id_map[user],
+                    'team_id': TEAM_1_ID
+                }
+            )
+        check_submission(external_submissions[0], self.user_1)
+        check_submission(external_submissions[1], self.user_2)
+        check_submission(external_submissions[2], self.user_3)
+        check_submission(external_submissions[3], self.user_4)
+
     def test_get_team_submission(self):
         """
         Test that calling team_api.get_team_submission returns the expected team submission

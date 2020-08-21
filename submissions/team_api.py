@@ -138,15 +138,14 @@ def create_submission_for_team(
         'item_type': item_type
     }
 
-    students_with_team_submissions = {student_item.student_id for student_item in StudentItem.objects.filter(
-        submission__team_submission__isnull=False
-    ).exclude(
-        submission__team_submission__team_id=team_id
-    ).filter(
-        student_id__in=team_member_ids,
-        course_id=course_id,
-        item_id=item_id
-    )}
+    students_with_team_submissions = {
+        submission['student_id'] for submission in get_teammates_with_submissions_from_other_teams(
+            course_id,
+            item_id,
+            team_id,
+            team_member_ids
+        )
+    }
     for team_member_id in team_member_ids:
         if team_member_id in students_with_team_submissions:
             continue
@@ -190,6 +189,40 @@ def _log_team_submission(team_submission_data):
             submitted_by=team_submission_data["submitted_by"],
         )
     )
+
+
+def get_teammates_with_submissions_from_other_teams(
+    course_id,
+    item_id,
+    team_id,
+    team_member_ids,
+):
+    """
+    This api function returns a list of dicts for students on this team that have submitted
+    a response to the given item under another team.
+
+    Parameters:
+        - course_id (str): the course id for which we are checking for submissions
+        - item_id (str): the item id for which we are checking for submissions
+        - team_id (str): the team_id of the team for which we are making the query
+        - team_member_ids (list of str): a list of the anonymous user ids associated with all members of the team
+
+    Returns:
+        list(dict): [{ 'student_id', 'team_id' }]
+    """
+    items = StudentItem.objects.filter(
+        submission__team_submission__isnull=False
+    ).exclude(
+        submission__team_submission__team_id=team_id
+    ).filter(
+        student_id__in=team_member_ids,
+        course_id=course_id,
+        item_id=item_id
+    ).values("student_id", "submission__team_submission__team_id")
+    return [{
+        'student_id': item['student_id'],
+        'team_id': item['submission__team_submission__team_id']
+    } for item in items]
 
 
 def get_team_submission(team_submission_uuid):

@@ -1,13 +1,11 @@
-# -*- coding: utf-8 -*-
 """ Api Module Tests. """
 
-from __future__ import absolute_import
 
 import copy
 import datetime
+from unittest import mock
 
 import ddt
-import mock
 import pytz
 from django.core.cache import cache
 from django.db import DatabaseError, connection, transaction
@@ -33,9 +31,9 @@ SECOND_STUDENT_ITEM = dict(
     item_type="Peer_Submission",
 )
 
-ANSWER_ONE = u"this is my answer!"
-ANSWER_TWO = u"this is my other answer!"
-ANSWER_THREE = u'' + 'c' * (Submission.MAXSIZE + 1)
+ANSWER_ONE = "this is my answer!"
+ANSWER_TWO = "this is my other answer!"
+ANSWER_THREE = '' + 'c' * (Submission.MAXSIZE + 1)
 
 # Test a non-string JSON-serializable answer
 ANSWER_DICT = {"text": "foobar"}
@@ -51,7 +49,7 @@ class TestSubmissionsApi(TestCase):
         """
         Clear the cache.
         """
-        super(TestSubmissionsApi, self).setUp()
+        super().setUp()
         cache.clear()
 
     @ddt.data(ANSWER_ONE, ANSWER_DICT)
@@ -73,7 +71,7 @@ class TestSubmissionsApi(TestCase):
 
         # Should raise an exception if the student item does not exist
         with self.assertRaises(api.SubmissionNotFoundError):
-            api.get_submission_and_student(u'deadbeef-1234-5678-9100-1234deadbeef')
+            api.get_submission_and_student('deadbeef-1234-5678-9100-1234deadbeef')
 
     def test_get_submissions(self):
         api.create_submission(STUDENT_ITEM, ANSWER_ONE)
@@ -292,7 +290,7 @@ class TestSubmissionsApi(TestCase):
     def test_unicode_enforcement(self):
         api.create_submission(STUDENT_ITEM, "Testing unicode answers.")
         submissions = api.get_submissions(STUDENT_ITEM, 1)
-        self.assertEqual(u"Testing unicode answers.", submissions[0]["answer"])
+        self.assertEqual("Testing unicode answers.", submissions[0]["answer"])
 
     def _assert_submission(self, submission, expected_answer, expected_item, expected_attempt):
         self.assertIsNotNone(submission)
@@ -351,7 +349,7 @@ class TestSubmissionsApi(TestCase):
             created_at=now(),
         )
 
-    @ddt.data(u"First score was incorrect", u"☃")
+    @ddt.data("First score was incorrect", "☃")
     def test_set_score_with_annotation(self, reason):
         submission = api.create_submission(STUDENT_ITEM, ANSWER_ONE)
         creator_uuid = "Bob"
@@ -424,7 +422,7 @@ class TestSubmissionsApi(TestCase):
         self.assertEqual(
             scores,
             {
-                u'i4x://a/b/c/s1': {
+                'i4x://a/b/c/s1': {
                     'created_at': now(),
                     'points_earned': 2,
                     'points_possible': 5,
@@ -432,7 +430,7 @@ class TestSubmissionsApi(TestCase):
                     'submission': 1,
                     'submission_uuid': s1['uuid'],
                 },
-                u'i4x://a/b/c/s2': {
+                'i4x://a/b/c/s2': {
                     'created_at': now(),
                     'points_earned': 0,
                     'points_possible': 10,
@@ -440,7 +438,7 @@ class TestSubmissionsApi(TestCase):
                     'submission': 2,
                     'submission_uuid': s2['uuid'],
                 },
-                u'i4x://a/b/c/s3': {
+                'i4x://a/b/c/s3': {
                     'created_at': now(),
                     'points_earned': 4,
                     'points_possible': 4,

@@ -1,7 +1,8 @@
 """ Team Api Module Tests. """
 
+from unittest import mock
+
 import ddt
-import mock
 from django.core.cache import cache
 from django.db import DatabaseError
 from django.test import TestCase
@@ -45,13 +46,13 @@ class TestTeamSubmissionsApi(TestCase):
         """
         Clear the cache.
         """
-        super(TestTeamSubmissionsApi, self).setUp()
+        super().setUp()
         cache.clear()
 
     @classmethod
     def setUpTestData(cls):
         """ Create some test users """
-        super(TestTeamSubmissionsApi, cls).setUpTestData()
+        super().setUpTestData()
         cls.user_1 = UserFactory.create()
         cls.user_2 = UserFactory.create()
         cls.user_3 = UserFactory.create()

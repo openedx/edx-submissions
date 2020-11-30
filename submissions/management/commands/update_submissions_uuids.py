@@ -9,7 +9,6 @@ command just standardizes them all to be similar.
 EDUCATOR-1090
 """
 
-from __future__ import absolute_import
 
 import logging
 import time
@@ -40,19 +39,19 @@ class Command(BaseCommand):
             '--start', '-s',
             default=0,
             type=int,
-            help=u"The Submission.id at which to begin updating rows. 0 by default."
+            help="The Submission.id at which to begin updating rows. 0 by default."
         )
         parser.add_argument(
             '--chunk', '-c',
             default=1000,
             type=int,
-            help=u"Batch size, how many rows to update in a given transaction. Default 1000.",
+            help="Batch size, how many rows to update in a given transaction. Default 1000.",
         )
         parser.add_argument(
             '--wait', '-w',
             default=2,
             type=int,
-            help=u"Wait time between transactions, in seconds. Default 2.",
+            help="Wait time between transactions, in seconds. Default 2.",
         )
 
     def handle(self, *args, **options):
@@ -69,7 +68,7 @@ class Command(BaseCommand):
         current = options['start']
         while current < last_id:
             end_chunk = current + options['chunk'] if last_id - options['chunk'] >= current else last_id
-            log.info("Updating entries in range [{}, {}]".format(current, end_chunk))
+            log.info("Updating entries in range [%s, %s]", current, end_chunk)
             with transaction.atomic():
                 # pylint: disable=protected-access
                 for submission in Submission._objects.filter(id__gte=current, id__lte=end_chunk).iterator():

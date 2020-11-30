@@ -2,14 +2,12 @@
 Public interface for the submissions app.
 
 """
-from __future__ import absolute_import
 
 import itertools
 import logging
 import operator
 from uuid import UUID
 
-import six
 from django.conf import settings
 from django.core.cache import cache
 from django.db import DatabaseError, IntegrityError, transaction
@@ -110,11 +108,11 @@ def create_submission(student_item_dict, answer, submitted_at=None, attempt_numb
         attempt_number = 1
         try:
             first_submission = Submission.objects.filter(student_item=student_item_model).first()
-        except DatabaseError:
-            error_message = u"An error occurred while filtering submissions for student item: {}".format(
+        except DatabaseError as error:
+            error_message = "An error occurred while filtering submissions for student item: {}".format(
                 student_item_dict)
             logger.exception(error_message)
-            raise SubmissionInternalError(error_message)
+            raise SubmissionInternalError(error_message) from error
 
         if first_submission:
             attempt_number = first_submission.attempt_number + 1
@@ -140,13 +138,13 @@ def create_submission(student_item_dict, answer, submitted_at=None, attempt_numb
 
         return sub_data
 
-    except DatabaseError:
-        error_message = u"An error occurred while creating submission {} for student item: {}".format(
+    except DatabaseError as error:
+        error_message = "An error occurred while creating submission {} for student item: {}".format(
             model_kwargs,
             student_item_dict
         )
         logger.exception(error_message)
-        raise SubmissionInternalError(error_message)
+        raise SubmissionInternalError(error_message) from error
 
 
 def _get_submission_model(uuid, read_replica=False):
@@ -161,7 +159,7 @@ def _get_submission_model(uuid, read_replica=False):
         submission = submission_qs.get(uuid=uuid)
     except Submission.DoesNotExist:
         try:
-            hyphenated_value = six.text_type(UUID(uuid))
+            hyphenated_value = str(UUID(uuid))
             query = """
                 SELECT
                     `submissions_submission`.`id`,
@@ -183,8 +181,8 @@ def _get_submission_model(uuid, read_replica=False):
 
             # We can use Submission.objects instead of the SoftDeletedManager, we'll include that logic manually
             submission = Submission.objects.raw(query)[0]
-        except IndexError:
-            raise Submission.DoesNotExist()
+        except IndexError as error:
+            raise Submission.DoesNotExist() from error
         # Avoid the extra hit next time
         submission.save(update_fields=['uuid'])
     return submission
@@ -216,12 +214,12 @@ def get_submission(submission_uuid, read_replica=False):
         }
 
     """
-    if not isinstance(submission_uuid, six.string_types):
+    if not isinstance(submission_uuid, str):
         if isinstance(submission_uuid, UUID):
-            submission_uuid = six.text_type(submission_uuid)
+            submission_uuid = str(submission_uuid)
         else:
             raise SubmissionRequestError(
-                msg="submission_uuid ({!r}) must be serializable".format(submission_uuid)
+                msg=f"submission_uuid ({submission_uuid!r}) must be serializable"
             )
 
     cache_key = Submission.get_cache_key(submission_uuid)
@@ -234,25 +232,25 @@ def get_submission(submission_uuid, read_replica=False):
         cached_submission_data = None
 
     if cached_submission_data:
-        logger.info("Get submission {} (cached)".format(submission_uuid))
+        logger.info("Get submission %s (cached)", submission_uuid)
         return cached_submission_data
 
     try:
         submission = _get_submission_model(submission_uuid, read_replica)
         submission_data = SubmissionSerializer(submission).data
         cache.set(cache_key, submission_data)
-    except Submission.DoesNotExist:
-        logger.error("Submission {} not found.".format(submission_uuid))
+    except Submission.DoesNotExist as error:
+        logger.error("Submission %s not found.", submission_uuid)
         raise SubmissionNotFoundError(
-            u"No submission matching uuid {}".format(submission_uuid)
-        )
+            f"No submission matching uuid {submission_uuid}"
+        ) from error
     except Exception as exc:
         # Something very unexpected has just happened (like DB misconfig)
-        err_msg = "Could not get submission due to error: {}".format(exc)
+        err_msg = f"Could not get submission due to error: {exc}"
         logger.exception(err_msg)
-        raise SubmissionInternalError(err_msg)
+        raise SubmissionInternalError(err_msg) from exc
 
-    logger.info("Get submission {}".format(submission_uuid))
+    logger.info("Get submission %s", submission_uuid)
     return submission_data
 
 
@@ -302,9 +300,9 @@ def get_submission_and_student(uuid, read_replica=False):
             submission['student_item'] = StudentItemSerializer(student_item).data
             cache.set(cache_key, submission['student_item'])
         except Exception as ex:
-            err_msg = "Could not get submission due to error: {}".format(ex)
+            err_msg = f"Could not get submission due to error: {ex}"
             logger.exception(err_msg)
-            raise SubmissionInternalError(err_msg)
+            raise SubmissionInternalError(err_msg) from ex
 
     return submission
 
@@ -359,13 +357,13 @@ def get_submissions(student_item_dict, limit=None):
     try:
         submission_models = Submission.objects.filter(
             student_item=student_item_model)
-    except DatabaseError:
+    except DatabaseError as error:
         error_message = (
-            u"Error getting submission request for student item {}"
+            "Error getting submission request for student item {}"
             .format(student_item_dict)
         )
         logger.exception(error_message)
-        raise SubmissionNotFoundError(error_message)
+        raise SubmissionNotFoundError(error_message) from error
 
     if limit:
         submission_models = submission_models[:limit]
@@ -527,7 +525,7 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use
     """
     if number_of_top_scores < 1 or number_of_top_scores > MAX_TOP_SUBMISSIONS:
         error_msg = (
-            u"Number of top scores must be a number between 1 and {}.".format(MAX_TOP_SUBMISSIONS)
+            f"Number of top scores must be a number between 1 and {MAX_TOP_SUBMISSIONS}."
         )
         logger.exception(error_msg)
         raise SubmissionRequestError(msg=error_msg)
@@ -555,12 +553,12 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use
             if read_replica:
                 query = _use_read_replica(query)
             score_summaries = query[:number_of_top_scores]
-        except DatabaseError:
-            msg = u"Could not fetch top score summaries for course {}, item {} of type {}".format(
+        except DatabaseError as error:
+            msg = "Could not fetch top score summaries for course {}, item {} of type {}".format(
                 course_id, item_id, item_type
             )
             logger.exception(msg)
-            raise SubmissionInternalError(msg)
+            raise SubmissionInternalError(msg) from error
 
         # Retrieve the submission content for each top score
         top_submissions = [
@@ -661,12 +659,12 @@ def get_scores(course_id, student_id):
             student_item__course_id=course_id,
             student_item__student_id=student_id,
         ).select_related('latest', 'latest__submission', 'student_item')
-    except DatabaseError:
-        msg = u"Could not fetch scores for course {}, student {}".format(
+    except DatabaseError as error:
+        msg = "Could not fetch scores for course {}, student {}".format(
             course_id, student_id
         )
         logger.exception(msg)
-        raise SubmissionInternalError(msg)
+        raise SubmissionInternalError(msg) from error
     scores = {
         summary.student_item.item_id: UnannotatedScoreSerializer(summary.latest).data
         for summary in score_summaries if not summary.latest.is_hidden()
@@ -762,15 +760,15 @@ def reset_score(student_id, course_id, item_id, clear_state=False, emit_signal=T
                 cache_key = Submission.get_cache_key(sub.uuid)
                 cache.delete(cache_key)
 
-    except DatabaseError:
+    except DatabaseError as error:
         msg = (
-            u"Error occurred while reseting scores for"
-            u" item {item_id} in course {course_id} for student {student_id}"
+            "Error occurred while reseting scores for"
+            " item {item_id} in course {course_id} for student {student_id}"
         ).format(item_id=item_id, course_id=course_id, student_id=student_id)
         logger.exception(msg)
-        raise SubmissionInternalError(msg)
+        raise SubmissionInternalError(msg) from error
     else:
-        msg = u"Score reset for item {item_id} in course {course_id} for student {student_id}".format(
+        msg = "Score reset for item {item_id} in course {course_id} for student {student_id}".format(
             item_id=item_id, course_id=course_id, student_id=student_id
         )
         logger.info(msg)
@@ -815,16 +813,16 @@ def set_score(submission_uuid, points_earned, points_possible,
     """
     try:
         submission_model = _get_submission_model(submission_uuid)
-    except Submission.DoesNotExist:
+    except Submission.DoesNotExist as error:
         raise SubmissionNotFoundError(
-            u"No submission matching uuid {}".format(submission_uuid)
-        )
-    except DatabaseError:
-        error_msg = u"Could not retrieve submission {}.".format(
+            f"No submission matching uuid {submission_uuid}"
+        ) from error
+    except DatabaseError as error:
+        error_msg = "Could not retrieve submission {}.".format(
             submission_uuid
         )
         logger.exception(error_msg)
-        raise SubmissionRequestError(msg=error_msg)
+        raise SubmissionRequestError(msg=error_msg) from error
 
     score = ScoreSerializer(
         data={
@@ -883,9 +881,9 @@ def _log_submission(submission, student_item):
         None
     """
     logger.info(
-        u"Created submission uuid={submission_uuid} for "
-        u"(course_id={course_id}, item_id={item_id}, "
-        u"anonymous_student_id={anonymous_student_id})"
+        "Created submission uuid={submission_uuid} for "
+        "(course_id={course_id}, item_id={item_id}, "
+        "anonymous_student_id={anonymous_student_id})"
         .format(
             submission_uuid=submission["uuid"],
             course_id=student_item["course_id"],
@@ -944,25 +942,25 @@ def _get_or_create_student_item(student_item_dict):
     try:
         try:
             return StudentItem.objects.get(**student_item_dict)
-        except StudentItem.DoesNotExist:
+        except StudentItem.DoesNotExist as student_error:
             student_item_serializer = StudentItemSerializer(
                 data=student_item_dict
             )
             if not student_item_serializer.is_valid():
                 logger.error(
-                    u"Invalid StudentItemSerializer: errors:{} data:{}".format(
+                    "Invalid StudentItemSerializer: errors:{} data:{}".format(
                         student_item_serializer.errors,
                         student_item_dict
                     )
                 )
-                raise SubmissionRequestError(field_errors=student_item_serializer.errors)
+                raise SubmissionRequestError(field_errors=student_item_serializer.errors) from student_error
             return student_item_serializer.save()
-    except DatabaseError:
-        error_message = u"An error occurred creating student item: {}".format(
+    except DatabaseError as error:
+        error_message = "An error occurred creating student item: {}".format(
             student_item_dict
         )
         logger.exception(error_message)
-        raise SubmissionInternalError(error_message)
+        raise SubmissionInternalError(error_message) from error
 
 
 def _use_read_replica(queryset):

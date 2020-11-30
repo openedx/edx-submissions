@@ -1,5 +1,4 @@
 """ Submissions Admin Views. """
-from __future__ import absolute_import
 
 from django.contrib import admin
 from django.urls import reverse
@@ -8,7 +7,7 @@ from django.utils.html import format_html
 from submissions.models import Score, ScoreSummary, StudentItem, Submission, TeamSubmission
 
 
-class StudentItemAdminMixin(object):  # pylint: disable=useless-object-inheritance
+class StudentItemAdminMixin:
     """Mix this class into anything that has a student_item fkey."""
     search_fields = (
         'student_item__course_id',
@@ -35,7 +34,7 @@ class StudentItemAdminMixin(object):  # pylint: disable=useless-object-inheritan
             'admin:submissions_studentitem_change',
             args=[obj.student_item.id]
         )
-        return format_html(u'<a href="{}">{}</a>'.format(url, obj.student_item.id))
+        return format_html(f'<a href="{url}">{obj.student_item.id}</a>')
 
     student_item_id.admin_order_field = 'student_item__id'
     student_item_id.short_description = 'S.I. ID'
@@ -114,7 +113,7 @@ class ScoreAdmin(admin.ModelAdmin, StudentItemAdminMixin):
     search_fields = ('id', ) + StudentItemAdminMixin.search_fields
 
     def points(self, score):
-        return u"{}/{}".format(score.points_earned, score.points_possible)
+        return f"{score.points_earned}/{score.points_possible}"
 
 
 class ScoreSummaryAdmin(admin.ModelAdmin, StudentItemAdminMixin):
@@ -134,7 +133,7 @@ class ScoreSummaryAdmin(admin.ModelAdmin, StudentItemAdminMixin):
         url = reverse(
             'admin:submissions_score_change', args=[score_summary.highest.id]
         )
-        return format_html(u'<a href="{}">{}</a>'.format(url, score_summary.highest))
+        return format_html(f'<a href="{url}">{score_summary.highest}</a>')
 
     highest_link.short_description = 'Highest'
 
@@ -142,7 +141,7 @@ class ScoreSummaryAdmin(admin.ModelAdmin, StudentItemAdminMixin):
         url = reverse(
             'admin:submissions_score_change', args=[score_summary.latest.id]
         )
-        return format_html(u'<a href="{}">{}</a>'.format(url, score_summary.latest))
+        return format_html(f'<a href="{url}">{score_summary.latest}</a>')
 
     latest_link.short_description = 'Latest'
 

@@ -1,7 +1,6 @@
 """
 Tests for submissions serializers.
 """
-from __future__ import absolute_import
 
 import ddt
 from django.test import TestCase
@@ -18,7 +17,7 @@ class ScoreSerializerTest(TestCase):
     """
 
     def setUp(self):
-        super(ScoreSerializerTest, self).setUp()
+        super().setUp()
         self.item = StudentItem.objects.create(
             student_id="score_test_student",
             course_id="score_test_course",
@@ -109,7 +108,7 @@ class TeamSubmissionSerializerTest(TestCase):
         )
         self.assertEqual(
             set(serialized_data['submission_uuids']),
-            set(submission.uuid for submission in self.submissions),
+            {submission.uuid for submission in self.submissions},
         )
         self.assertEqual(serialized_data['submitted_at'], self.team_submission.submitted_at)
         self.assertEqual(serialized_data['created_at'], self.team_submission.created)

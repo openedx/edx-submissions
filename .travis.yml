@@ -6,8 +6,8 @@ python:
   - 3.8
 
 env:
-  - TOXENV=django22-drf39
-  - TOXENV=django22-drf310
+  - TOXENV=django22-drf311
+  - TOXENV=django22-drf312
   - TOXENV=django22-drflatest
   - TOXENV=quality
   - TOXENV=docs

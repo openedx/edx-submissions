@@ -19,7 +19,6 @@ from django.contrib.auth.models import User
 from django.db import DatabaseError, models
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import Signal, receiver
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timezone import now
 from jsonfield import JSONField
 from model_utils.models import TimeStampedModel
@@ -57,7 +56,6 @@ class AnonymizedUserIDField(models.CharField):
         return name, path, args, kwargs
 
 
-@python_2_unicode_compatible
 class StudentItem(models.Model):
     """Represents a single item for a single course for a single user.
 
@@ -125,7 +123,6 @@ STATUS_CHOICES = (
 )
 
 
-@python_2_unicode_compatible
 class TeamSubmission(TimeStampedModel):
     """
     A single response by a team for a given problem (ORA2) in a given course.
@@ -310,7 +307,6 @@ def validate_only_one_submission_per_team(sender, **kwargs):
         raise DuplicateTeamSubmissionsError('Can only have one submission per team.')
 
 
-@python_2_unicode_compatible
 class Submission(models.Model):
     """A single response by a student for a given problem in a given course.
 
@@ -386,7 +382,6 @@ class Submission(models.Model):
         ordering = ["-submitted_at", "-id"]
 
 
-@python_2_unicode_compatible
 class Score(models.Model):
     """What the user scored for a given StudentItem at a given time.
 

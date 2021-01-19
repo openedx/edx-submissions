@@ -2,7 +2,6 @@
 Serializers are created to ensure models do not have to be accessed outside the
 scope of the submissions API.
 """
-from __future__ import absolute_import
 
 import json
 
@@ -81,8 +80,8 @@ class TeamSubmissionSerializer(serializers.ModelSerializer):
         # Check that the answer is JSON-serializable
         try:
             serialized = json.dumps(value)
-        except (ValueError, TypeError):
-            raise serializers.ValidationError("Answer value must be JSON-serializable")
+        except (ValueError, TypeError) as error:
+            raise serializers.ValidationError("Answer value must be JSON-serializable") from error
 
         # Check the length of the serialized representation
         if len(serialized) > Submission.MAXSIZE:
@@ -140,8 +139,8 @@ class SubmissionSerializer(serializers.ModelSerializer):
         # Check that the answer is JSON-serializable
         try:
             serialized = json.dumps(value)
-        except (ValueError, TypeError):
-            raise serializers.ValidationError("Answer value must be JSON-serializable")
+        except (ValueError, TypeError) as error:
+            raise serializers.ValidationError("Answer value must be JSON-serializable") from error
 
         # Check the length of the serialized representation
         if len(serialized) > Submission.MAXSIZE:

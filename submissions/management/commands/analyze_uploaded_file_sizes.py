@@ -19,7 +19,6 @@ Arguments:
     The two dates cannot be more than 90 days apart.
 """
 
-from __future__ import absolute_import
 
 import datetime
 
@@ -30,7 +29,7 @@ from submissions.models import Submission
 DATE_FORMAT = '%Y-%m-%d'
 EARLIEST_ALLOWED_DATE = datetime.date(2019, 11, 1)
 EARLIEST_ALLOWED_DATE_STR = EARLIEST_ALLOWED_DATE.strftime(DATE_FORMAT)
-HEADER = u'Course ID\tUsers with Uploaded Files\tTotal Uploaded Bytes\tAverage Upload per User'
+HEADER = 'Course ID\tUsers with Uploaded Files\tTotal Uploaded Bytes\tAverage Upload per User'
 
 
 class Command(BaseCommand):
@@ -40,7 +39,7 @@ class Command(BaseCommand):
         ./manage.py lms analyze_uploaded_file_sizes --max_date=2020-01-30 --min_date=2019-12-31
 
     """
-    help = u'Collects and prints stats about ORA file upload usage'
+    help = 'Collects and prints stats about ORA file upload usage'
 
     def add_arguments(self, parser):
         """
@@ -57,14 +56,14 @@ class Command(BaseCommand):
             '--min_date',
             type=parse_date,
             default=thirty_days_ago,
-            help=(u"The longest-ago day to include in the report. Defaults to <today - 30 days>. "
-                  u"Cannot be set to before 2019-11-01.")
+            help=("The longest-ago day to include in the report. Defaults to <today - 30 days>. "
+                  "Cannot be set to before 2019-11-01.")
         )
         parser.add_argument(
             '--max_date',
             type=parse_date,
             default=today,
-            help=u"The most recent day to include in the report. Defaults to today."
+            help="The most recent day to include in the report. Defaults to today."
         )
 
     # pylint: disable=arguments-differ
@@ -72,8 +71,8 @@ class Command(BaseCommand):
         """
         Analyze ORA file upload submissions and and print tab-limited report
         """
-        print(u'Starting file upload submission report')
-        arg_echo_str = u'min_date = {}, max_date = {}'.format(
+        print('Starting file upload submission report')
+        arg_echo_str = 'min_date = {}, max_date = {}'.format(
             min_date.strftime(DATE_FORMAT),
             max_date.strftime(DATE_FORMAT)
         )
@@ -95,9 +94,9 @@ class Command(BaseCommand):
         if max_date - min_date > datetime.timedelta(days=90):
             raise CommandError("Max date and min date cannot be more than 90 days apart")
         if datetime.date.today() < max_date:
-            print(u"Warning: max_date is in the future")
+            print("Warning: max_date is in the future")
         if min_date < EARLIEST_ALLOWED_DATE:
-            msg = u'File size data is unavailable before {earliest}. Setting min_date to {earliest}'
+            msg = 'File size data is unavailable before {earliest}. Setting min_date to {earliest}'
             print(msg.format(earliest=EARLIEST_ALLOWED_DATE_STR))
             return EARLIEST_ALLOWED_DATE
         return min_date
@@ -159,7 +158,7 @@ class Command(BaseCommand):
     def print_row(self, course_id, num_course_users, course_bytes):
         """ Print a row of the report """
         if num_course_users or course_bytes:
-            print(u"{course_id}\t{num_users}\t{total_bytes}\t{avg_bytes:.0f}".format(
+            print("{course_id}\t{num_users}\t{total_bytes}\t{avg_bytes:.0f}".format(
                 course_id=course_id,
                 num_users=num_course_users,
                 total_bytes=course_bytes,

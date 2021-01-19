@@ -1,11 +1,10 @@
 """
 Test API calls using the read replica.
 """
-from __future__ import absolute_import
 
 import copy
+from unittest import mock
 
-import mock
 from django.conf import settings
 from django.test import TransactionTestCase
 
@@ -40,7 +39,7 @@ class ReadReplicaTest(TransactionTestCase):
 
     def setUp(self):
         """ Create a submission and score. """
-        super(ReadReplicaTest, self).setUp()
+        super().setUp()
         self.submission = sub_api.create_submission(self.STUDENT_ITEM, "test answer")
         sub_api.set_score(
             self.submission['uuid'],

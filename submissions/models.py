@@ -9,13 +9,12 @@ need to then generate a matching migration for it using:
     ./manage.py makemigrations submissions
 
 """
-from __future__ import absolute_import, unicode_literals
 
 import json
 import logging
 from uuid import uuid4
 
-from django.contrib.auth.models import User
+from django.contrib import auth
 from django.db import DatabaseError, models
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import Signal, receiver
@@ -26,7 +25,7 @@ from model_utils.models import TimeStampedModel
 from submissions.errors import DuplicateTeamSubmissionsError, TeamSubmissionInternalError, TeamSubmissionNotFoundError
 
 logger = logging.getLogger(__name__)
-
+User = auth.get_user_model()
 
 # Signal to inform listeners that a score has been changed
 score_set = Signal(providing_args=[
@@ -47,10 +46,10 @@ class AnonymizedUserIDField(models.CharField):
     def __init__(self, *args, **kwargs):
         kwargs['max_length'] = 255
         kwargs['db_index'] = True
-        super(AnonymizedUserIDField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def deconstruct(self):
-        name, path, args, kwargs = super(AnonymizedUserIDField, self).deconstruct()
+        name, path, args, kwargs = super().deconstruct()
         del kwargs["max_length"]
         del kwargs["db_index"]
         return name, path, args, kwargs
@@ -89,10 +88,10 @@ class StudentItem(models.Model):
         )
 
     def __str__(self):
-        return u"({0.student_id}, {0.course_id}, {0.item_type}, {0.item_id})".format(self)
+        return "({0.student_id}, {0.course_id}, {0.item_type}, {0.item_id})".format(self)
 
     class Meta:
-        app_label = u"submissions"
+        app_label = "submissions"
         unique_together = (
             # For integrity reasons, and looking up all of a student's items
             ("course_id", "student_id", "item_id"),
@@ -161,7 +160,7 @@ class TeamSubmission(TimeStampedModel):
 
     @staticmethod
     def get_cache_key(sub_uuid):
-        return "submissions.team_submission.{}".format(sub_uuid)
+        return f"submissions.team_submission.{sub_uuid}"
 
     @staticmethod
     def get_team_submission_by_uuid(team_submission_uuid):
@@ -174,18 +173,18 @@ class TeamSubmission(TimeStampedModel):
         """
         try:
             return TeamSubmission.objects.prefetch_related('submissions').get(uuid=team_submission_uuid)
-        except TeamSubmission.DoesNotExist:
-            logger.error("Team Submission {} not found.".format(team_submission_uuid))
+        except TeamSubmission.DoesNotExist as error:
+            logger.error("Team Submission %s not found.", team_submission_uuid)
             raise TeamSubmissionNotFoundError(
-                "No team submission matching uuid {}".format(team_submission_uuid)
-            )
+                f"No team submission matching uuid {team_submission_uuid}"
+            ) from error
         except Exception as exc:
             err_msg = "Attempt to get team submission for uuid {uuid} caused error: {exc}".format(
                 uuid=team_submission_uuid,
                 exc=exc
             )
             logger.error(err_msg)
-            raise TeamSubmissionInternalError(err_msg)
+            raise TeamSubmissionInternalError(err_msg) from exc
 
     @staticmethod
     def get_team_submission_by_course_item_team(course_id, item_id, team_id):
@@ -210,18 +209,18 @@ class TeamSubmission(TimeStampedModel):
             ).get(
                 **model_query_params
             )
-        except TeamSubmission.DoesNotExist:
-            logger.error("Team submission for {} not found.".format(query_params_string))
+        except TeamSubmission.DoesNotExist as error:
+            logger.error("Team submission for %s not found.", query_params_string)
             raise TeamSubmissionNotFoundError(
-                "No team submission matching {}".format(query_params_string)
-            )
+                f"No team submission matching {query_params_string}"
+            ) from error
         except Exception as exc:
             err_msg = "Attempt to get team submission for {params} caused error: {exc}".format(
                 params=query_params_string,
                 exc=exc
             )
             logger.error(err_msg)
-            raise TeamSubmissionInternalError(err_msg)
+            raise TeamSubmissionInternalError(err_msg) from exc
         return team_submission
 
     @staticmethod
@@ -236,18 +235,18 @@ class TeamSubmission(TimeStampedModel):
         """
         try:
             return TeamSubmission.objects.prefetch_related('submissions').get(submissions__student_item=student_item)
-        except TeamSubmission.DoesNotExist:
-            logger.error("Team submission for {} not found.".format(student_item))
+        except TeamSubmission.DoesNotExist as error:
+            logger.error("Team submission for %s not found.", student_item)
             raise TeamSubmissionNotFoundError(
-                "No team submission matching {}".format(student_item)
-            )
+                f"No team submission matching {student_item}"
+            ) from error
         except Exception as exc:
             err_msg = "Attempt to get team submission for {student_item} caused error: {exc}".format(
                 student_item=student_item,
                 exc=exc
             )
             logger.error(err_msg)
-            raise TeamSubmissionInternalError(err_msg)
+            raise TeamSubmissionInternalError(err_msg) from exc
 
     @staticmethod
     def get_all_team_submissions_for_course_item(course_id, item_id):
@@ -272,7 +271,7 @@ class TeamSubmission(TimeStampedModel):
                 exc=exc
             )
             logger.error(err_msg)
-            raise TeamSubmissionInternalError(err_msg)
+            raise TeamSubmissionInternalError(err_msg) from exc
 
     def __repr__(self):
         return repr(dict(
@@ -285,7 +284,7 @@ class TeamSubmission(TimeStampedModel):
         ))
 
     def __str__(self):
-        return "Team Submission {}".format(self.uuid)
+        return f"Team Submission {self.uuid}"
 
     class Meta:
         app_label = "submissions"
@@ -293,7 +292,7 @@ class TeamSubmission(TimeStampedModel):
 
 
 @receiver(pre_save, sender=TeamSubmission)
-def validate_only_one_submission_per_team(sender, **kwargs):
+def validate_only_one_submission_per_team(sender, **kwargs):  # pylint:disable=unused-argument
     """
     Ensures that there is only one active submission per team.
     """
@@ -362,7 +361,7 @@ class Submission(models.Model):
 
     @staticmethod
     def get_cache_key(sub_uuid):
-        return u"submissions.submission.{}".format(sub_uuid)
+        return f"submissions.submission.{sub_uuid}"
 
     def __repr__(self):
         return repr(dict(
@@ -375,10 +374,10 @@ class Submission(models.Model):
         ))
 
     def __str__(self):
-        return u"Submission {}".format(self.uuid)
+        return f"Submission {self.uuid}"
 
     class Meta:
-        app_label = u"submissions"
+        app_label = "submissions"
         ordering = ["-submitted_at", "-id"]
 
 
@@ -400,7 +399,7 @@ class Score(models.Model):
     reset = models.BooleanField(default=False)
 
     class Meta:
-        app_label = u"submissions"
+        app_label = "submissions"
 
     @property
     def submission_uuid(self):
@@ -484,19 +483,19 @@ class Score(models.Model):
         )
 
     def __str__(self):
-        return u"{0.points_earned}/{0.points_possible}".format(self)
+        return "{0.points_earned}/{0.points_possible}".format(self)
 
 
 class ScoreSummary(models.Model):
     """Running store of the highest and most recent Scores for a StudentItem."""
     student_item = models.OneToOneField(StudentItem, on_delete=models.CASCADE)
 
-    highest = models.ForeignKey(Score, related_name=u"+", on_delete=models.CASCADE)
-    latest = models.ForeignKey(Score, related_name=u"+", on_delete=models.CASCADE)
+    highest = models.ForeignKey(Score, related_name="+", on_delete=models.CASCADE)
+    latest = models.ForeignKey(Score, related_name="+", on_delete=models.CASCADE)
 
     class Meta:
-        app_label = u"submissions"
-        verbose_name_plural = u"Score Summaries"
+        app_label = "submissions"
+        verbose_name_plural = "Score Summaries"
 
     @receiver(post_save, sender=Score)
     def update_score_summary(sender, **kwargs):  # pylint: disable=no-self-argument
@@ -541,7 +540,7 @@ class ScoreSummary(models.Model):
             )
         except DatabaseError:
             logger.exception(
-                u"Error while updating score summary for student item {}"
+                "Error while updating score summary for student item {}"
                 .format(score.student_item)
             )
 
@@ -550,7 +549,7 @@ class ScoreAnnotation(models.Model):
     """ Annotate individual scores with extra information if necessary. """
 
     class Meta:
-        app_label = u"submissions"
+        app_label = "submissions"
 
     score = models.ForeignKey(Score, on_delete=models.CASCADE)
     # A string that will represent the 'type' of annotation,

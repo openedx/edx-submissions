@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
-
 import django.utils.timezone
 from django.db import migrations, models
 
@@ -61,7 +58,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='studentitem',
-            unique_together=set([('course_id', 'student_id', 'item_id')]),
+            unique_together={('course_id', 'student_id', 'item_id')},
         ),
         migrations.AddField(
             model_name='scoresummary',

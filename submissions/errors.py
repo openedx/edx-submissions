@@ -54,7 +54,7 @@ class SubmissionRequestError(SubmissionError):
         >>> )
 
         """
-        super(SubmissionRequestError, self).__init__(msg)
+        super().__init__(msg)
         self.field_errors = (
             copy.deepcopy(field_errors)
             if field_errors is not None

@@ -130,7 +130,7 @@ def create_submission_for_team(
             exc
         )
         logger.exception(error_message)
-        raise TeamSubmissionInternalError(error_message)
+        raise TeamSubmissionInternalError(error_message) from exc
 
     base_student_item_dict = {
         'course_id': course_id,
@@ -315,7 +315,7 @@ def get_team_submission_student_ids(team_submission_uuid):
             exc=exc
         )
         logger.error(err_msg)
-        raise TeamSubmissionInternalError(err_msg)
+        raise TeamSubmissionInternalError(err_msg) from exc
     if not student_ids:
         raise TeamSubmissionNotFoundError()
     return list(student_ids)
@@ -406,12 +406,12 @@ def reset_scores(team_submission_uuid, clear_state=False):
             # soft-delete the TeamSubmission
             team_submission.status = DELETED
             team_submission.save(update_fields=["status"])
-    except (DatabaseError, SubmissionInternalError):
+    except (DatabaseError, SubmissionInternalError) as error:
         msg = (
             "Error occurred while reseting scores for team submission {team_submission_uuid}"
         ).format(team_submission_uuid=team_submission_uuid)
         logger.exception(msg)
-        raise TeamSubmissionInternalError(msg)
+        raise TeamSubmissionInternalError(msg) from error
     else:
         msg = "Score reset for team submission {team_submission_uuid}".format(
             team_submission_uuid=team_submission_uuid

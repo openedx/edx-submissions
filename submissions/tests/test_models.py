@@ -2,14 +2,13 @@
 Tests for submission models.
 """
 
-from __future__ import absolute_import
 
 from datetime import datetime
+from unittest import mock
 
 import pytest
-from django.contrib.auth.models import User
+from django.contrib import auth
 from django.test import TestCase
-from mock import mock
 from pytz import UTC
 
 from submissions.errors import TeamSubmissionInternalError, TeamSubmissionNotFoundError
@@ -21,6 +20,8 @@ from submissions.models import (
     Submission,
     TeamSubmission
 )
+
+User = auth.get_user_model()
 
 
 class TestScoreSummary(TestCase):

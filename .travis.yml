@@ -2,23 +2,20 @@ language: python
 dist: latest
 
 python:
-  - 3.5
-  - 3.8
-
+  - '3.8'
 env:
-  - TOXENV=django22-drf311
-  - TOXENV=django22-drf312
-  - TOXENV=django22-drflatest
   - TOXENV=quality
   - TOXENV=docs
-
+  - TOXENV=django22-drf312
+  - TOXENV=django22-drflatest
+  - TOXENV=django30-drf312
 install:
   - pip install -r requirements/travis.txt
 script:
   - tox
-after_success: 
+after_success:
   - codecov
-  
+
 # Set password via "travis encrypt --add deploy.password"; for details, see
 # https://docs.travis-ci.com/user/deployment/pypi
 deploy:
@@ -30,5 +27,5 @@ deploy:
     secure: BlYK3lplRoPiNfzqslxyReJZrC1QUT9Ls1A1xIxc3IHxKl9WEkqC2xO5vBvQDFKtMyooq8bGeN/gfksaZpRYqBmrO7hPITiz0FH0wPFdjoIikI4NTqKVxjhqUho0ZWmpxNXrX/iMd9Y2R4uZRXZGaWaTSRHfF9fPVlkbo66s7vw=
   on:
     tags: true
-    python: 3.5
-    condition: "$TOXENV = django22-drflatest"
+    python: 3.8
+    condition: $TOXENV = django22-drflatest

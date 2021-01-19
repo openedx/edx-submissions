@@ -29,7 +29,7 @@ def capture():
         out[1] = out[1].getvalue()
 
 
-class BaseMixin(object):  # pylint: disable=useless-object-inheritance
+class BaseMixin:
     """ Base Mixin for tests. """
 
     def assert_command_output(self, expected_output, max_date=None, min_date=None):

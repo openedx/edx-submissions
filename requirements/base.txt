@@ -10,15 +10,13 @@ django==2.2.24
     #   -r requirements/base.in
     #   django-model-utils
     #   djangorestframework
-    #   jsonfield2
+    #   jsonfield
 django-model-utils==4.1.1
     # via -r requirements/base.in
 djangorestframework==3.12.4
     # via -r requirements/base.in
-jsonfield2==3.0.3
-    # via
-    #   -c requirements/constraints.txt
-    #   -r requirements/base.in
+jsonfield==3.1.0
+    # via -r requirements/base.in
 pytz==2021.1
     # via
     #   -r requirements/base.in

@@ -11,8 +11,5 @@
 # This file contains all common constraints for edx-repos
 -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
 
-#jsonfield2 version 3.1.0 drops support for python3.5
-jsonfield2==3.0.3
-
 # zipp 2.0.0 requires Python >= 3.6
 zipp<2.0.0

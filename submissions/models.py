@@ -9,8 +9,7 @@ need to then generate a matching migration for it using:
     ./manage.py makemigrations submissions
 
 """
-# pylint: skip-file
-import json
+
 import logging
 from uuid import uuid4
 
@@ -96,20 +95,6 @@ class StudentItem(models.Model):
             # For integrity reasons, and looking up all of a student's items
             ("course_id", "student_id", "item_id"),
         )
-
-
-class UpdatedJSONField(JSONField):
-    """
-    Class inherits JSONFiled from jsonfiled2 and provides overridden implementation
-    """
-    # We need to this custom class to represent JSONField instead of standard JSONField
-    # because we're using jsonfield2 version 3.0.3 and it has a known issue while performing
-    # select_related queries, it has been fixed in version 3.1.0 but python3.5 support is also
-    # dropped in that version, for now we've put the fix here
-    def from_db_value(self, value, expression, connection):  # pylint: disable=arguments-differ
-        if value is None:
-            return None
-        return json.loads(value, **self.load_kwargs)
 
 
 # Has this submission been soft-deleted? This allows instructors to reset student
@@ -339,7 +324,7 @@ class Submission(models.Model):
     # replacement for TextField that performs JSON serialization/deserialization.
     # For backwards compatibility, we override the default database column
     # name so it continues to use `raw_answer`.
-    answer = UpdatedJSONField(blank=True, db_column="raw_answer")
+    answer = JSONField(blank=True, db_column="raw_answer")
 
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=ACTIVE)
 

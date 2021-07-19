@@ -583,8 +583,8 @@ class TestTeamSubmissionsApi(TestCase):
         user_to_individual_submission = {
             user: self._make_individual_submission(
                 self.anonymous_user_id_map[user],
-                team_submission=user_to_team_submission[user]
-            ) for user in user_to_team_submission
+                team_submission=value
+            ) for user, value in user_to_team_submission.items()
         }
 
         # Assert that each student item returns the correct team submission

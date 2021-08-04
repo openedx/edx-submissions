@@ -28,8 +28,8 @@ class RawField(Field):
     up with a string instead of a dictionary!
 
     """
-    def to_representation(self, obj):  # pylint: disable=arguments-differ
-        return obj
+    def to_representation(self, value):
+        return value
 
     def to_internal_value(self, data):
         return data

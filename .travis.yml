@@ -7,8 +7,10 @@ env:
   - TOXENV=quality
   - TOXENV=docs
   - TOXENV=django22-drf312
-  - TOXENV=django22-drflatest
   - TOXENV=django30-drf312
+  - TOXENV=django31-drf312
+  - TOXENV=django32-drf312
+  - TOXENV=django32-drflatest
 install:
   - pip install -r requirements/travis.txt
 script:

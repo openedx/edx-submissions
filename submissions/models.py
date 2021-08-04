@@ -9,7 +9,7 @@ need to then generate a matching migration for it using:
     ./manage.py makemigrations submissions
 
 """
-
+# pylint: skip-file
 import json
 import logging
 from uuid import uuid4

@@ -30,4 +30,4 @@ deploy:
   on:
     tags: true
     python: 3.8
-    condition: $TOXENV = django22-drflatest
+    condition: $TOXENV = django22-drf312

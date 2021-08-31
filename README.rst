@@ -2,8 +2,9 @@ Part of `edX code`__.
 
 __ http://code.edx.org/
 
-.. image:: https://travis-ci.org/edx/edx-submissions.png?branch=master
-    :alt: Travis build status
+.. image:: image:: https://github.com/edx/edx-submissions/workflows/Python%20CI/badge.svg?branch=master
+    :target: https://github.com/edx/edx-submissions/actions?query=workflow%3A%22Python+CI%22
+    :alt: Build status
 
 .. image:: https://coveralls.io/repos/edx/edx-submissions/badge.png?branch=master
     :target: https://coveralls.io/r/edx/edx-submissions?branch=master

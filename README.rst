@@ -2,7 +2,7 @@ Part of `edX code`__.
 
 __ http://code.edx.org/
 
-.. image:: image:: https://github.com/edx/edx-submissions/workflows/Python%20CI/badge.svg?branch=master
+.. image:: https://github.com/edx/edx-submissions/workflows/Python%20CI/badge.svg?branch=master
     :target: https://github.com/edx/edx-submissions/actions?query=workflow%3A%22Python+CI%22
     :alt: Build status
 

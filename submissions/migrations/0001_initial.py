@@ -1,7 +1,6 @@
 import django.utils.timezone
+import jsonfield.fields
 from django.db import migrations, models
-
-from ..models import UpdatedJSONField
 
 
 class Migration(migrations.Migration):
@@ -49,7 +48,7 @@ class Migration(migrations.Migration):
                 ('attempt_number', models.PositiveIntegerField()),
                 ('submitted_at', models.DateTimeField(default=django.utils.timezone.now, db_index=True)),
                 ('created_at', models.DateTimeField(default=django.utils.timezone.now, editable=False, db_index=True)),
-                ('answer', UpdatedJSONField(db_column='raw_answer', blank=True)),
+                ('answer', jsonfield.fields.JSONField(db_column='raw_answer', blank=True)),
                 ('student_item', models.ForeignKey(to='submissions.StudentItem', on_delete=models.CASCADE)),
             ],
             options={

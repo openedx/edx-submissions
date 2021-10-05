@@ -111,7 +111,7 @@ class Command(BaseCommand):
         return Submission.objects.filter(
             created_at__range=(min_datetime, max_datetime),
             student_item__item_type='openassessment',
-            answer__contains='files_sizes":['
+            answer__contains='files_sizes": ['
         ).order_by(
             'student_item__course_id',
             'student_item__student_id'

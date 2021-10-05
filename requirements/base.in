@@ -5,7 +5,7 @@
 Django
 django-model-utils>=2.3.1
 
-jsonfield2
+jsonfield
 pytz
 
 

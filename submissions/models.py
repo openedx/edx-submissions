@@ -277,7 +277,7 @@ class TeamSubmission(TimeStampedModel):
 
 
 @receiver(pre_save, sender=TeamSubmission)
-def validate_only_one_submission_per_team(sender, **kwargs):
+def validate_only_one_submission_per_team(sender, **kwargs):  # pylint:disable=unused-argument
     """
     Ensures that there is only one active submission per team.
     """

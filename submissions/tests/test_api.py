@@ -758,7 +758,7 @@ class TestSubmissionsApi(TestCase):
         ]
 
         def submit(course_id, item_id, student_ids):
-            result_dict = dict()
+            result_dict = {}
             for student_id in student_ids:
                 student_item = dict(
                     course_id=course_id,

@@ -321,6 +321,22 @@ def get_team_submission_student_ids(team_submission_uuid):
     return list(student_ids)
 
 
+def get_team_ids_by_team_submission_uuid(team_submission_uuids):
+    """
+    Given a list of team submission uuids, return a dict mapping
+    team submission uuids to team id
+    """
+    values = TeamSubmission.objects.filter(
+        team_submission_uuid__in=team_submission_uuids
+    ).values(
+        "uuid", "team_id"
+    )
+    return {
+        item['uuid']: item['team_id']
+        for item in values
+    }
+
+
 def set_score(team_submission_uuid, points_earned, points_possible,
               annotation_creator=None, annotation_type=None, annotation_reason=None):
     """Set a score for a particular team submission.  This score is calculated

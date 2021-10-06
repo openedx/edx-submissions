@@ -741,3 +741,91 @@ class TestSubmissionsApi(TestCase):
         self.assertIsNotNone(score)
         self.assertEqual(score["points_earned"], expected_points_earned)
         self.assertEqual(score["points_possible"], expected_points_possible)
+
+    def test_get_student_ids_by_submission_uuid(self):
+        # Define two course ids, with some associated item ids, and some "student ids"
+        course_id = 'test_course_0000001'
+        course_item_ids = [f"{course_id}_item_{i}" for i in range(4)]
+        course_member_student_ids = [f'test_user_999{i}' for i in range(4)]
+        # other_course is just for database noise. It has an overlap of two learners with "course"
+        other_course_id = 'test_course_846292'
+        other_course_items_id = [f"{other_course_id}_item_{i}" for i in range(2)]
+        other_course_members_ids = [
+            'some_other_user',
+            'another_guy',
+            course_member_student_ids[0],
+            course_member_student_ids[2]
+        ]
+
+        def submit(course_id, item_id, student_ids):
+            result_dict = {}
+            for student_id in student_ids:
+                student_item = dict(
+                    course_id=course_id,
+                    item_id=item_id,
+                    student_id=student_id,
+                    item_type='test_get_student_ids_by_submission_uuid'
+                )
+                submission_uuid = api.create_submission(student_item, ANSWER_ONE)['uuid']
+                result_dict[submission_uuid] = student_id
+            return result_dict
+
+        # Make some submissions for the target course
+        # Item 0, users 0 and 1 submit
+        item_0_expected_result = submit(
+            course_id,
+            course_item_ids[0],
+            course_member_student_ids[:2]
+        )
+        # Item 1, all users submit
+        item_1_expected_result = submit(
+            course_id,
+            course_item_ids[1],
+            course_member_student_ids
+        )
+        # Item 2, users 2 and 3
+        item_2_expected_result = submit(
+            course_id,
+            course_item_ids[0],
+            course_member_student_ids[2:]
+        )
+        # Item 3, users 1, 2, 3
+        item_3_expected_result = submit(
+            course_id,
+            course_item_ids[0],
+            course_member_student_ids[1:]
+        )
+        for item_id in other_course_items_id:
+            submit(other_course_id, item_id, other_course_members_ids)
+        self.assertDictEqual(
+            api.get_student_ids_by_submission_uuid(
+                course_id,
+                item_0_expected_result.keys(),
+                read_replica=False,
+            ),
+            item_0_expected_result
+        )
+        self.assertDictEqual(
+            api.get_student_ids_by_submission_uuid(
+                course_id,
+                item_1_expected_result.keys(),
+                read_replica=False,
+            ),
+            item_1_expected_result
+        )
+        self.assertDictEqual(
+            api.get_student_ids_by_submission_uuid(
+                course_id,
+                item_2_expected_result.keys(),
+                read_replica=False,
+            ),
+            item_2_expected_result
+        )
+        self.assertDictEqual(
+            api.get_student_ids_by_submission_uuid(
+                course_id,
+                item_3_expected_result.keys(),
+                read_replica=False,
+            ),
+            item_3_expected_result
+        )

@@ -585,6 +585,25 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use
     return top_submissions
 
 
+def get_student_ids_by_submission_uuid(course_id, submission_uuids, read_replica=True):
+    """
+    Given a list of submission uuids, and a course id for security,
+    return a dictionary mapping submission uuid to student_id.
+    """
+    submissions = Submission.objects.filter(
+        student_item__course_id=course_id,
+        uuid__in=submission_uuids
+    )
+
+    if read_replica:
+        submissions = _use_read_replica(submissions)
+
+    submissions = submissions.values(
+        "uuid", "student_item__student_id"
+    )
+    return {str(submission['uuid']): submission['student_item__student_id'] for submission in submissions}
+
+
 def get_score(student_item):
     """Get the score for a particular student item
 

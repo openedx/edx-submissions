@@ -332,6 +332,7 @@ class Submission(models.Model):
         TeamSubmission,
         related_name='submissions',
         null=True,
+        blank=True,
         db_index=True,
         on_delete=models.SET_NULL
     )

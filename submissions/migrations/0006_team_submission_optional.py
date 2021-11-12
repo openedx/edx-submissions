@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('submissions', '0001_squashed_0005_CreateTeamModel'),
+        ('submissions', '0005_CreateTeamModel'),
     ]
 
     operations = [

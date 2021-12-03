@@ -302,13 +302,14 @@ def get_team_submission_student_ids(team_submission_uuid):
     if not team_submission_uuid:
         raise TeamSubmissionNotFoundError()
     try:
-        student_ids = StudentItem.objects.filter(
-            submission__team_submission__uuid=team_submission_uuid
-        ).order_by(
-            'student_id'
-        ).distinct().values_list(
-            'student_id', flat=True
+        student_ids = TeamSubmission.objects.prefetch_related(
+            'submissions__student_item'
+        ).filter(
+            uuid=team_submission_uuid
+        ).values_list(
+            'submissions__student_item__student_id', flat=True
         )
+
     except DatabaseError as exc:
         err_msg = "Attempt to get student ids for team submission {team_submission_uuid} caused error: {exc}".format(
             team_submission_uuid=team_submission_uuid,

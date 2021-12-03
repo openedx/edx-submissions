@@ -613,15 +613,14 @@ class TestTeamSubmissionsApi(TestCase):
         for student_id in submission_2_student_ids:
             self._make_individual_submission(student_id, team_submission=team_submission_2)
 
+        with self.assertNumQueries(1):
+            team_1_ids = team_api.get_team_submission_student_ids(str(team_submission.uuid))
+
+        team_2_ids = team_api.get_team_submission_student_ids(str(team_submission_2.uuid))
+
         # Assert that each team submission's uuid returns the correct student_ids
-        self.assertEqual(
-            team_api.get_team_submission_student_ids(str(team_submission.uuid)),
-            self.student_ids
-        )
-        self.assertEqual(
-            team_api.get_team_submission_student_ids(str(team_submission_2.uuid)),
-            submission_2_student_ids
-        )
+        self.assertEqual(team_1_ids, self.student_ids)
+        self.assertEqual(team_2_ids, submission_2_student_ids)
 
     def test_get_team_submission_student_ids__no_team_submission(self):
         with self.assertRaises(TeamSubmissionNotFoundError):

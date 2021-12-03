@@ -302,9 +302,7 @@ def get_team_submission_student_ids(team_submission_uuid):
     if not team_submission_uuid:
         raise TeamSubmissionNotFoundError()
     try:
-        student_ids = TeamSubmission.objects.prefetch_related(
-            'submissions__student_item'
-        ).filter(
+        student_ids = TeamSubmission.objects.filter(
             uuid=team_submission_uuid
         ).values_list(
             'submissions__student_item__student_id', flat=True

@@ -1,2 +1,2 @@
 """ API for creating submissions and scores. """
-__version__ = '3.4.1'
+__version__ = '3.4.2'

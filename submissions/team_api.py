@@ -115,6 +115,9 @@ def create_submission_for_team(
         'submitted_by': submitting_user_id,
         'attempt_number': attempt_number,
     }
+    log_string = f'{model_kwargs} Team Member Ids: {team_member_ids}'
+    logger.info("Creating team submission for %s", log_string)
+
     if submitted_at:
         model_kwargs["submitted_at"] = submitted_at
 
@@ -139,25 +142,46 @@ def create_submission_for_team(
     }
 
     students_with_team_submissions = {
-        submission['student_id'] for submission in get_teammates_with_submissions_from_other_teams(
+        submission['student_id']: submission['team_id']
+        for submission in get_teammates_with_submissions_from_other_teams(
             course_id,
             item_id,
             team_id,
             team_member_ids
         )
     }
+    logger.info("[%s] Students with submissions from other teams: %s", log_string, students_with_team_submissions)
+
     for team_member_id in team_member_ids:
+        logger.info("[%s] Creating individual submission for team member %s", log_string, team_member_id)
         if team_member_id in students_with_team_submissions:
+            logger.info(
+                "[%s] Team member %s already has a submission for team %s. Skipping.",
+                log_string,
+                team_member_id,
+                students_with_team_submissions[team_member_id]
+            )
             continue
         team_member_student_item_dict = dict(base_student_item_dict)
         team_member_student_item_dict['student_id'] = team_member_id
-        _api.create_submission(
-            team_member_student_item_dict,
-            answer,
-            submitted_at=submitted_at,
-            attempt_number=attempt_number,
-            team_submission=team_submission
-        )
+        try:
+            individual_submission = _api.create_submission(
+                team_member_student_item_dict,
+                answer,
+                submitted_at=submitted_at,
+                attempt_number=attempt_number,
+                team_submission=team_submission
+            )
+        except Exception as exc:
+            logger.error(
+                "[%s] Unable to create individual submission for %s: %s",
+                log_string,
+                team_member_id,
+                str(exc)
+            )
+            raise exc
+        else:
+            logger.info("[%s] Created individual submission %s", log_string, individual_submission['uuid'])
 
     model_kwargs = {
         "answer": answer,

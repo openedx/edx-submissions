@@ -289,19 +289,14 @@ class TestTeamSubmissionsApi(TestCase):
 
         # Should get 1 entry for each of the default users
         self.assertEqual(len(external_submissions), 4)
-
-        def check_submission(submission, user):
-            self.assertEqual(
-                submission,
+        for student_id in self.student_ids:
+            self.assertIn(
                 {
-                    'student_id': self.anonymous_user_id_map[user],
+                    'student_id': student_id,
                     'team_id': TEAM_1_ID
-                }
+                },
+                external_submissions
             )
-        check_submission(external_submissions[0], self.user_1)
-        check_submission(external_submissions[1], self.user_2)
-        check_submission(external_submissions[2], self.user_3)
-        check_submission(external_submissions[3], self.user_4)
 
     def test_get_teammates_with_submissions_from_other_teams__cancelled(self):
         # Make a team submission with default users, under TEAM_1
@@ -331,20 +326,8 @@ class TestTeamSubmissionsApi(TestCase):
                 self.student_ids
             )
 
-        # Returns an entry for everyone, despite the old submission being deleted
-        self.assertEqual(len(external_submissions), 4)
-        def check_submission(submission, user):
-            self.assertEqual(
-                submission,
-                {
-                    'student_id': self.anonymous_user_id_map[user],
-                    'team_id': TEAM_1_ID
-                }
-            )
-        check_submission(external_submissions[0], self.user_1)
-        check_submission(external_submissions[1], self.user_2)
-        check_submission(external_submissions[2], self.user_3)
-        check_submission(external_submissions[3], self.user_4)
+        # Returns no one, since the submission was cancelled
+        self.assertEqual(external_submissions, [])
 
     def test_get_team_submission(self):
         """

@@ -303,6 +303,49 @@ class TestTeamSubmissionsApi(TestCase):
         check_submission(external_submissions[2], self.user_3)
         check_submission(external_submissions[3], self.user_4)
 
+    def test_get_teammates_with_submissions_from_other_teams__cancelled(self):
+        # Make a team submission with default users, under TEAM_1
+        team_submission = self._make_team_submission(
+            attempt_number=1,
+            course_id=COURSE_ID,
+            item_id=ITEM_1_ID,
+            team_id=TEAM_1_ID,
+            status=None,
+            create_submissions=True
+        )
+
+        # Simulate resetting student state for the team, which causes the submissions to be deleted
+        team_api.reset_scores(team_submission.uuid, clear_state=True)
+
+        team_submission.refresh_from_db()
+        self.assertEqual(team_submission.status, DELETED)
+        for individual_submission in team_submission.submissions.all():
+            self.assertEqual(individual_submission.status, DELETED)
+
+        # Now, everyone has moved to a new team, but their old submission was deleted, so no one should be listed
+        with self.assertNumQueries(1):
+            external_submissions = team_api.get_teammates_with_submissions_from_other_teams(
+                COURSE_ID,
+                ITEM_1_ID,
+                TEAM_2_ID,
+                self.student_ids
+            )
+
+        # Returns an entry for everyone, despite the old submission being deleted
+        self.assertEqual(len(external_submissions), 4)
+        def check_submission(submission, user):
+            self.assertEqual(
+                submission,
+                {
+                    'student_id': self.anonymous_user_id_map[user],
+                    'team_id': TEAM_1_ID
+                }
+            )
+        check_submission(external_submissions[0], self.user_1)
+        check_submission(external_submissions[1], self.user_2)
+        check_submission(external_submissions[2], self.user_3)
+        check_submission(external_submissions[3], self.user_4)
+
     def test_get_team_submission(self):
         """
         Test that calling team_api.get_team_submission returns the expected team submission

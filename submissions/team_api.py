@@ -13,7 +13,7 @@ from submissions.errors import (
     TeamSubmissionNotFoundError,
     TeamSubmissionRequestError
 )
-from submissions.models import DELETED, StudentItem, TeamSubmission
+from submissions.models import DELETED, Submission, TeamSubmission
 from submissions.serializers import TeamSubmissionSerializer
 
 logger = logging.getLogger(__name__)
@@ -234,19 +234,20 @@ def get_teammates_with_submissions_from_other_teams(
     Returns:
         list(dict): [{ 'student_id', 'team_id' }]
     """
-    items = StudentItem.objects.filter(
-        submission__team_submission__isnull=False
+    submissions = Submission.objects.filter(
+        student_item__student_id__in=team_member_ids,
+        student_item__course_id=course_id,
+        student_item__item_id=item_id,
     ).exclude(
-        submission__team_submission__team_id=team_id
-    ).filter(
-        student_id__in=team_member_ids,
-        course_id=course_id,
-        item_id=item_id
-    ).values("student_id", "submission__team_submission__team_id")
+        team_submission__isnull=True,
+    ).exclude(
+        team_submission__team_id=team_id,
+    ).values("student_item__student_id", "team_submission__team_id")
+
     return [{
-        'student_id': item['student_id'],
-        'team_id': item['submission__team_submission__team_id']
-    } for item in items]
+        'student_id': submission['student_item__student_id'],
+        'team_id': submission['team_submission__team_id']
+    } for submission in submissions]
 
 
 def get_team_submission(team_submission_uuid):

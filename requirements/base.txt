@@ -4,22 +4,24 @@
 #
 #    make upgrade
 #
-django==2.2.24
+asgiref==3.4.1
+    # via django
+django==3.2.11
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.in
     #   django-model-utils
     #   djangorestframework
     #   jsonfield
-django-model-utils==4.1.1
+django-model-utils==4.2.0
     # via -r requirements/base.in
 djangorestframework==3.12.4
     # via -r requirements/base.in
 jsonfield==3.1.0
     # via -r requirements/base.in
-pytz==2021.1
+pytz==2021.3
     # via
     #   -r requirements/base.in
     #   django
-sqlparse==0.4.1
+sqlparse==0.4.2
     # via django

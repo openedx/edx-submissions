@@ -72,9 +72,9 @@ class Command(BaseCommand):
         Analyze ORA file upload submissions and and print tab-limited report
         """
         print('Starting file upload submission report')
-        arg_echo_str = 'min_date = {}, max_date = {}'.format(
-            min_date.strftime(DATE_FORMAT),
-            max_date.strftime(DATE_FORMAT)
+        arg_echo_str = (
+            f'min_date = {min_date.strftime(DATE_FORMAT)}, '
+            f'max_date = {max_date.strftime(DATE_FORMAT)}'
         )
         print(arg_echo_str)
         min_date = self.validate_input_dates(min_date, max_date)
@@ -158,9 +158,5 @@ class Command(BaseCommand):
     def print_row(self, course_id, num_course_users, course_bytes):
         """ Print a row of the report """
         if num_course_users or course_bytes:
-            print("{course_id}\t{num_users}\t{total_bytes}\t{avg_bytes:.0f}".format(
-                course_id=course_id,
-                num_users=num_course_users,
-                total_bytes=course_bytes,
-                avg_bytes=course_bytes/num_course_users if num_course_users != 0 else 0
-            ))
+            avg_bytes = course_bytes / num_course_users if num_course_users != 0 else 0
+            print(f"{course_id}\t{num_course_users}\t{course_bytes}\t{avg_bytes:.0f}")

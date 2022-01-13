@@ -128,9 +128,8 @@ def create_submission_for_team(
         team_submission = team_submission_serializer.save()
         _log_team_submission(team_submission_serializer.data)
     except DatabaseError as exc:
-        error_message = "An error occurred while creating team submission {}: {}".format(
-            model_kwargs,
-            exc
+        error_message = (
+            f"An error occurred while creating team submission {model_kwargs}: {exc}"
         )
         logger.exception(error_message)
         raise TeamSubmissionInternalError(error_message) from exc
@@ -202,16 +201,16 @@ def _log_team_submission(team_submission_data):
         None
     """
     logger.info(
-        "Created team submission uuid={team_submission_uuid} for "
-        "(course_id={course_id}, item_id={item_id}, team_id={team_id}) "
-        "submitted_by={submitted_by}"
-        .format(
-            team_submission_uuid=team_submission_data["team_submission_uuid"],
-            course_id=team_submission_data["course_id"],
-            item_id=team_submission_data["item_id"],
-            team_id=team_submission_data["team_id"],
-            submitted_by=team_submission_data["submitted_by"],
-        )
+        "Created team submission uuid=%(team_submission_uuid)s for "
+        "(course_id=%(course_id)s, item_id=%(item_id)s, team_id=%(team_id)s) "
+        "submitted_by=%(submitted_by)s",
+        {
+            'team_submission_uuid': team_submission_data["team_submission_uuid"],
+            'course_id': team_submission_data["course_id"],
+            'item_id': team_submission_data["item_id"],
+            'team_id': team_submission_data["team_id"],
+            'submitted_by': team_submission_data["submitted_by"],
+        }
     )
 
 
@@ -334,9 +333,9 @@ def get_team_submission_student_ids(team_submission_uuid):
         )
 
     except DatabaseError as exc:
-        err_msg = "Attempt to get student ids for team submission {team_submission_uuid} caused error: {exc}".format(
-            team_submission_uuid=team_submission_uuid,
-            exc=exc
+        err_msg = (
+            f"Attempt to get student ids for team submission {team_submission_uuid} "
+            f"caused error: {exc}"
         )
         logger.error(err_msg)
         raise TeamSubmissionInternalError(err_msg) from exc
@@ -389,16 +388,16 @@ def set_score(team_submission_uuid, points_earned, points_possible,
 
     """
     team_submission_dict = get_team_submission(team_submission_uuid)
-    debug_msg = (
-        'Setting score for team submission uuid {uuid}, child submission uuids {individual_uuids}. '
-        '{earned} / {possible}'
-    ).format(
-        uuid=team_submission_dict['team_submission_uuid'],
-        individual_uuids=team_submission_dict['submission_uuids'],
-        earned=points_earned,
-        possible=points_possible
+    logger.info(
+        'Setting score for team submission uuid %(uuid)s, child submission uuids %(individual_uuids)s. '
+        '%(earned)s / %(possible)s',
+        {
+            'uuid': team_submission_dict['team_submission_uuid'],
+            'individual_uuids': team_submission_dict['submission_uuids'],
+            'earned': points_earned,
+            'possible': points_possible,
+        }
     )
-    logger.info(debug_msg)
 
     with transaction.atomic():
         for individual_submission_uuid in team_submission_dict['submission_uuids']:
@@ -448,12 +447,14 @@ def reset_scores(team_submission_uuid, clear_state=False):
             team_submission.save(update_fields=["status"])
     except (DatabaseError, SubmissionInternalError) as error:
         msg = (
-            "Error occurred while reseting scores for team submission {team_submission_uuid}"
-        ).format(team_submission_uuid=team_submission_uuid)
+            f"Error occurred while reseting scores for team submission {team_submission_uuid}"
+        )
         logger.exception(msg)
         raise TeamSubmissionInternalError(msg) from error
     else:
-        msg = "Score reset for team submission {team_submission_uuid}".format(
-            team_submission_uuid=team_submission_uuid
+        logger.info(
+            "Score reset for team submission %(team_submission_uuid)s",
+            {
+                'team_submission_uuid': team_submission_uuid,
+            }
         )
-        logger.info(msg)

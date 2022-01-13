@@ -70,9 +70,7 @@ class SubmissionAdmin(admin.ModelAdmin, StudentItemAdminMixin):
 
     def all_scores(self, submission):
         return "\n".join(
-            "{}/{} - {}".format(
-                score.points_earned, score.points_possible, score.created_at
-            )
+            f"{score.points_earned}/{score.points_possible} - {score.created_at}"
             for score in Score.objects.filter(submission=submission)
         )
 

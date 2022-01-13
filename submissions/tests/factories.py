@@ -21,10 +21,10 @@ class UserFactory(DjangoModelFactory):
 
     _DEFAULT_PASSWORD = 'test'
 
-    username = factory.Sequence('robot{}'.format)
-    email = factory.Sequence('robot+test+{}@edx.org'.format)
+    username = factory.Sequence('robot{}'.format)  # pylint: disable=consider-using-f-string
+    email = factory.Sequence('robot+test+{}@edx.org'.format)  # pylint: disable=consider-using-f-string
     password = factory.PostGenerationMethodCall('set_password', _DEFAULT_PASSWORD)
-    first_name = factory.Sequence('Robot{}'.format)
+    first_name = factory.Sequence('Robot{}'.format)  # pylint: disable=consider-using-f-string
     last_name = 'Test'
     is_staff = False
     is_active = True

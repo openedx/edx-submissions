@@ -87,7 +87,10 @@ class StudentItem(models.Model):
         )
 
     def __str__(self):
-        return "({0.student_id}, {0.course_id}, {0.item_type}, {0.item_id})".format(self)
+        return (
+            f"({self.student_id}, {self.course_id}, "
+            f"{self.item_type}, {self.item_id})"
+        )
 
     class Meta:
         app_label = "submissions"
@@ -164,9 +167,9 @@ class TeamSubmission(TimeStampedModel):
                 f"No team submission matching uuid {team_submission_uuid}"
             ) from error
         except Exception as exc:
-            err_msg = "Attempt to get team submission for uuid {uuid} caused error: {exc}".format(
-                uuid=team_submission_uuid,
-                exc=exc
+            err_msg = (
+                f"Attempt to get team submission for uuid {team_submission_uuid} "
+                f"caused error: {exc}"
             )
             logger.error(err_msg)
             raise TeamSubmissionInternalError(err_msg) from exc
@@ -200,9 +203,9 @@ class TeamSubmission(TimeStampedModel):
                 f"No team submission matching {query_params_string}"
             ) from error
         except Exception as exc:
-            err_msg = "Attempt to get team submission for {params} caused error: {exc}".format(
-                params=query_params_string,
-                exc=exc
+            err_msg = (
+                f"Attempt to get team submission for {query_params_string} "
+                f"caused error: {exc}"
             )
             logger.error(err_msg)
             raise TeamSubmissionInternalError(err_msg) from exc
@@ -226,9 +229,9 @@ class TeamSubmission(TimeStampedModel):
                 f"No team submission matching {student_item}"
             ) from error
         except Exception as exc:
-            err_msg = "Attempt to get team submission for {student_item} caused error: {exc}".format(
-                student_item=student_item,
-                exc=exc
+            err_msg = (
+                f"Attempt to get team submission for {student_item} "
+                f"caused error: {exc}"
             )
             logger.error(err_msg)
             raise TeamSubmissionInternalError(err_msg) from exc
@@ -247,13 +250,10 @@ class TeamSubmission(TimeStampedModel):
                 item_id=item_id,
             ).all()
         except Exception as exc:
-            query_params_string = "course_id={course_id} item_id={item_id}".format(
-                course_id=course_id,
-                item_id=item_id,
-            )
-            err_msg = "Attempt to get team submissions for {params} caused error: {exc}".format(
-                params=query_params_string,
-                exc=exc
+            query_params_string = f"course_id={course_id} item_id={item_id}"
+            err_msg = (
+                f"Attempt to get team submissions for {query_params_string} "
+                f"caused error: {exc}"
             )
             logger.error(err_msg)
             raise TeamSubmissionInternalError(err_msg) from exc
@@ -469,7 +469,7 @@ class Score(models.Model):
         )
 
     def __str__(self):
-        return "{0.points_earned}/{0.points_possible}".format(self)
+        return f"{self.points_earned}/{self.points_possible}"
 
 
 class ScoreSummary(models.Model):
@@ -526,8 +526,10 @@ class ScoreSummary(models.Model):
             )
         except DatabaseError:
             logger.exception(
-                "Error while updating score summary for student item {}"
-                .format(score.student_item)
+                "Error while updating score summary for student item %(item)s",
+                {
+                    'item': score.student_item,
+                }
             )
 
 

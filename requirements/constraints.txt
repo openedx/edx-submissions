@@ -10,6 +10,3 @@
 
 # This file contains all common constraints for edx-repos
 -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
-
-# zipp 2.0.0 requires Python >= 3.6
-zipp<2.0.0

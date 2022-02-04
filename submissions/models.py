@@ -27,15 +27,10 @@ logger = logging.getLogger(__name__)
 User = auth.get_user_model()
 
 # Signal to inform listeners that a score has been changed
-score_set = Signal(providing_args=[
-    'points_possible', 'points_earned', 'anonymous_user_id',
-    'course_id', 'item_id', 'created_at'
-])
+score_set = Signal()
 
 # Signal to inform listeners that a score has been reset
-score_reset = Signal(
-    providing_args=['anonymous_user_id', 'course_id', 'item_id', 'created_at']
-)
+score_reset = Signal()
 
 
 class AnonymizedUserIDField(models.CharField):

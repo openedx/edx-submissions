@@ -355,7 +355,7 @@ def get_team_ids_by_team_submission_uuid(team_submission_uuids):
         "uuid", "team_id"
     )
     return {
-        item['uuid']: item['team_id']
+        str(item['uuid']): item['team_id']
         for item in values
     }
 

@@ -350,12 +350,12 @@ def get_team_ids_by_team_submission_uuid(team_submission_uuids):
     team submission uuids to team id
     """
     values = TeamSubmission.objects.filter(
-        team_submission_uuid__in=team_submission_uuids
+        uuid__in=team_submission_uuids
     ).values(
         "uuid", "team_id"
     )
     return {
-        item['uuid']: item['team_id']
+        str(item['uuid']): item['team_id']
         for item in values
     }
 

@@ -654,7 +654,6 @@ class TestTeamSubmissionsApi(TestCase):
         with self.assertRaises(TeamSubmissionNotFoundError):
             team_api.get_team_submission_student_ids(None)
 
-
     def test_get_team_ids_by_team_submission_uuid(self):
         team_submissions = [
             TeamSubmissionFactory.create() for _ in range(5)

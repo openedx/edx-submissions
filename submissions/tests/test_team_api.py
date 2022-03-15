@@ -653,3 +653,23 @@ class TestTeamSubmissionsApi(TestCase):
             team_api.get_team_submission_student_ids('aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee')
         with self.assertRaises(TeamSubmissionNotFoundError):
             team_api.get_team_submission_student_ids(None)
+
+
+    def test_get_team_ids_by_team_submission_uuid(self):
+        team_submissions = [
+            TeamSubmissionFactory.create() for _ in range(5)
+        ]
+        assert team_api.get_team_ids_by_team_submission_uuid([]) == {}
+
+        actual = team_api.get_team_ids_by_team_submission_uuid([
+            team_submissions[0].uuid,
+            team_submissions[1].uuid,
+            team_submissions[4].uuid,
+        ])
+        expected = {
+            str(team_submissions[0].uuid): team_submissions[0].team_id,
+            str(team_submissions[1].uuid): team_submissions[1].team_id,
+            str(team_submissions[4].uuid): team_submissions[4].team_id,
+        }
+
+        assert expected == actual

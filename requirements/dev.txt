@@ -14,7 +14,7 @@ asgiref==3.5.0
     #   -r requirements/base.txt
     #   -r requirements/test.txt
     #   django
-astroid==2.9.3
+astroid==2.11.2
     # via
     #   -r requirements/test.txt
     #   pylint
@@ -33,32 +33,36 @@ certifi==2021.10.8
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   requests
-charset-normalizer==2.0.11
+charset-normalizer==2.0.12
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   requests
-click==8.0.3
+click==8.1.2
     # via
     #   -r requirements/test.txt
     #   click-log
     #   code-annotations
     #   edx-lint
-click-log==0.3.2
+click-log==0.4.0
     # via
     #   -r requirements/test.txt
     #   edx-lint
-code-annotations==1.2.0
+code-annotations==1.3.0
     # via
     #   -r requirements/test.txt
     #   edx-lint
-coverage[toml]==6.3.1
+coverage[toml]==6.3.2
     # via
     #   -r requirements/test.txt
     #   pytest-cov
 ddt==1.4.4
     # via -r requirements/test.txt
-django==3.2.12
+dill==0.3.4
+    # via
+    #   -r requirements/test.txt
+    #   pylint
+django==3.2.13
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.txt
@@ -80,15 +84,15 @@ docutils==0.17.1
     #   -r requirements/test.txt
     #   sphinx
     #   sphinx-rtd-theme
-edx-lint==5.2.1
+edx-lint==5.2.2
     # via -r requirements/test.txt
 factory-boy==3.2.1
     # via -r requirements/test.txt
-faker==12.0.0
+faker==13.3.4
     # via
     #   -r requirements/test.txt
     #   factory-boy
-freezegun==1.1.0
+freezegun==1.2.1
     # via -r requirements/test.txt
 idna==3.3
     # via
@@ -100,7 +104,7 @@ imagesize==1.3.0
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   sphinx
-importlib-metadata==4.10.1
+importlib-metadata==4.11.3
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -113,7 +117,7 @@ isort==5.10.1
     # via
     #   -r requirements/test.txt
     #   pylint
-jinja2==3.0.3
+jinja2==3.1.1
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -127,12 +131,12 @@ lazy-object-proxy==1.7.1
     # via
     #   -r requirements/test.txt
     #   astroid
-markupsafe==2.0.1
+markupsafe==2.1.1
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   jinja2
-mccabe==0.6.1
+mccabe==0.7.0
     # via
     #   -r requirements/test.txt
     #   pylint
@@ -144,11 +148,11 @@ packaging==21.3
     #   -r requirements/test.txt
     #   pytest
     #   sphinx
-pbr==5.8.0
+pbr==5.8.1
     # via
     #   -r requirements/test.txt
     #   stevedore
-platformdirs==2.4.1
+platformdirs==2.5.1
     # via
     #   -r requirements/test.txt
     #   pylint
@@ -172,7 +176,7 @@ pygments==2.11.2
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   sphinx
-pylint==2.12.2
+pylint==2.13.5
     # via
     #   -r requirements/test.txt
     #   edx-lint
@@ -183,7 +187,7 @@ pylint-celery==0.3
     # via
     #   -r requirements/test.txt
     #   edx-lint
-pylint-django==2.5.0
+pylint-django==2.5.3
     # via
     #   -r requirements/test.txt
     #   edx-lint
@@ -192,12 +196,12 @@ pylint-plugin-utils==0.7
     #   -r requirements/test.txt
     #   pylint-celery
     #   pylint-django
-pyparsing==3.0.7
+pyparsing==3.0.8
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   packaging
-pytest==6.2.5
+pytest==7.1.1
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -211,11 +215,11 @@ python-dateutil==2.8.2
     #   -r requirements/test.txt
     #   faker
     #   freezegun
-python-slugify==5.0.2
+python-slugify==6.1.1
     # via
     #   -r requirements/test.txt
     #   code-annotations
-pytz==2021.3
+pytz==2022.1
     # via
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
@@ -244,7 +248,7 @@ snowballstemmer==2.2.0
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   sphinx
-sphinx==4.4.0
+sphinx==4.5.0
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -300,30 +304,27 @@ text-unidecode==1.3
     # via
     #   -r requirements/test.txt
     #   python-slugify
-toml==0.10.2
-    # via
-    #   -r requirements/test.txt
-    #   pylint
-    #   pytest
-tomli==2.0.0
+tomli==2.0.1
     # via
     #   -r requirements/test.txt
     #   coverage
-typing-extensions==4.0.1
+    #   pylint
+    #   pytest
+typing-extensions==4.1.1
     # via
     #   -r requirements/test.txt
     #   astroid
     #   pylint
-urllib3==1.26.8
+urllib3==1.26.9
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   requests
-wrapt==1.13.3
+wrapt==1.14.0
     # via
     #   -r requirements/test.txt
     #   astroid
-zipp==3.7.0
+zipp==3.8.0
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt

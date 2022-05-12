@@ -8,11 +8,11 @@ alabaster==0.7.12
     # via
     #   -r requirements/docs.txt
     #   sphinx
-asgiref==3.5.0
+asgiref==3.5.1
     # via
     #   -r requirements/base.txt
     #   django
-astroid==2.11.3
+astroid==2.11.5
     # via
     #   pylint
     #   pylint-celery
@@ -30,7 +30,7 @@ charset-normalizer==2.0.12
     # via
     #   -r requirements/docs.txt
     #   requests
-click==8.1.2
+click==8.1.3
     # via
     #   click-log
     #   code-annotations
@@ -63,7 +63,7 @@ edx-lint==5.2.2
     # via -r requirements/test.in
 factory-boy==3.2.1
     # via -r requirements/test.in
-faker==13.4.0
+faker==13.11.0
     # via factory-boy
 freezegun==1.2.1
     # via -r requirements/test.in
@@ -85,7 +85,7 @@ isort==5.10.1
     # via
     #   -r requirements/test.in
     #   pylint
-jinja2==3.1.1
+jinja2==3.1.2
     # via
     #   -r requirements/docs.txt
     #   code-annotations
@@ -107,7 +107,7 @@ packaging==21.3
     #   -r requirements/docs.txt
     #   pytest
     #   sphinx
-pbr==5.8.1
+pbr==5.9.0
     # via stevedore
 platformdirs==2.5.2
     # via pylint
@@ -125,7 +125,7 @@ pygments==2.12.0
     # via
     #   -r requirements/docs.txt
     #   sphinx
-pylint==2.13.7
+pylint==2.13.8
     # via
     #   edx-lint
     #   pylint-celery
@@ -139,7 +139,7 @@ pylint-plugin-utils==0.7
     # via
     #   pylint-celery
     #   pylint-django
-pyparsing==3.0.8
+pyparsing==3.0.9
     # via
     #   -r requirements/docs.txt
     #   packaging
@@ -156,7 +156,7 @@ python-dateutil==2.8.2
     #   -r requirements/test.in
     #   faker
     #   freezegun
-python-slugify==6.1.1
+python-slugify==6.1.2
     # via code-annotations
 pytz==2022.1
     # via
@@ -234,7 +234,7 @@ urllib3==1.26.9
     # via
     #   -r requirements/docs.txt
     #   requests
-wrapt==1.14.0
+wrapt==1.14.1
     # via astroid
 zipp==3.8.0
     # via

@@ -991,7 +991,7 @@ def _get_or_create_student_item(student_item_dict):
             try:
                 # This is required because we currently have automatic request transactions turned on in the LMS.
                 # Database errors mess up the "atomic" block so we have to "insulate" against them with an
-                # inner atomic block
+                # inner atomic block (https://docs.djangoproject.com/en/4.0/topics/db/transactions/)
                 with transaction.atomic():
                     return student_item_serializer.save()
             except IntegrityError:
@@ -1001,7 +1001,7 @@ def _get_or_create_student_item(student_item_dict):
                 try:
                     return StudentItem.objects.get(**student_item_dict)
                 except StudentItem.DoesNotExist:
-                     pass
+                    pass
                 raise
     except DatabaseError as error:
         error_message = f"An error occurred creating student item: {student_item_dict}"

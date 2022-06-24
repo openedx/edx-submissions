@@ -8,12 +8,13 @@ from unittest import mock
 import ddt
 import pytz
 from django.core.cache import cache
-from django.db import DatabaseError, connection, transaction
+from django.db import DatabaseError, IntegrityError, connection, transaction
 from django.test import TestCase
 from django.utils.timezone import now
 from freezegun import freeze_time
 
 from submissions import api
+from submissions.errors import SubmissionInternalError
 from submissions.models import ScoreAnnotation, ScoreSummary, StudentItem, Submission, score_set
 from submissions.serializers import StudentItemSerializer
 
@@ -829,3 +830,36 @@ class TestSubmissionsApi(TestCase):
             ),
             item_3_expected_result
         )
+
+    def test_get_or_create_student_item_race_condition__item_created(self):
+        """
+        Test for a race condition in _get_or_create_student_item where the item does not exist when
+        we check first, but has been created by the time we try to save, raising an IntegrityError.
+
+        Test for the case where the second call to get succeeds.
+        """
+        mock_item = mock.Mock()
+        with mock.patch.object(StudentItem.objects, "get") as mock_get_item:
+            with mock.patch.object(StudentItemSerializer, "save", side_effect=IntegrityError):
+                mock_get_item.side_effect = [
+                    StudentItem.DoesNotExist,
+                    mock_item
+                ]
+                self.assertEqual(
+                    api._get_or_create_student_item(STUDENT_ITEM),  # pylint: disable=protected-access
+                    mock_item
+                )
+
+    def test_get_or_create_student_item_race_condition__item_not_created(self):
+        """
+        Test for a race condition in _get_or_create_student_item where the item does not exist when
+        we check first, but has been created by the time we try to save, raising an IntegrityError.
+
+        Test for the case where the second call does not return an item, so the caught IntegrityError was something
+        else and should be re-raised.
+        """
+        with mock.patch.object(StudentItem.objects, "get") as mock_get_item:
+            with mock.patch.object(StudentItemSerializer, "save", side_effect=IntegrityError):
+                mock_get_item.side_effect = StudentItem.DoesNotExist
+                with self.assertRaisesMessage(SubmissionInternalError, "An error occurred creating student item"):
+                    api._get_or_create_student_item(STUDENT_ITEM)  # pylint: disable=protected-access

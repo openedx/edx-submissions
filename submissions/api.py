@@ -994,7 +994,7 @@ def _get_or_create_student_item(student_item_dict):
                 # inner atomic block (https://docs.djangoproject.com/en/4.0/topics/db/transactions/)
                 with transaction.atomic():
                     return student_item_serializer.save()
-            except IntegrityError:
+            except IntegrityError as intgrity_error:
                 # In the case where a student item does not exist and multiple calls to this function happen, there
                 # can be a race condition where the first get has no results, but once the save happens there is already
                 # a version of this student item. In that case, try just loading again and see if the item exists now.
@@ -1002,7 +1002,7 @@ def _get_or_create_student_item(student_item_dict):
                     return StudentItem.objects.get(**student_item_dict)
                 except StudentItem.DoesNotExist:
                     pass
-                raise
+                raise intgrity_error
     except DatabaseError as error:
         error_message = f"An error occurred creating student item: {student_item_dict}"
         logger.exception(error_message)

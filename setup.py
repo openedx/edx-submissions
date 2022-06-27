@@ -68,6 +68,7 @@ setup(
     version=VERSION,
     author='edX',
     description='An API for creating submissions and scores.',
+    long_description="An API for creating and scoring submissions for the Open edX platform",
     url='http://github.com/edx/edx-submissions.git',
     license='AGPL',
     classifiers=[

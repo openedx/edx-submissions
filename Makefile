@@ -68,7 +68,7 @@ diff_cover: test ## Generate diff coverage report
 
 test_quality: ## Run Quality checks
 	pylint submissions
-	isort --check-only submissions manage.py setup.py settings.py
+	isort --check-only submissions manage.py setup.py settings.py --skip migrations
 	pycodestyle . --config=pycodestyle
 
 ##################

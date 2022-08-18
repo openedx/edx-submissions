@@ -319,7 +319,7 @@ class Submission(models.Model):
     # replacement for TextField that performs JSON serialization/deserialization.
     # For backwards compatibility, we override the default database column
     # name so it continues to use `raw_answer`.
-    answer = JSONField(blank=True, db_column="raw_answer")
+    answer = JSONField(blank=True, dump_kwargs={'ensure_ascii': True}, db_column="raw_answer")
 
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=ACTIVE)
 

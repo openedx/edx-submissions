@@ -6,7 +6,7 @@
 #
 asgiref==3.5.2
     # via django
-django==3.2.14
+django==3.2.15
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.in
@@ -19,9 +19,9 @@ djangorestframework==3.12.4
     # via -r requirements/base.in
 jsonfield==3.1.0
     # via -r requirements/base.in
-pytz==2022.1
+pytz==2022.2.1
     # via
     #   -r requirements/base.in
     #   django
-sqlparse==0.4.2
+sqlparse==0.4.3
     # via django

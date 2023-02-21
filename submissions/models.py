@@ -260,7 +260,7 @@ class TeamSubmission(TimeStampedModel):
             "attempt_number": self.attempt_number,
             "submitted_at": self.submitted_at,
             "created": self.created,
-            "modified":self.modified,
+            "modified": self.modified,
         })
 
     def __str__(self):

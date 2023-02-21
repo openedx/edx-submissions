@@ -179,8 +179,7 @@ def create_submission_for_team(
                 str(exc)
             )
             raise exc
-        else:
-            logger.info("[%s] Created individual submission %s", log_string, individual_submission['uuid'])
+        logger.info("[%s] Created individual submission %s", log_string, individual_submission['uuid'])
 
     model_kwargs = {
         "answer": answer,
@@ -451,10 +450,9 @@ def reset_scores(team_submission_uuid, clear_state=False):
         )
         logger.exception(msg)
         raise TeamSubmissionInternalError(msg) from error
-    else:
-        logger.info(
-            "Score reset for team submission %(team_submission_uuid)s",
-            {
-                'team_submission_uuid': team_submission_uuid,
-            }
-        )
+    logger.info(
+        "Score reset for team submission %(team_submission_uuid)s",
+        {
+            'team_submission_uuid': team_submission_uuid,
+        }
+    )

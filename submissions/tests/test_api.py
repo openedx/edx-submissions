@@ -18,19 +18,19 @@ from submissions.errors import SubmissionInternalError
 from submissions.models import ScoreAnnotation, ScoreSummary, StudentItem, Submission, score_set
 from submissions.serializers import StudentItemSerializer
 
-STUDENT_ITEM = dict(
-    student_id="Tim",
-    course_id="Demo_Course",
-    item_id="item_one",
-    item_type="Peer_Submission",
-)
+STUDENT_ITEM = {
+    "student_id": "Tim",
+    "course_id": "Demo_Course",
+    "item_id": "item_one",
+    "item_type": "Peer_Submission",
+}
 
-SECOND_STUDENT_ITEM = dict(
-    student_id="Alice",
-    course_id="Demo_Course",
-    item_id="item_one",
-    item_type="Peer_Submission",
-)
+SECOND_STUDENT_ITEM = {
+    "student_id": "Alice",
+    "course_id": "Demo_Course",
+    "item_id": "item_one",
+    "item_type": "Peer_Submission",
+}
 
 ANSWER_ONE = "this is my answer!"
 ANSWER_TWO = "this is my other answer!"
@@ -761,12 +761,12 @@ class TestSubmissionsApi(TestCase):
         def submit(course_id, item_id, student_ids):
             result_dict = {}
             for student_id in student_ids:
-                student_item = dict(
-                    course_id=course_id,
-                    item_id=item_id,
-                    student_id=student_id,
-                    item_type='test_get_student_ids_by_submission_uuid'
-                )
+                student_item = {
+                    "course_id": course_id,
+                    "item_id": item_id,
+                    "student_id": student_id,
+                    "item_type": 'test_get_student_ids_by_submission_uuid'
+                }
                 submission_uuid = api.create_submission(student_item, ANSWER_ONE)['uuid']
                 result_dict[submission_uuid] = student_id
             return result_dict

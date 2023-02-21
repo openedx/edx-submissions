@@ -794,15 +794,14 @@ def reset_score(student_id, course_id, item_id, clear_state=False, emit_signal=T
         )
         logger.exception(msg)
         raise SubmissionInternalError(msg) from error
-    else:
-        logger.info(
-            "Score reset for item %(item_id)s in course %(course_id)s for student %(student_id)s",
-            {
-                'item_id': item_id,
-                'course_id': course_id,
-                'student_id': student_id,
-            }
-        )
+    logger.info(
+        "Score reset for item %(item_id)s in course %(course_id)s for student %(student_id)s",
+        {
+            'item_id': item_id,
+            'course_id': course_id,
+            'student_id': student_id,
+        }
+    )
 
 
 def set_score(submission_uuid, points_earned, points_possible,

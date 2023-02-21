@@ -30,12 +30,12 @@ def get_submissions_for_student_item(request, course_id, student_id, item_id):
             student item.
 
     """
-    student_item_dict = dict(
-        course_id=course_id,
-        student_id=student_id,
-        item_id=item_id,
-    )
-    context = dict(**student_item_dict)
+    student_item_dict = {
+        "course_id": course_id,
+        "student_id": student_id,
+        "item_id": item_id,
+    }
+    context = {**student_item_dict}
     try:
         submissions = get_submissions(student_item_dict)
         context["submissions"] = submissions

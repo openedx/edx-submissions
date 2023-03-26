@@ -18,7 +18,7 @@ distlib==0.3.6
     #   virtualenv
 docopt==0.6.2
     # via coveralls
-filelock==3.9.0
+filelock==3.10.6
     # via
     #   -r requirements/tox.txt
     #   tox
@@ -29,7 +29,7 @@ packaging==23.0
     # via
     #   -r requirements/tox.txt
     #   tox
-platformdirs==3.1.1
+platformdirs==3.2.0
     # via
     #   -r requirements/tox.txt
     #   virtualenv
@@ -57,7 +57,7 @@ tox==3.28.0
     #   -r requirements/tox.txt
 urllib3==1.26.15
     # via requests
-virtualenv==20.20.0
+virtualenv==20.21.0
     # via
     #   -r requirements/tox.txt
     #   tox

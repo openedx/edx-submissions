@@ -6,13 +6,13 @@
 #
 distlib==0.3.6
     # via virtualenv
-filelock==3.9.0
+filelock==3.10.6
     # via
     #   tox
     #   virtualenv
 packaging==23.0
     # via tox
-platformdirs==3.1.1
+platformdirs==3.2.0
     # via virtualenv
 pluggy==1.0.0
     # via tox
@@ -26,5 +26,5 @@ tox==3.28.0
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/tox.in
-virtualenv==20.20.0
+virtualenv==20.21.0
     # via tox

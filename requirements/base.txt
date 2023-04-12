@@ -19,7 +19,7 @@ djangorestframework==3.12.4
     # via -r requirements/base.in
 jsonfield==3.1.0
     # via -r requirements/base.in
-pytz==2022.7.1
+pytz==2023.3
     # via
     #   -r requirements/base.in
     #   django

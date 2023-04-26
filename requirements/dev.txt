@@ -14,15 +14,11 @@ asgiref==3.6.0
     #   -r requirements/base.txt
     #   -r requirements/test.txt
     #   django
-astroid==2.15.0
+astroid==2.15.2
     # via
     #   -r requirements/test.txt
     #   pylint
     #   pylint-celery
-attrs==22.2.0
-    # via
-    #   -r requirements/test.txt
-    #   pytest
 babel==2.12.1
     # via
     #   -r requirements/docs.txt
@@ -52,7 +48,7 @@ code-annotations==1.3.0
     # via
     #   -r requirements/test.txt
     #   edx-lint
-coverage[toml]==7.2.1
+coverage[toml]==7.2.3
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -84,15 +80,15 @@ docutils==0.18.1
     #   -r requirements/test.txt
     #   sphinx
     #   sphinx-rtd-theme
-edx-lint==5.3.2
+edx-lint==5.3.4
     # via -r requirements/test.txt
-exceptiongroup==1.1.0
+exceptiongroup==1.1.1
     # via
     #   -r requirements/test.txt
     #   pytest
 factory-boy==3.2.1
     # via -r requirements/test.txt
-faker==17.6.0
+faker==18.4.0
     # via
     #   -r requirements/test.txt
     #   factory-boy
@@ -108,7 +104,7 @@ imagesize==1.4.1
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   sphinx
-importlib-metadata==6.0.0
+importlib-metadata==6.3.0
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -146,7 +142,7 @@ mccabe==0.7.0
     #   pylint
 mock==5.0.1
     # via -r requirements/test.txt
-packaging==23.0
+packaging==23.1
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -156,7 +152,7 @@ pbr==5.11.1
     # via
     #   -r requirements/test.txt
     #   stevedore
-platformdirs==3.1.1
+platformdirs==3.2.0
     # via
     #   -r requirements/test.txt
     #   pylint
@@ -171,12 +167,12 @@ pockets==0.9.1
     #   sphinxcontrib-napoleon
 pycodestyle==2.10.0
     # via -r requirements/test.txt
-pygments==2.14.0
+pygments==2.15.0
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   sphinx
-pylint==2.17.0
+pylint==2.17.2
     # via
     #   -r requirements/test.txt
     #   edx-lint
@@ -196,7 +192,7 @@ pylint-plugin-utils==0.7
     #   -r requirements/test.txt
     #   pylint-celery
     #   pylint-django
-pytest==7.2.2
+pytest==7.3.0
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -214,7 +210,7 @@ python-slugify==8.0.1
     # via
     #   -r requirements/test.txt
     #   code-annotations
-pytz==2022.7.1
+pytz==2023.3
     # via
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
@@ -249,6 +245,7 @@ sphinx==5.3.0
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   sphinx-rtd-theme
+    #   sphinxcontrib-jquery
 sphinx-rtd-theme==1.2.0
     # via
     #   -r requirements/docs.txt
@@ -268,7 +265,7 @@ sphinxcontrib-htmlhelp==2.0.1
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   sphinx
-sphinxcontrib-jquery==2.0.0
+sphinxcontrib-jquery==4.1
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -311,7 +308,7 @@ tomli==2.0.1
     #   coverage
     #   pylint
     #   pytest
-tomlkit==0.11.6
+tomlkit==0.11.7
     # via
     #   -r requirements/test.txt
     #   pylint
@@ -334,6 +331,3 @@ zipp==3.15.0
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   importlib-metadata
-
-# The following packages are considered to be unsafe in a requirements file:
-# setuptools

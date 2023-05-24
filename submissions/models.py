@@ -541,4 +541,4 @@ class ScoreAnnotation(models.Model):
 
     creator = AnonymizedUserIDField()
     reason = models.TextField()
-    thisisanewfield = models.TextField()
+    thisisanewfield = models.TextField(default=None)

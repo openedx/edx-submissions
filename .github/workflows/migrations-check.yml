@@ -79,5 +79,10 @@ jobs:
         MYSQL_PORT: 3306
       run: |
         echo "CREATE DATABASE IF NOT EXISTS submissions_db;" | sudo mysql -u root
-        echo "Running the migrations."
-        python manage.py migrate --settings=settings
+        echo "Testing migrations."
+        if python ./manage.py makemigrations --dry-run | grep -q 'No changes detected'; then
+          echo "Migrations up to date."
+        else
+          echo "ERROR: Missing migration files for model changes. Run ./manage.py makemigrations"
+          exit 1
+        fi

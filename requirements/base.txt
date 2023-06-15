@@ -4,9 +4,9 @@
 #
 #    make upgrade
 #
-asgiref==3.6.0
+asgiref==3.7.2
     # via django
-django==3.2.18
+django==3.2.19
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.in
@@ -15,7 +15,7 @@ django==3.2.18
     #   jsonfield
 django-model-utils==4.3.1
     # via -r requirements/base.in
-djangorestframework==3.12.4
+djangorestframework==3.14.0
     # via -r requirements/base.in
 jsonfield==3.1.0
     # via -r requirements/base.in
@@ -23,5 +23,8 @@ pytz==2023.3
     # via
     #   -r requirements/base.in
     #   django
-sqlparse==0.4.3
+    #   djangorestframework
+sqlparse==0.4.4
     # via django
+typing-extensions==4.6.3
+    # via asgiref

@@ -144,6 +144,7 @@ class ScoreSummaryAdmin(admin.ModelAdmin, StudentItemAdminMixin):
         description='Highest'
     )
     def highest_link(self, score_summary):
+        """Returns highest link"""
         url = reverse(
             'admin:submissions_score_change', args=[score_summary.highest.id]
         )
@@ -154,6 +155,7 @@ class ScoreSummaryAdmin(admin.ModelAdmin, StudentItemAdminMixin):
         description='Latest'
     )
     def latest_link(self, score_summary):
+        """Returns latest link"""
         url = reverse(
             'admin:submissions_score_change', args=[score_summary.latest.id]
         )

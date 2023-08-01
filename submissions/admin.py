@@ -47,7 +47,6 @@ class StudentItemAdminMixin:
         return format_html(f'<a href="{url}">{obj.student_item.id}</a>')
 
 
-
 @admin.register(StudentItem)
 class StudentItemAdmin(admin.ModelAdmin):
     list_display = ('id', 'course_id', 'item_type', 'item_id', 'student_id')
@@ -149,7 +148,6 @@ class ScoreSummaryAdmin(admin.ModelAdmin, StudentItemAdminMixin):
             'admin:submissions_score_change', args=[score_summary.highest.id]
         )
         return format_html(f'<a href="{url}">{score_summary.highest}</a>')
-
 
     @admin.display(
         description='Latest'

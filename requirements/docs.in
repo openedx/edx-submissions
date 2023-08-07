@@ -1,6 +1,7 @@
 # Requirements for docs
 -c constraints.txt
 
+-r base.txt
 Sphinx
 sphinx-book-theme
 sphinxcontrib-napoleon

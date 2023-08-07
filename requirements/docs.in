@@ -2,5 +2,5 @@
 -c constraints.txt
 
 Sphinx
-sphinx-rtd-theme
+sphinx-book-theme
 sphinxcontrib-napoleon

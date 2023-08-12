@@ -14,7 +14,7 @@ asgiref==3.7.2
     #   -r requirements/base.txt
     #   -r requirements/test.txt
     #   django
-astroid==2.15.5
+astroid==2.15.6
     # via
     #   -r requirements/test.txt
     #   pylint
@@ -24,17 +24,17 @@ babel==2.12.1
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   sphinx
-certifi==2023.5.7
+certifi==2023.7.22
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   requests
-charset-normalizer==3.1.0
+charset-normalizer==3.2.0
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   requests
-click==8.1.3
+click==8.1.6
     # via
     #   -r requirements/test.txt
     #   click-log
@@ -44,7 +44,7 @@ click-log==0.4.0
     # via
     #   -r requirements/test.txt
     #   edx-lint
-code-annotations==1.3.0
+code-annotations==1.5.0
     # via
     #   -r requirements/test.txt
     #   edx-lint
@@ -54,11 +54,11 @@ coverage[toml]==7.2.7
     #   pytest-cov
 ddt==1.6.0
     # via -r requirements/test.txt
-dill==0.3.6
+dill==0.3.7
     # via
     #   -r requirements/test.txt
     #   pylint
-django==3.2.19
+django==3.2.20
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.txt
@@ -82,13 +82,13 @@ docutils==0.18.1
     #   sphinx-rtd-theme
 edx-lint==5.3.4
     # via -r requirements/test.txt
-exceptiongroup==1.1.1
+exceptiongroup==1.1.2
     # via
     #   -r requirements/test.txt
     #   pytest
-factory-boy==3.2.1
+factory-boy==3.3.0
     # via -r requirements/test.txt
-faker==18.10.1
+faker==19.3.0
     # via
     #   -r requirements/test.txt
     #   factory-boy
@@ -104,7 +104,7 @@ imagesize==1.4.1
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   sphinx
-importlib-metadata==6.6.0
+importlib-metadata==6.8.0
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -140,7 +140,7 @@ mccabe==0.7.0
     # via
     #   -r requirements/test.txt
     #   pylint
-mock==5.0.2
+mock==5.1.0
     # via -r requirements/test.txt
 packaging==23.1
     # via
@@ -152,11 +152,11 @@ pbr==5.11.1
     # via
     #   -r requirements/test.txt
     #   stevedore
-platformdirs==3.5.3
+platformdirs==3.10.0
     # via
     #   -r requirements/test.txt
     #   pylint
-pluggy==1.0.0
+pluggy==1.2.0
     # via
     #   -r requirements/test.txt
     #   pytest
@@ -165,14 +165,14 @@ pockets==0.9.1
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   sphinxcontrib-napoleon
-pycodestyle==2.10.0
+pycodestyle==2.11.0
     # via -r requirements/test.txt
-pygments==2.15.1
+pygments==2.16.1
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   sphinx
-pylint==2.17.4
+pylint==2.17.5
     # via
     #   -r requirements/test.txt
     #   edx-lint
@@ -192,7 +192,7 @@ pylint-plugin-utils==0.8.2
     #   -r requirements/test.txt
     #   pylint-celery
     #   pylint-django
-pytest==7.3.2
+pytest==7.4.0
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -218,7 +218,7 @@ pytz==2023.3
     #   babel
     #   django
     #   djangorestframework
-pyyaml==6.0
+pyyaml==6.0.1
     # via
     #   -r requirements/test.txt
     #   code-annotations
@@ -240,9 +240,8 @@ snowballstemmer==2.2.0
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   sphinx
-sphinx==5.3.0
+sphinx==6.2.1
     # via
-    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   sphinx-rtd-theme
@@ -309,18 +308,19 @@ tomli==2.0.1
     #   coverage
     #   pylint
     #   pytest
-tomlkit==0.11.8
+tomlkit==0.12.1
     # via
     #   -r requirements/test.txt
     #   pylint
-typing-extensions==4.6.3
+typing-extensions==4.7.1
     # via
     #   -r requirements/base.txt
     #   -r requirements/test.txt
     #   asgiref
     #   astroid
+    #   faker
     #   pylint
-urllib3==2.0.3
+urllib3==2.0.4
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -329,7 +329,7 @@ wrapt==1.15.0
     # via
     #   -r requirements/test.txt
     #   astroid
-zipp==3.15.0
+zipp==3.16.2
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt

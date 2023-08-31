@@ -426,7 +426,8 @@ def get_all_submissions(course_id, item_id, item_type, read_replica=True):
 
 
 def get_all_course_submission_information(course_id, item_type, read_replica=True):
-    """ For the given course, get all student items of the given item type, all the submissions for those itemes,
+    """
+    For the given course, get all student items of the given item type, all the submissions for those itemes,
     and the latest scores for each item. If a submission was given a score that is not the latest score for the
     relevant student item, it will still be included but without score.
 
@@ -437,6 +438,7 @@ def get_all_course_submission_information(course_id, item_type, read_replica=Tru
 
     Yields:
         A tuple of three dictionaries representing:
+
         (1) a student item with the following fields:
             student_id
             course_id
@@ -485,7 +487,8 @@ def get_all_course_submission_information(course_id, item_type, read_replica=Tru
 
 
 def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use_cache=True, read_replica=True):
-    """Get a number of top scores for an assessment based on a particular student item
+    """
+    Get a number of top scores for an assessment based on a particular student item
 
     This function will return top scores for the piece of assessment.
     It will consider only the latest and greater than 0 score for a piece of assessment.
@@ -506,7 +509,7 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use
     Kwargs:
         use_cache (bool): If true, check the cache before retrieving querying the database.
         read_replica (bool): If true, attempt to use the read replica database.
-            If no read replica is available, use the default database.
+        If no read replica is available, use the default database.
 
     Returns:
         topscores (dict): The top scores for the assessment for the student item.
@@ -806,7 +809,8 @@ def reset_score(student_id, course_id, item_id, clear_state=False, emit_signal=T
 
 def set_score(submission_uuid, points_earned, points_possible,
               annotation_creator=None, annotation_type=None, annotation_reason=None):
-    """Set a score for a particular submission.
+    """
+    Set a score for a particular submission.
 
     Sets the score for a particular submission. This score is calculated
     externally to the API.
@@ -817,8 +821,8 @@ def set_score(submission_uuid, points_earned, points_possible,
         points_possible (int): The total points possible for this particular student item.
 
         annotation_creator (str): An optional field for recording who gave this particular score
-        annotation_type (str): An optional field for recording what type of annotation should be created,
-                                e.g. "staff_override".
+        annotation_type (str): An optional field for recording what type of
+        annotation should be created, e.g. "staff_override".
         annotation_reason (str): An optional field for recording why this score was set to its value.
 
     Returns:

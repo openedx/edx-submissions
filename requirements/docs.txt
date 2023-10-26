@@ -12,7 +12,7 @@ asgiref==3.7.2
     # via
     #   -r requirements/base.txt
     #   django
-babel==2.13.0
+babel==2.13.1
     # via
     #   pydata-sphinx-theme
     #   sphinx
@@ -55,7 +55,7 @@ packaging==23.2
     #   sphinx
 pockets==0.9.1
     # via sphinxcontrib-napoleon
-pydata-sphinx-theme==0.14.1
+pydata-sphinx-theme==0.14.2
     # via sphinx-book-theme
 pygments==2.16.1
     # via

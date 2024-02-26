@@ -12,3 +12,5 @@ pytz
 # Don't let edx-platform upgrade DRF past versions that have already been tested here
 djangorestframework<3.15.0
 
+# Setuptools are needed for Python 3.12 support
+setuptools

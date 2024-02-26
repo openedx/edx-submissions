@@ -353,3 +353,10 @@ zipp==3.17.0
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   importlib-metadata
+
+# The following packages are considered to be unsafe in a requirements file:
+setuptools==69.1.1
+    # via
+    #   -r requirements/base.txt
+    #   -r requirements/docs.txt
+    #   -r requirements/test.txt

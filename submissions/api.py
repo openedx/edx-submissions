@@ -228,7 +228,7 @@ def get_submission(submission_uuid, read_replica=False):
     cache_key = Submission.get_cache_key(submission_uuid)
     try:
         cached_submission_data = cache.get(cache_key)
-    except Exception:  # pylint: disable=broad-except
+    except Exception:
         # The cache backend could raise an exception
         # (for example, memcache keys that contain spaces)
         logger.exception("Error occurred while retrieving submission from the cache")
@@ -293,7 +293,7 @@ def get_submission_and_student(uuid, read_replica=False):
     cache_key = f"submissions.student_item.{submission['student_item']}"
     try:
         cached_student_item = cache.get(cache_key)
-    except Exception:  # pylint: disable=broad-except
+    except Exception:
         # The cache backend could raise an exception
         # (for example, memcache keys that contain spaces)
         logger.exception("Error occurred while retrieving student item from the cache")

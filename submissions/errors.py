@@ -67,8 +67,8 @@ class SubmissionRequestError(SubmissionError):
         Show the field errors upon output.
         """
         return (
-            f'{self.__class__.__name__}'
-            f'(msg="{self.message}", field_errors={self.field_errors})'  # pylint: disable=no-member
+            f'{self.__class__.__name__}'  # pylint: disable=no-member
+            f'(msg="{self.message}", field_errors={self.field_errors})'
         )
 
 

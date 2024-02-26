@@ -68,7 +68,7 @@ class SubmissionRequestError(SubmissionError):
         """
         return (
             f'{self.__class__.__name__}'
-            f'(msg="{self.message}", field_errors={self.field_errors})'     # lint-amnesty, pylint: disable=bad-option-value, protected-access, protected-member
+            f'(msg="{self.message}", field_errors={self.field_errors})'
         )
 
 

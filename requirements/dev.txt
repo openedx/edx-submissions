@@ -20,7 +20,7 @@ asgiref==3.7.2
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   django
-astroid==3.0.3
+astroid==3.1.0
     # via
     #   -r requirements/test.txt
     #   pylint
@@ -60,12 +60,11 @@ code-annotations==1.6.0
     # via
     #   -r requirements/test.txt
     #   edx-lint
-coverage[toml]==7.4.1
+coverage[toml]==7.4.3
     # via
     #   -r requirements/test.txt
-    #   coverage
     #   pytest-cov
-ddt==1.7.1
+ddt==1.7.2
     # via -r requirements/test.txt
 dill==0.3.8
     # via
@@ -104,7 +103,7 @@ exceptiongroup==1.2.0
     #   pytest
 factory-boy==3.3.0
     # via -r requirements/test.txt
-faker==23.1.0
+faker==23.2.1
     # via
     #   -r requirements/test.txt
     #   factory-boy
@@ -193,7 +192,7 @@ pygments==2.17.2
     #   accessible-pygments
     #   pydata-sphinx-theme
     #   sphinx
-pylint==3.0.3
+pylint==3.1.0
     # via
     #   -r requirements/test.txt
     #   edx-lint
@@ -213,7 +212,7 @@ pylint-plugin-utils==0.8.2
     #   -r requirements/test.txt
     #   pylint-celery
     #   pylint-django
-pytest==8.0.0
+pytest==8.0.2
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -316,7 +315,7 @@ sqlparse==0.4.4
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   django
-stevedore==5.1.0
+stevedore==5.2.0
     # via
     #   -r requirements/test.txt
     #   code-annotations
@@ -334,7 +333,7 @@ tomlkit==0.12.3
     # via
     #   -r requirements/test.txt
     #   pylint
-typing-extensions==4.9.0
+typing-extensions==4.10.0
     # via
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
@@ -344,7 +343,7 @@ typing-extensions==4.9.0
     #   faker
     #   pydata-sphinx-theme
     #   pylint
-urllib3==2.2.0
+urllib3==2.2.1
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt

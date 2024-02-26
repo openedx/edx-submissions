@@ -66,10 +66,9 @@ class SubmissionRequestError(SubmissionError):
         """
         Show the field errors upon output.
         """
-        # pylint: disable=protected-member
         return (
-            f'{self.__class__.__name__}'    # pylint: disable=protected-member
-            f'(msg="{self.message}", field_errors={self.field_errors})'     # pylint: disable=protected-member
+            f'{self.__class__.__name__}'
+            f'(msg="{self.message}", field_errors={self.field_errors})'     # lint-amnesty, pylint: disable=bad-option-value, protected-access, protected-member
         )
 
 

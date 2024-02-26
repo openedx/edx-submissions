@@ -68,7 +68,7 @@ class SubmissionRequestError(SubmissionError):
         """
         return (
             f'{self.__class__.__name__}'
-            f'(msg="{self.message}", field_errors={self.field_errors})'
+            f'(msg="{self.message}", field_errors={self.field_errors})'  # pylint: disable=no-member
         )
 
 

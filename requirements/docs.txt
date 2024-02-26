@@ -16,15 +16,19 @@ babel==2.14.0
     # via
     #   pydata-sphinx-theme
     #   sphinx
+backports-zoneinfo==0.2.1 ; python_version < "3.9"
+    # via
+    #   -c requirements/constraints.txt
+    #   -r requirements/base.txt
+    #   django
 beautifulsoup4==4.12.3
     # via pydata-sphinx-theme
 certifi==2024.2.2
     # via requests
 charset-normalizer==3.3.2
     # via requests
-django==3.2.24
+django==4.2.10
     # via
-    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.txt
     #   django-model-utils
     #   djangorestframework
@@ -66,7 +70,6 @@ pytz==2024.1
     # via
     #   -r requirements/base.txt
     #   babel
-    #   django
     #   djangorestframework
 requests==2.31.0
     # via sphinx

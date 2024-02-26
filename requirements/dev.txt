@@ -31,6 +31,13 @@ babel==2.14.0
     #   -r requirements/test.txt
     #   pydata-sphinx-theme
     #   sphinx
+backports-zoneinfo==0.2.1 ; python_version < "3.9"
+    # via
+    #   -c requirements/constraints.txt
+    #   -r requirements/base.txt
+    #   -r requirements/docs.txt
+    #   -r requirements/test.txt
+    #   django
 beautifulsoup4==4.12.3
     # via
     #   -r requirements/docs.txt
@@ -70,9 +77,8 @@ dill==0.3.8
     # via
     #   -r requirements/test.txt
     #   pylint
-django==3.2.24
+django==4.2.10
     # via
-    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -236,7 +242,6 @@ pytz==2024.1
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   babel
-    #   django
     #   djangorestframework
 pyyaml==6.0.1
     # via
@@ -329,7 +334,7 @@ tomli==2.0.1
     #   coverage
     #   pylint
     #   pytest
-tomlkit==0.12.3
+tomlkit==0.12.4
     # via
     #   -r requirements/test.txt
     #   pylint

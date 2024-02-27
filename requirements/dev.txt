@@ -77,16 +77,6 @@ django==3.2.24
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   jsonfield
-django-model-utils==4.4.0
-    # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
-    #   -r requirements/test.txt
-djangorestframework==3.14.0
-    # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
-    #   -r requirements/test.txt
 docutils==0.19
     # via
     #   -r requirements/docs.txt

@@ -76,19 +76,7 @@ django==3.2.24
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
-    #   django-model-utils
-    #   djangorestframework
     #   jsonfield
-django-model-utils==4.4.0
-    # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
-    #   -r requirements/test.txt
-djangorestframework==3.14.0
-    # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
-    #   -r requirements/test.txt
 docutils==0.19
     # via
     #   -r requirements/docs.txt
@@ -237,7 +225,6 @@ pytz==2024.1
     #   -r requirements/test.txt
     #   babel
     #   django
-    #   djangorestframework
 pyyaml==6.0.1
     # via
     #   -r requirements/test.txt
@@ -329,7 +316,7 @@ tomli==2.0.1
     #   coverage
     #   pylint
     #   pytest
-tomlkit==0.12.3
+tomlkit==0.12.4
     # via
     #   -r requirements/test.txt
     #   pylint

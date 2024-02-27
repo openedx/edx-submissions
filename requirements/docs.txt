@@ -27,6 +27,10 @@ django==3.2.24
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.txt
     #   jsonfield
+django-model-utils==4.4.0
+    # via -r requirements/base.txt
+djangorestframework==3.14.0
+    # via -r requirements/base.txt
 docutils==0.19
     # via
     #   pydata-sphinx-theme

@@ -10,6 +10,10 @@ django==3.2.24
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   jsonfield
+django-model-utils==4.4.0
+    # via -r requirements/base.in
+djangorestframework==3.14.0
+    # via -r requirements/base.in
 jsonfield==3.1.0
     # via -r requirements/base.in
 pytz==2024.1

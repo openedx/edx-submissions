@@ -58,6 +58,13 @@ dill==0.3.8
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
     #   jsonfield
+django-model-utils==4.4.0
+    # via
+    #   -r requirements/base.txt
+    #   -r requirements/docs.txt
+    # via
+    #   -r requirements/base.txt
+    #   -r requirements/docs.txt
 docutils==0.19
     # via
     #   -r requirements/docs.txt

@@ -6,7 +6,9 @@
 #
 asgiref==3.7.2
     # via django
-django==3.2.24
+backports-zoneinfo==0.2.1
+    # via django
+django==4.2.11
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.in
@@ -22,7 +24,6 @@ jsonfield==3.1.0
 pytz==2024.1
     # via
     #   -r requirements/base.in
-    #   django
     #   djangorestframework
 sqlparse==0.4.4
     # via django

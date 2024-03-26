@@ -14,7 +14,7 @@ alabaster==0.7.13
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   sphinx
-asgiref==3.7.2
+asgiref==3.8.1
     # via
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
@@ -31,6 +31,12 @@ babel==2.14.0
     #   -r requirements/test.txt
     #   pydata-sphinx-theme
     #   sphinx
+backports-zoneinfo==0.2.1
+    # via
+    #   -r requirements/base.txt
+    #   -r requirements/docs.txt
+    #   -r requirements/test.txt
+    #   django
 beautifulsoup4==4.12.3
     # via
     #   -r requirements/docs.txt
@@ -56,11 +62,11 @@ click-log==0.4.0
     # via
     #   -r requirements/test.txt
     #   edx-lint
-code-annotations==1.6.0
+code-annotations==1.7.0
     # via
     #   -r requirements/test.txt
     #   edx-lint
-coverage[toml]==7.4.3
+coverage[toml]==7.4.4
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -70,7 +76,7 @@ dill==0.3.8
     # via
     #   -r requirements/test.txt
     #   pylint
-django==3.2.24
+django==4.2.11
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.txt
@@ -103,7 +109,7 @@ exceptiongroup==1.2.0
     #   pytest
 factory-boy==3.3.0
     # via -r requirements/test.txt
-faker==23.2.1
+faker==24.4.0
     # via
     #   -r requirements/test.txt
     #   factory-boy
@@ -119,8 +125,9 @@ imagesize==1.4.1
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   sphinx
-importlib-metadata==7.0.1
+importlib-metadata==6.11.0
     # via
+    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   sphinx
@@ -154,7 +161,7 @@ mccabe==0.7.0
     #   pylint
 mock==5.1.0
     # via -r requirements/test.txt
-packaging==23.2
+packaging==24.0
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -212,16 +219,16 @@ pylint-plugin-utils==0.8.2
     #   -r requirements/test.txt
     #   pylint-celery
     #   pylint-django
-pytest==8.0.2
+pytest==8.1.1
     # via
     #   -r requirements/test.txt
     #   pytest-cov
     #   pytest-django
-pytest-cov==4.1.0
+pytest-cov==5.0.0
     # via -r requirements/test.txt
 pytest-django==4.8.0
     # via -r requirements/test.txt
-python-dateutil==2.8.2
+python-dateutil==2.9.0.post0
     # via
     #   -r requirements/test.txt
     #   faker
@@ -236,7 +243,6 @@ pytz==2024.1
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   babel
-    #   django
     #   djangorestframework
 pyyaml==6.0.1
     # via
@@ -329,7 +335,7 @@ tomli==2.0.1
     #   coverage
     #   pylint
     #   pytest
-tomlkit==0.12.3
+tomlkit==0.12.4
     # via
     #   -r requirements/test.txt
     #   pylint
@@ -348,7 +354,7 @@ urllib3==2.2.1
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   requests
-zipp==3.17.0
+zipp==3.18.1
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt

@@ -126,7 +126,7 @@ Please do not report security issues in public. Please email security@openedx.or
     :alt: PyPI
 
 .. |ci-badge| image:: https://github.com/openedx/edx-submissions/actions/workflows/ci.yml/badge.svg?branch=master
-    :target: https://github.com/openedx/edx-submissions/actions/workflows/pypi-publish.yml?branch=master
+    :target: https://github.com/openedx/edx-submissions/actions/workflows/ci.yml?branch=master
     :alt: CI
 
 .. |codecov-badge| image:: https://codecov.io/github/openedx/edx-submissions/coverage.svg?branch=master

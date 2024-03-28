@@ -81,7 +81,7 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.11',
     ],
     packages=find_packages(include=['submissions*'], exclude=['*.test', '*.tests']),
     install_requires=load_requirements('requirements/base.in'),

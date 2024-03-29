@@ -8,7 +8,7 @@ metadata:
   description: "API for creating submissions and scores"
   links:
     - url: "https://github.com/openedx/edx-submissions"
-      title: "Submissions API",
+      title: "Submissions API"
       icon: "Web"
 spec:
   owner: group:committers-edx-submissions

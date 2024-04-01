@@ -30,7 +30,3 @@ sqlparse==0.4.4
     # via django
 typing-extensions==4.10.0
     # via asgiref
-
-# The following packages are considered to be unsafe in a requirements file:
-setuptools==69.2.0
-    # via -r requirements/base.in

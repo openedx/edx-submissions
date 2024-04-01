@@ -7,4 +7,3 @@ django-model-utils
 jsonfield
 pytz
 djangorestframework
-setuptools

@@ -64,7 +64,7 @@ click-log==0.4.0
     # via
     #   -r requirements/test.txt
     #   edx-lint
-code-annotations==1.7.0
+code-annotations==1.8.0
     # via
     #   -r requirements/test.txt
     #   edx-lint
@@ -87,7 +87,7 @@ django==4.2.11
     #   django-model-utils
     #   djangorestframework
     #   jsonfield
-django-model-utils==4.4.0
+django-model-utils==4.5.0
     # via
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
@@ -111,13 +111,13 @@ exceptiongroup==1.2.0
     #   pytest
 factory-boy==3.3.0
     # via -r requirements/test.txt
-faker==24.4.0
+faker==24.9.0
     # via
     #   -r requirements/test.txt
     #   factory-boy
 freezegun==1.4.0
     # via -r requirements/test.txt
-idna==3.6
+idna==3.7
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -340,7 +340,7 @@ tomlkit==0.12.4
     # via
     #   -r requirements/test.txt
     #   pylint
-typing-extensions==4.10.0
+typing-extensions==4.11.0
     # via
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
@@ -360,10 +360,3 @@ zipp==3.18.1
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   importlib-metadata
-
-# The following packages are considered to be unsafe in a requirements file:
-setuptools==69.2.0
-    # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
-    #   -r requirements/test.txt

@@ -18,7 +18,7 @@ django==4.2.11
     #   django-model-utils
     #   djangorestframework
     #   jsonfield
-django-model-utils==4.4.0
+django-model-utils==4.5.0
     # via -r requirements/base.in
 djangorestframework==3.15.1
     # via -r requirements/base.in
@@ -26,11 +26,7 @@ jsonfield==3.1.0
     # via -r requirements/base.in
 pytz==2024.1
     # via -r requirements/base.in
-sqlparse==0.4.4
+sqlparse==0.5.0
     # via django
-typing-extensions==4.10.0
+typing-extensions==4.11.0
     # via asgiref
-
-# The following packages are considered to be unsafe in a requirements file:
-setuptools==69.2.0
-    # via -r requirements/base.in

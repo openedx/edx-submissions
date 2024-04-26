@@ -35,7 +35,7 @@ django==4.2.11
     #   django-model-utils
     #   djangorestframework
     #   jsonfield
-django-model-utils==4.4.0
+django-model-utils==4.5.0
     # via -r requirements/base.txt
 djangorestframework==3.15.1
     # via -r requirements/base.txt
@@ -43,7 +43,7 @@ docutils==0.19
     # via
     #   pydata-sphinx-theme
     #   sphinx
-idna==3.6
+idna==3.7
     # via requests
 imagesize==1.4.1
     # via sphinx
@@ -105,11 +105,11 @@ sphinxcontrib-qthelp==1.0.3
     # via sphinx
 sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
-sqlparse==0.4.4
+sqlparse==0.5.0
     # via
     #   -r requirements/base.txt
     #   django
-typing-extensions==4.10.0
+typing-extensions==4.11.0
     # via
     #   -r requirements/base.txt
     #   asgiref
@@ -118,7 +118,3 @@ urllib3==2.2.1
     # via requests
 zipp==3.18.1
     # via importlib-metadata
-
-# The following packages are considered to be unsafe in a requirements file:
-setuptools==69.2.0
-    # via -r requirements/base.txt

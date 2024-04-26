@@ -64,11 +64,11 @@ click-log==0.4.0
     # via
     #   -r requirements/test.txt
     #   edx-lint
-code-annotations==1.7.0
+code-annotations==1.8.0
     # via
     #   -r requirements/test.txt
     #   edx-lint
-coverage[toml]==7.4.4
+coverage[toml]==7.5.0
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -87,7 +87,7 @@ django==4.2.11
     #   django-model-utils
     #   djangorestframework
     #   jsonfield
-django-model-utils==4.4.0
+django-model-utils==4.5.0
     # via
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
@@ -105,19 +105,19 @@ docutils==0.19
     #   sphinx
 edx-lint==5.3.6
     # via -r requirements/test.txt
-exceptiongroup==1.2.0
+exceptiongroup==1.2.1
     # via
     #   -r requirements/test.txt
     #   pytest
 factory-boy==3.3.0
     # via -r requirements/test.txt
-faker==24.4.0
+faker==24.14.0
     # via
     #   -r requirements/test.txt
     #   factory-boy
-freezegun==1.4.0
+freezegun==1.5.0
     # via -r requirements/test.txt
-idna==3.6
+idna==3.7
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -174,11 +174,11 @@ pbr==6.0.0
     # via
     #   -r requirements/test.txt
     #   stevedore
-platformdirs==4.2.0
+platformdirs==4.2.1
     # via
     #   -r requirements/test.txt
     #   pylint
-pluggy==1.4.0
+pluggy==1.5.0
     # via
     #   -r requirements/test.txt
     #   pytest
@@ -316,7 +316,7 @@ sphinxcontrib-serializinghtml==1.1.5
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   sphinx
-sqlparse==0.4.4
+sqlparse==0.5.0
     # via
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
@@ -340,7 +340,7 @@ tomlkit==0.12.4
     # via
     #   -r requirements/test.txt
     #   pylint
-typing-extensions==4.10.0
+typing-extensions==4.11.0
     # via
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
@@ -360,10 +360,3 @@ zipp==3.18.1
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   importlib-metadata
-
-# The following packages are considered to be unsafe in a requirements file:
-setuptools==69.2.0
-    # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
-    #   -r requirements/test.txt

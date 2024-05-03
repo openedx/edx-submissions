@@ -37,9 +37,21 @@ dev_requirements: ## Install Dev Requirements
 test_requirements: ## Install Test Requirements
 	pip install -r requirements/test.txt
 
-upgrade: export CUSTOM_COMPILE_COMMAND=make upgrade
-upgrade: ## Update the requirements/*.txt files with the latest packages satisfying requirements/*.in
-	pip install -qr requirements/pip-tools.txt
+piptools:
+	pip install -q -r requirements/pip-tools.txt
+
+define COMMON_CONSTRAINTS_TEMP_COMMENT
+# This is a temporary solution to override the real common_constraints.txt\n# In edx-lint, until the pyjwt constraint in edx-lint has been removed.\n# See BOM-2721 for more details.\n# Below is the copied and edited version of common_constraints\n
+endef
+
+COMMON_CONSTRAINTS_TXT=requirements/common_constraints.txt
+.PHONY: $(COMMON_CONSTRAINTS_TXT)
+$(COMMON_CONSTRAINTS_TXT):
+	wget -O "$(@)" https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt || touch "$(@)"
+	echo "$(COMMON_CONSTRAINTS_TEMP_COMMENT)" | cat - $(@) > temp && mv temp $(@)
+
+export CUSTOM_COMPILE_COMMAND = make upgrade
+upgrade: piptools $(COMMON_CONSTRAINTS_TXT)	## update the requirements/*.txt files with the latest packages satisfying requirements/*.in
 	# Make sure to compile files after any other files they include!
 	pip-compile --upgrade --allow-unsafe --rebuild -o requirements/pip.txt requirements/pip.in
 	pip-compile --upgrade --verbose --rebuild -o requirements/pip-tools.txt requirements/pip-tools.in

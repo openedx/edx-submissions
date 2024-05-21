@@ -6,67 +6,67 @@
 #
 cachetools==5.3.3
     # via
-    #   -r requirements/tox.txt
+    #   -r tox.txt
     #   tox
 certifi==2024.2.2
     # via requests
 chardet==5.2.0
     # via
-    #   -r requirements/tox.txt
+    #   -r tox.txt
     #   tox
 charset-normalizer==3.3.2
     # via requests
 colorama==0.4.6
     # via
-    #   -r requirements/tox.txt
+    #   -r tox.txt
     #   tox
 coverage==6.5.0
     # via coveralls
 coveralls==3.3.1
-    # via -r requirements/ci.in
+    # via -r ci.in
 distlib==0.3.8
     # via
-    #   -r requirements/tox.txt
+    #   -r tox.txt
     #   virtualenv
 docopt==0.6.2
     # via coveralls
 filelock==3.13.3
     # via
-    #   -r requirements/tox.txt
+    #   -r tox.txt
     #   tox
     #   virtualenv
 idna==3.6
     # via requests
 packaging==24.0
     # via
-    #   -r requirements/tox.txt
+    #   -r tox.txt
     #   pyproject-api
     #   tox
 platformdirs==4.2.0
     # via
-    #   -r requirements/tox.txt
+    #   -r tox.txt
     #   tox
     #   virtualenv
 pluggy==1.4.0
     # via
-    #   -r requirements/tox.txt
+    #   -r tox.txt
     #   tox
 pyproject-api==1.6.1
     # via
-    #   -r requirements/tox.txt
+    #   -r tox.txt
     #   tox
-requests==2.31.0
+requests==2.32.0
     # via coveralls
 tomli==2.0.1
     # via
-    #   -r requirements/tox.txt
+    #   -r tox.txt
     #   pyproject-api
     #   tox
 tox==4.14.2
-    # via -r requirements/tox.txt
+    # via -r tox.txt
 urllib3==2.2.1
     # via requests
 virtualenv==20.25.1
     # via
-    #   -r requirements/tox.txt
+    #   -r tox.txt
     #   tox

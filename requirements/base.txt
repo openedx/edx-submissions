@@ -8,25 +8,25 @@ asgiref==3.8.1
     # via django
 backports-zoneinfo==0.2.1 ; python_version < "3.9"
     # via
-    #   -c constraints.txt
+    #   -c requirements/constraints.txt
     #   django
     #   djangorestframework
-django==4.2.11
+django==4.2.13
     # via
-    #   -c common_constraints.txt
-    #   -r base.in
+    #   -c requirements/common_constraints.txt
+    #   -r requirements/base.in
     #   django-model-utils
     #   djangorestframework
     #   jsonfield
-django-model-utils==4.4.0
-    # via -r base.in
+django-model-utils==4.5.1
+    # via -r requirements/base.in
 djangorestframework==3.15.1
-    # via -r base.in
+    # via -r requirements/base.in
 jsonfield==3.1.0
-    # via -r base.in
+    # via -r requirements/base.in
 pytz==2024.1
-    # via -r base.in
+    # via -r requirements/base.in
 sqlparse==0.5.0
     # via django
-typing-extensions==4.10.0
+typing-extensions==4.11.0
     # via asgiref

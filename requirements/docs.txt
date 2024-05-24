@@ -74,7 +74,7 @@ pytz==2024.1
     # via
     #   -r requirements/base.txt
     #   babel
-requests==2.31.0
+requests==2.32.2
     # via sphinx
 six==1.16.0
     # via
@@ -116,5 +116,5 @@ typing-extensions==4.11.0
     #   pydata-sphinx-theme
 urllib3==2.2.1
     # via requests
-zipp==3.18.1
+zipp==3.18.2
     # via importlib-metadata

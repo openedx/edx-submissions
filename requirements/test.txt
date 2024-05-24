@@ -17,7 +17,7 @@ asgiref==3.8.1
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
     #   django
-astroid==3.1.0
+astroid==3.2.2
     # via
     #   pylint
     #   pylint-celery
@@ -85,7 +85,7 @@ exceptiongroup==1.2.1
     # via pytest
 factory-boy==3.3.0
     # via -r requirements/test.in
-faker==25.1.0
+faker==25.2.0
     # via factory-boy
 freezegun==1.5.1
     # via -r requirements/test.in
@@ -153,7 +153,7 @@ pygments==2.18.0
     #   accessible-pygments
     #   pydata-sphinx-theme
     #   sphinx
-pylint==3.1.0
+pylint==3.2.2
     # via
     #   edx-lint
     #   pylint-celery
@@ -167,7 +167,7 @@ pylint-plugin-utils==0.8.2
     # via
     #   pylint-celery
     #   pylint-django
-pytest==8.2.0
+pytest==8.2.1
     # via
     #   pytest-cov
     #   pytest-django
@@ -189,7 +189,7 @@ pytz==2024.1
     #   babel
 pyyaml==6.0.1
     # via code-annotations
-requests==2.31.0
+requests==2.32.2
     # via
     #   -r requirements/docs.txt
     #   sphinx
@@ -269,7 +269,7 @@ urllib3==2.2.1
     # via
     #   -r requirements/docs.txt
     #   requests
-zipp==3.18.1
+zipp==3.18.2
     # via
     #   -r requirements/docs.txt
     #   importlib-metadata

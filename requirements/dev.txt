@@ -316,7 +316,7 @@ sphinxcontrib-serializinghtml==1.1.5
     #   -r docs.txt
     #   -r test.txt
     #   sphinx
-sqlparse==0.4.4
+sqlparse==0.5.0
     # via
     #   -r base.txt
     #   -r docs.txt
@@ -360,10 +360,3 @@ zipp==3.18.1
     #   -r docs.txt
     #   -r test.txt
     #   importlib-metadata
-
-# The following packages are considered to be unsafe in a requirements file:
-setuptools==69.2.0
-    # via
-    #   -r base.txt
-    #   -r docs.txt
-    #   -r test.txt

@@ -249,7 +249,7 @@ pyyaml==6.0.1
     # via
     #   -r test.txt
     #   code-annotations
-requests==2.31.0
+requests==2.32.2
     # via
     #   -r docs.txt
     #   -r test.txt

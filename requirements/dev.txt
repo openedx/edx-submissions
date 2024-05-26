@@ -68,7 +68,7 @@ code-annotations==1.8.0
     # via
     #   -r requirements/test.txt
     #   edx-lint
-coverage[toml]==7.5.1
+coverage[toml]==7.5.2
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -174,7 +174,7 @@ pbr==6.0.0
     # via
     #   -r requirements/test.txt
     #   stevedore
-platformdirs==4.2.1
+platformdirs==4.2.2
     # via
     #   -r requirements/test.txt
     #   pylint
@@ -340,7 +340,7 @@ tomlkit==0.12.5
     # via
     #   -r requirements/test.txt
     #   pylint
-typing-extensions==4.11.0
+typing-extensions==4.12.0
     # via
     #   -r requirements/base.txt
     #   -r requirements/docs.txt

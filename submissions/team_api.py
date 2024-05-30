@@ -13,7 +13,7 @@ from submissions.errors import (
     TeamSubmissionNotFoundError,
     TeamSubmissionRequestError
 )
-from submissions.models import DELETED, StudentItem, TeamSubmission
+from submissions.models import DELETED, Submission, TeamSubmission
 from submissions.serializers import TeamSubmissionSerializer
 
 logger = logging.getLogger(__name__)
@@ -115,6 +115,9 @@ def create_submission_for_team(
         'submitted_by': submitting_user_id,
         'attempt_number': attempt_number,
     }
+    log_string = f'{model_kwargs} Team Member Ids: {team_member_ids}'
+    logger.info("Creating team submission for %s", log_string)
+
     if submitted_at:
         model_kwargs["submitted_at"] = submitted_at
 
@@ -125,9 +128,8 @@ def create_submission_for_team(
         team_submission = team_submission_serializer.save()
         _log_team_submission(team_submission_serializer.data)
     except DatabaseError as exc:
-        error_message = "An error occurred while creating team submission {}: {}".format(
-            model_kwargs,
-            exc
+        error_message = (
+            f"An error occurred while creating team submission {model_kwargs}: {exc}"
         )
         logger.exception(error_message)
         raise TeamSubmissionInternalError(error_message) from exc
@@ -139,25 +141,45 @@ def create_submission_for_team(
     }
 
     students_with_team_submissions = {
-        submission['student_id'] for submission in get_teammates_with_submissions_from_other_teams(
+        submission['student_id']: submission['team_id']
+        for submission in get_teammates_with_submissions_from_other_teams(
             course_id,
             item_id,
             team_id,
             team_member_ids
         )
     }
+    logger.info("[%s] Students with submissions from other teams: %s", log_string, students_with_team_submissions)
+
     for team_member_id in team_member_ids:
+        logger.info("[%s] Creating individual submission for team member %s", log_string, team_member_id)
         if team_member_id in students_with_team_submissions:
+            logger.info(
+                "[%s] Team member %s already has a submission for team %s. Skipping.",
+                log_string,
+                team_member_id,
+                students_with_team_submissions[team_member_id]
+            )
             continue
         team_member_student_item_dict = dict(base_student_item_dict)
         team_member_student_item_dict['student_id'] = team_member_id
-        _api.create_submission(
-            team_member_student_item_dict,
-            answer,
-            submitted_at=submitted_at,
-            attempt_number=attempt_number,
-            team_submission=team_submission
-        )
+        try:
+            individual_submission = _api.create_submission(
+                team_member_student_item_dict,
+                answer,
+                submitted_at=submitted_at,
+                attempt_number=attempt_number,
+                team_submission=team_submission
+            )
+        except Exception as exc:
+            logger.error(
+                "[%s] Unable to create individual submission for %s: %s",
+                log_string,
+                team_member_id,
+                str(exc)
+            )
+            raise exc
+        logger.info("[%s] Created individual submission %s", log_string, individual_submission['uuid'])
 
     model_kwargs = {
         "answer": answer,
@@ -178,16 +200,16 @@ def _log_team_submission(team_submission_data):
         None
     """
     logger.info(
-        "Created team submission uuid={team_submission_uuid} for "
-        "(course_id={course_id}, item_id={item_id}, team_id={team_id}) "
-        "submitted_by={submitted_by}"
-        .format(
-            team_submission_uuid=team_submission_data["team_submission_uuid"],
-            course_id=team_submission_data["course_id"],
-            item_id=team_submission_data["item_id"],
-            team_id=team_submission_data["team_id"],
-            submitted_by=team_submission_data["submitted_by"],
-        )
+        "Created team submission uuid=%(team_submission_uuid)s for "
+        "(course_id=%(course_id)s, item_id=%(item_id)s, team_id=%(team_id)s) "
+        "submitted_by=%(submitted_by)s",
+        {
+            'team_submission_uuid': team_submission_data["team_submission_uuid"],
+            'course_id': team_submission_data["course_id"],
+            'item_id': team_submission_data["item_id"],
+            'team_id': team_submission_data["team_id"],
+            'submitted_by': team_submission_data["submitted_by"],
+        }
     )
 
 
@@ -210,19 +232,20 @@ def get_teammates_with_submissions_from_other_teams(
     Returns:
         list(dict): [{ 'student_id', 'team_id' }]
     """
-    items = StudentItem.objects.filter(
-        submission__team_submission__isnull=False
+    submissions = Submission.objects.filter(
+        student_item__student_id__in=team_member_ids,
+        student_item__course_id=course_id,
+        student_item__item_id=item_id,
     ).exclude(
-        submission__team_submission__team_id=team_id
-    ).filter(
-        student_id__in=team_member_ids,
-        course_id=course_id,
-        item_id=item_id
-    ).values("student_id", "submission__team_submission__team_id")
+        team_submission__isnull=True,
+    ).exclude(
+        team_submission__team_id=team_id,
+    ).values("student_item__student_id", "team_submission__team_id")
+
     return [{
-        'student_id': item['student_id'],
-        'team_id': item['submission__team_submission__team_id']
-    } for item in items]
+        'student_id': submission['student_item__student_id'],
+        'team_id': submission['team_submission__team_id']
+    } for submission in submissions]
 
 
 def get_team_submission(team_submission_uuid):
@@ -302,17 +325,16 @@ def get_team_submission_student_ids(team_submission_uuid):
     if not team_submission_uuid:
         raise TeamSubmissionNotFoundError()
     try:
-        student_ids = StudentItem.objects.filter(
-            submission__team_submission__uuid=team_submission_uuid
-        ).order_by(
-            'student_id'
-        ).distinct().values_list(
-            'student_id', flat=True
+        student_ids = TeamSubmission.objects.filter(
+            uuid=team_submission_uuid
+        ).values_list(
+            'submissions__student_item__student_id', flat=True
         )
+
     except DatabaseError as exc:
-        err_msg = "Attempt to get student ids for team submission {team_submission_uuid} caused error: {exc}".format(
-            team_submission_uuid=team_submission_uuid,
-            exc=exc
+        err_msg = (
+            f"Attempt to get student ids for team submission {team_submission_uuid} "
+            f"caused error: {exc}"
         )
         logger.error(err_msg)
         raise TeamSubmissionInternalError(err_msg) from exc
@@ -327,12 +349,12 @@ def get_team_ids_by_team_submission_uuid(team_submission_uuids):
     team submission uuids to team id
     """
     values = TeamSubmission.objects.filter(
-        team_submission_uuid__in=team_submission_uuids
+        uuid__in=team_submission_uuids
     ).values(
         "uuid", "team_id"
     )
     return {
-        item['uuid']: item['team_id']
+        str(item['uuid']): item['team_id']
         for item in values
     }
 
@@ -365,16 +387,16 @@ def set_score(team_submission_uuid, points_earned, points_possible,
 
     """
     team_submission_dict = get_team_submission(team_submission_uuid)
-    debug_msg = (
-        'Setting score for team submission uuid {uuid}, child submission uuids {individual_uuids}. '
-        '{earned} / {possible}'
-    ).format(
-        uuid=team_submission_dict['team_submission_uuid'],
-        individual_uuids=team_submission_dict['submission_uuids'],
-        earned=points_earned,
-        possible=points_possible
+    logger.info(
+        'Setting score for team submission uuid %(uuid)s, child submission uuids %(individual_uuids)s. '
+        '%(earned)s / %(possible)s',
+        {
+            'uuid': team_submission_dict['team_submission_uuid'],
+            'individual_uuids': team_submission_dict['submission_uuids'],
+            'earned': points_earned,
+            'possible': points_possible,
+        }
     )
-    logger.info(debug_msg)
 
     with transaction.atomic():
         for individual_submission_uuid in team_submission_dict['submission_uuids']:
@@ -424,12 +446,13 @@ def reset_scores(team_submission_uuid, clear_state=False):
             team_submission.save(update_fields=["status"])
     except (DatabaseError, SubmissionInternalError) as error:
         msg = (
-            "Error occurred while reseting scores for team submission {team_submission_uuid}"
-        ).format(team_submission_uuid=team_submission_uuid)
+            f"Error occurred while reseting scores for team submission {team_submission_uuid}"
+        )
         logger.exception(msg)
         raise TeamSubmissionInternalError(msg) from error
-    else:
-        msg = "Score reset for team submission {team_submission_uuid}".format(
-            team_submission_uuid=team_submission_uuid
-        )
-        logger.info(msg)
+    logger.info(
+        "Score reset for team submission %(team_submission_uuid)s",
+        {
+            'team_submission_uuid': team_submission_uuid,
+        }
+    )

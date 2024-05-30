@@ -289,19 +289,45 @@ class TestTeamSubmissionsApi(TestCase):
 
         # Should get 1 entry for each of the default users
         self.assertEqual(len(external_submissions), 4)
-
-        def check_submission(submission, user):
-            self.assertEqual(
-                submission,
+        for student_id in self.student_ids:
+            self.assertIn(
                 {
-                    'student_id': self.anonymous_user_id_map[user],
+                    'student_id': student_id,
                     'team_id': TEAM_1_ID
-                }
+                },
+                external_submissions
             )
-        check_submission(external_submissions[0], self.user_1)
-        check_submission(external_submissions[1], self.user_2)
-        check_submission(external_submissions[2], self.user_3)
-        check_submission(external_submissions[3], self.user_4)
+
+    def test_get_teammates_with_submissions_from_other_teams__cancelled(self):
+        # Make a team submission with default users, under TEAM_1
+        team_submission = self._make_team_submission(
+            attempt_number=1,
+            course_id=COURSE_ID,
+            item_id=ITEM_1_ID,
+            team_id=TEAM_1_ID,
+            status=None,
+            create_submissions=True
+        )
+
+        # Simulate resetting student state for the team, which causes the submissions to be deleted
+        team_api.reset_scores(team_submission.uuid, clear_state=True)
+
+        team_submission.refresh_from_db()
+        self.assertEqual(team_submission.status, DELETED)
+        for individual_submission in team_submission.submissions.all():
+            self.assertEqual(individual_submission.status, DELETED)
+
+        # Now, everyone has moved to a new team, but their old submission was deleted, so no one should be listed
+        with self.assertNumQueries(1):
+            external_submissions = team_api.get_teammates_with_submissions_from_other_teams(
+                COURSE_ID,
+                ITEM_1_ID,
+                TEAM_2_ID,
+                self.student_ids
+            )
+
+        # Returns no one, since the submission was cancelled
+        self.assertEqual(external_submissions, [])
 
     def test_get_team_submission(self):
         """
@@ -613,18 +639,36 @@ class TestTeamSubmissionsApi(TestCase):
         for student_id in submission_2_student_ids:
             self._make_individual_submission(student_id, team_submission=team_submission_2)
 
+        with self.assertNumQueries(1):
+            team_1_ids = team_api.get_team_submission_student_ids(str(team_submission.uuid))
+
+        team_2_ids = team_api.get_team_submission_student_ids(str(team_submission_2.uuid))
+
         # Assert that each team submission's uuid returns the correct student_ids
-        self.assertEqual(
-            team_api.get_team_submission_student_ids(str(team_submission.uuid)),
-            self.student_ids
-        )
-        self.assertEqual(
-            team_api.get_team_submission_student_ids(str(team_submission_2.uuid)),
-            submission_2_student_ids
-        )
+        self.assertEqual(team_1_ids, self.student_ids)
+        self.assertEqual(team_2_ids, submission_2_student_ids)
 
     def test_get_team_submission_student_ids__no_team_submission(self):
         with self.assertRaises(TeamSubmissionNotFoundError):
             team_api.get_team_submission_student_ids('aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee')
         with self.assertRaises(TeamSubmissionNotFoundError):
             team_api.get_team_submission_student_ids(None)
+
+    def test_get_team_ids_by_team_submission_uuid(self):
+        team_submissions = [
+            TeamSubmissionFactory.create() for _ in range(5)
+        ]
+        assert team_api.get_team_ids_by_team_submission_uuid([]) == {}
+
+        actual = team_api.get_team_ids_by_team_submission_uuid([
+            team_submissions[0].uuid,
+            team_submissions[1].uuid,
+            team_submissions[4].uuid,
+        ])
+        expected = {
+            str(team_submissions[0].uuid): team_submissions[0].team_id,
+            str(team_submissions[1].uuid): team_submissions[1].team_id,
+            str(team_submissions[4].uuid): team_submissions[4].team_id,
+        }
+
+        assert expected == actual

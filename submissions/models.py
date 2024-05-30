@@ -27,15 +27,10 @@ logger = logging.getLogger(__name__)
 User = auth.get_user_model()
 
 # Signal to inform listeners that a score has been changed
-score_set = Signal(providing_args=[
-    'points_possible', 'points_earned', 'anonymous_user_id',
-    'course_id', 'item_id', 'created_at'
-])
+score_set = Signal()
 
 # Signal to inform listeners that a score has been reset
-score_reset = Signal(
-    providing_args=['anonymous_user_id', 'course_id', 'item_id', 'created_at']
-)
+score_reset = Signal()
 
 
 class AnonymizedUserIDField(models.CharField):
@@ -79,15 +74,18 @@ class StudentItem(models.Model):
 
     @property
     def student_item_dict(self):
-        return dict(
-            student_id=self.student_id,
-            course_id=self.course_id,
-            item_id=self.item_id,
-            item_type=self.item_type,
-        )
+        return {
+            "student_id": self.student_id,
+            "course_id": self.course_id,
+            "item_id": self.item_id,
+            "item_type": self.item_type,
+        }
 
     def __str__(self):
-        return "({0.student_id}, {0.course_id}, {0.item_type}, {0.item_id})".format(self)
+        return (
+            f"({self.student_id}, {self.course_id}, "
+            f"{self.item_type}, {self.item_id})"
+        )
 
     class Meta:
         app_label = "submissions"
@@ -164,9 +162,9 @@ class TeamSubmission(TimeStampedModel):
                 f"No team submission matching uuid {team_submission_uuid}"
             ) from error
         except Exception as exc:
-            err_msg = "Attempt to get team submission for uuid {uuid} caused error: {exc}".format(
-                uuid=team_submission_uuid,
-                exc=exc
+            err_msg = (
+                f"Attempt to get team submission for uuid {team_submission_uuid} "
+                f"caused error: {exc}"
             )
             logger.error(err_msg)
             raise TeamSubmissionInternalError(err_msg) from exc
@@ -181,7 +179,7 @@ class TeamSubmission(TimeStampedModel):
             - TeamSubmissionInternalError if there is some other error looking up the team submission.
 
         """
-        model_query_params = dict(course_id=course_id, item_id=item_id, team_id=team_id)
+        model_query_params = {"course_id": course_id, "item_id": item_id, "team_id": team_id}
         query_params_string = "course_id={course_id} item_id={item_id} team_id={team_id}".format(**model_query_params)
         try:
             # In the equivalent non-teams api call, we're filtering on student item and then getting first(),
@@ -200,9 +198,9 @@ class TeamSubmission(TimeStampedModel):
                 f"No team submission matching {query_params_string}"
             ) from error
         except Exception as exc:
-            err_msg = "Attempt to get team submission for {params} caused error: {exc}".format(
-                params=query_params_string,
-                exc=exc
+            err_msg = (
+                f"Attempt to get team submission for {query_params_string} "
+                f"caused error: {exc}"
             )
             logger.error(err_msg)
             raise TeamSubmissionInternalError(err_msg) from exc
@@ -226,9 +224,9 @@ class TeamSubmission(TimeStampedModel):
                 f"No team submission matching {student_item}"
             ) from error
         except Exception as exc:
-            err_msg = "Attempt to get team submission for {student_item} caused error: {exc}".format(
-                student_item=student_item,
-                exc=exc
+            err_msg = (
+                f"Attempt to get team submission for {student_item} "
+                f"caused error: {exc}"
             )
             logger.error(err_msg)
             raise TeamSubmissionInternalError(err_msg) from exc
@@ -247,26 +245,23 @@ class TeamSubmission(TimeStampedModel):
                 item_id=item_id,
             ).all()
         except Exception as exc:
-            query_params_string = "course_id={course_id} item_id={item_id}".format(
-                course_id=course_id,
-                item_id=item_id,
-            )
-            err_msg = "Attempt to get team submissions for {params} caused error: {exc}".format(
-                params=query_params_string,
-                exc=exc
+            query_params_string = f"course_id={course_id} item_id={item_id}"
+            err_msg = (
+                f"Attempt to get team submissions for {query_params_string} "
+                f"caused error: {exc}"
             )
             logger.error(err_msg)
             raise TeamSubmissionInternalError(err_msg) from exc
 
     def __repr__(self):
-        return repr(dict(
-            uuid=self.uuid,
-            submitted_by=self.submitted_by,
-            attempt_number=self.attempt_number,
-            submitted_at=self.submitted_at,
-            created=self.created,
-            modified=self.modified,
-        ))
+        return repr({
+            "uuid": self.uuid,
+            "submitted_by": self.submitted_by,
+            "attempt_number": self.attempt_number,
+            "submitted_at": self.submitted_at,
+            "created": self.created,
+            "modified": self.modified,
+        })
 
     def __str__(self):
         return f"Team Submission {self.uuid}"
@@ -324,7 +319,7 @@ class Submission(models.Model):
     # replacement for TextField that performs JSON serialization/deserialization.
     # For backwards compatibility, we override the default database column
     # name so it continues to use `raw_answer`.
-    answer = JSONField(blank=True, db_column="raw_answer")
+    answer = JSONField(blank=True, dump_kwargs={'ensure_ascii': True}, db_column="raw_answer")
 
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=ACTIVE)
 
@@ -332,6 +327,7 @@ class Submission(models.Model):
         TeamSubmission,
         related_name='submissions',
         null=True,
+        blank=True,
         db_index=True,
         on_delete=models.SET_NULL
     )
@@ -349,14 +345,14 @@ class Submission(models.Model):
         return f"submissions.submission.{sub_uuid}"
 
     def __repr__(self):
-        return repr(dict(
-            uuid=self.uuid,
-            student_item=self.student_item,
-            attempt_number=self.attempt_number,
-            submitted_at=self.submitted_at,
-            created_at=self.created_at,
-            answer=self.answer,
-        ))
+        return repr({
+            "uuid": self.uuid,
+            "student_item": self.student_item,
+            "attempt_number": self.attempt_number,
+            "submitted_at": self.submitted_at,
+            "created_at": self.created_at,
+            "answer": self.answer,
+        })
 
     def __str__(self):
         return f"Submission {self.uuid}"
@@ -418,13 +414,13 @@ class Score(models.Model):
         return float(self.points_earned) / self.points_possible
 
     def __repr__(self):
-        return repr(dict(
-            student_item=self.student_item,
-            submission=self.submission,
-            created_at=self.created_at,
-            points_earned=self.points_earned,
-            points_possible=self.points_possible,
-        ))
+        return repr({
+            "student_item": self.student_item,
+            "submission": self.submission,
+            "created_at": self.created_at,
+            "points_earned": self.points_earned,
+            "points_possible": self.points_possible,
+        })
 
     def is_hidden(self):
         """
@@ -468,7 +464,7 @@ class Score(models.Model):
         )
 
     def __str__(self):
-        return "{0.points_earned}/{0.points_possible}".format(self)
+        return f"{self.points_earned}/{self.points_possible}"
 
 
 class ScoreSummary(models.Model):
@@ -525,8 +521,10 @@ class ScoreSummary(models.Model):
             )
         except DatabaseError:
             logger.exception(
-                "Error while updating score summary for student item {}"
-                .format(score.student_item)
+                "Error while updating score summary for student item %(item)s",
+                {
+                    'item': score.student_item,
+                }
             )
 
 

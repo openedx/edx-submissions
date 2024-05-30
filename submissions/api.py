@@ -110,8 +110,10 @@ def create_submission(student_item_dict, answer, submitted_at=None, attempt_numb
         try:
             first_submission = Submission.objects.filter(student_item=student_item_model).first()
         except DatabaseError as error:
-            error_message = "An error occurred while filtering submissions for student item: {}".format(
-                student_item_dict)
+            error_message = (
+                "An error occurred while filtering submissions "
+                f"for student item: {student_item_dict}"
+            )
             logger.exception(error_message)
             raise SubmissionInternalError(error_message) from error
 
@@ -140,9 +142,9 @@ def create_submission(student_item_dict, answer, submitted_at=None, attempt_numb
         return sub_data
 
     except DatabaseError as error:
-        error_message = "An error occurred while creating submission {} for student item: {}".format(
-            model_kwargs,
-            student_item_dict
+        error_message = (
+            f"An error occurred while creating submission {model_kwargs} "
+            f"for student item: {student_item_dict}"
         )
         logger.exception(error_message)
         raise SubmissionInternalError(error_message) from error
@@ -288,7 +290,7 @@ def get_submission_and_student(uuid, read_replica=False):
     submission = get_submission(uuid, read_replica=read_replica)
 
     # Retrieve the student item from the cache
-    cache_key = "submissions.student_item.{}".format(submission['student_item'])
+    cache_key = f"submissions.student_item.{submission['student_item']}"
     try:
         cached_student_item = cache.get(cache_key)
     except Exception:  # pylint: disable=broad-except
@@ -369,8 +371,7 @@ def get_submissions(student_item_dict, limit=None):
             student_item=student_item_model)
     except DatabaseError as error:
         error_message = (
-            "Error getting submission request for student item {}"
-            .format(student_item_dict)
+            f"Error getting submission request for student item {student_item_dict}"
         )
         logger.exception(error_message)
         raise SubmissionNotFoundError(error_message) from error
@@ -425,7 +426,8 @@ def get_all_submissions(course_id, item_id, item_type, read_replica=True):
 
 
 def get_all_course_submission_information(course_id, item_type, read_replica=True):
-    """ For the given course, get all student items of the given item type, all the submissions for those itemes,
+    """
+    For the given course, get all student items of the given item type, all the submissions for those itemes,
     and the latest scores for each item. If a submission was given a score that is not the latest score for the
     relevant student item, it will still be included but without score.
 
@@ -436,6 +438,7 @@ def get_all_course_submission_information(course_id, item_type, read_replica=Tru
 
     Yields:
         A tuple of three dictionaries representing:
+
         (1) a student item with the following fields:
             student_id
             course_id
@@ -484,7 +487,8 @@ def get_all_course_submission_information(course_id, item_type, read_replica=Tru
 
 
 def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use_cache=True, read_replica=True):
-    """Get a number of top scores for an assessment based on a particular student item
+    """
+    Get a number of top scores for an assessment based on a particular student item
 
     This function will return top scores for the piece of assessment.
     It will consider only the latest and greater than 0 score for a piece of assessment.
@@ -505,7 +509,7 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use
     Kwargs:
         use_cache (bool): If true, check the cache before retrieving querying the database.
         read_replica (bool): If true, attempt to use the read replica database.
-            If no read replica is available, use the default database.
+        If no read replica is available, use the default database.
 
     Returns:
         topscores (dict): The top scores for the assessment for the student item.
@@ -541,11 +545,9 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use
         raise SubmissionRequestError(msg=error_msg)
 
     # First check the cache (unless caching is disabled)
-    cache_key = "submissions.top_submissions.{course}.{item}.{type}.{number}".format(
-        course=course_id,
-        item=item_id,
-        type=item_type,
-        number=number_of_top_scores
+    cache_key = (
+        f"submissions.top_submissions.{course_id}."
+        f"{item_id}.{item_type}.{number_of_top_scores}"
     )
     top_submissions = cache.get(cache_key) if use_cache else None
 
@@ -564,8 +566,9 @@ def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use
                 query = _use_read_replica(query)
             score_summaries = query[:number_of_top_scores]
         except DatabaseError as error:
-            msg = "Could not fetch top score summaries for course {}, item {} of type {}".format(
-                course_id, item_id, item_type
+            msg = (
+                f"Could not fetch top score summaries for course {course_id}, "
+                f"item {item_id} of type {item_type}"
             )
             logger.exception(msg)
             raise SubmissionInternalError(msg) from error
@@ -689,9 +692,7 @@ def get_scores(course_id, student_id):
             student_item__student_id=student_id,
         ).select_related('latest', 'latest__submission', 'student_item')
     except DatabaseError as error:
-        msg = "Could not fetch scores for course {}, student {}".format(
-            course_id, student_id
-        )
+        msg = f"Could not fetch scores for course {course_id}, student {student_id}"
         logger.exception(msg)
         raise SubmissionInternalError(msg) from error
     scores = {
@@ -792,20 +793,24 @@ def reset_score(student_id, course_id, item_id, clear_state=False, emit_signal=T
     except DatabaseError as error:
         msg = (
             "Error occurred while reseting scores for"
-            " item {item_id} in course {course_id} for student {student_id}"
-        ).format(item_id=item_id, course_id=course_id, student_id=student_id)
+            f" item {item_id} in course {course_id} for student {student_id}"
+        )
         logger.exception(msg)
         raise SubmissionInternalError(msg) from error
-    else:
-        msg = "Score reset for item {item_id} in course {course_id} for student {student_id}".format(
-            item_id=item_id, course_id=course_id, student_id=student_id
-        )
-        logger.info(msg)
+    logger.info(
+        "Score reset for item %(item_id)s in course %(course_id)s for student %(student_id)s",
+        {
+            'item_id': item_id,
+            'course_id': course_id,
+            'student_id': student_id,
+        }
+    )
 
 
 def set_score(submission_uuid, points_earned, points_possible,
               annotation_creator=None, annotation_type=None, annotation_reason=None):
-    """Set a score for a particular submission.
+    """
+    Set a score for a particular submission.
 
     Sets the score for a particular submission. This score is calculated
     externally to the API.
@@ -816,8 +821,8 @@ def set_score(submission_uuid, points_earned, points_possible,
         points_possible (int): The total points possible for this particular student item.
 
         annotation_creator (str): An optional field for recording who gave this particular score
-        annotation_type (str): An optional field for recording what type of annotation should be created,
-                                e.g. "staff_override".
+        annotation_type (str): An optional field for recording what type of
+        annotation should be created, e.g. "staff_override".
         annotation_reason (str): An optional field for recording why this score was set to its value.
 
     Returns:
@@ -847,9 +852,7 @@ def set_score(submission_uuid, points_earned, points_possible,
             f"No submission matching uuid {submission_uuid}"
         ) from error
     except DatabaseError as error:
-        error_msg = "Could not retrieve submission {}.".format(
-            submission_uuid
-        )
+        error_msg = f"Could not retrieve submission {submission_uuid}."
         logger.exception(error_msg)
         raise SubmissionRequestError(msg=error_msg) from error
 
@@ -910,15 +913,15 @@ def _log_submission(submission, student_item):
         None
     """
     logger.info(
-        "Created submission uuid={submission_uuid} for "
-        "(course_id={course_id}, item_id={item_id}, "
-        "anonymous_student_id={anonymous_student_id})"
-        .format(
-            submission_uuid=submission["uuid"],
-            course_id=student_item["course_id"],
-            item_id=student_item["item_id"],
-            anonymous_student_id=student_item["student_id"]
-        )
+        "Created submission uuid=%(submission_uuid)s for "
+        "(course_id=%(course_id)s, item_id=%(item_id)s, "
+        "anonymous_student_id=%(anonymous_student_id)s)",
+        {
+            'submission_uuid': submission["uuid"],
+            'course_id': student_item["course_id"],
+            'item_id': student_item["item_id"],
+            'anonymous_student_id': student_item["student_id"],
+        }
     )
 
 
@@ -933,8 +936,12 @@ def _log_score(score):
         None
     """
     logger.info(
-        "Score of ({}/{}) set for submission {}"
-        .format(score.points_earned, score.points_possible, score.submission.uuid)
+        "Score of (%(points_earned)s/%(points_possible)s) set for submission %(uuid)s",
+        {
+            'points_earned': score.points_earned,
+            'points_possible': score.points_possible,
+            'uuid': score.submission.uuid,
+        }
     )
 
 
@@ -977,17 +984,30 @@ def _get_or_create_student_item(student_item_dict):
             )
             if not student_item_serializer.is_valid():
                 logger.error(
-                    "Invalid StudentItemSerializer: errors:{} data:{}".format(
-                        student_item_serializer.errors,
-                        student_item_dict
-                    )
+                    "Invalid StudentItemSerializer: errors:%(errors)s data:%(data)s",
+                    {
+                        'errors': student_item_serializer.errors,
+                        'data': student_item_dict,
+                    }
                 )
                 raise SubmissionRequestError(field_errors=student_item_serializer.errors) from student_error
-            return student_item_serializer.save()
+            try:
+                # This is required because we currently have automatic request transactions turned on in the LMS.
+                # Database errors mess up the "atomic" block so we have to "insulate" against them with an
+                # inner atomic block (https://docs.djangoproject.com/en/4.0/topics/db/transactions/)
+                with transaction.atomic():
+                    return student_item_serializer.save()
+            except IntegrityError as integrity_error:
+                # In the case where a student item does not exist and multiple calls to this function happen, there
+                # can be a race condition where the first get has no results, but once the save happens there is already
+                # a version of this student item. In that case, try just loading again and see if the item exists now.
+                try:
+                    return StudentItem.objects.get(**student_item_dict)
+                except StudentItem.DoesNotExist:
+                    pass
+                raise integrity_error
     except DatabaseError as error:
-        error_message = "An error occurred creating student item: {}".format(
-            student_item_dict
-        )
+        error_message = f"An error occurred creating student item: {student_item_dict}"
         logger.exception(error_message)
         raise SubmissionInternalError(error_message) from error
 

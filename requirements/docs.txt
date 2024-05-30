@@ -34,6 +34,7 @@ django==4.2.13
     #   -r requirements/base.txt
     #   django-model-utils
     #   djangorestframework
+    #   edx-django-release-util
     #   jsonfield
 django-model-utils==4.5.1
     # via -r requirements/base.txt
@@ -43,6 +44,8 @@ docutils==0.19
     # via
     #   pydata-sphinx-theme
     #   sphinx
+edx-django-release-util==1.4.0
+    # via -r requirements/base.txt
 idna==3.7
     # via requests
 imagesize==1.4.1
@@ -74,10 +77,16 @@ pytz==2024.1
     # via
     #   -r requirements/base.txt
     #   babel
+pyyaml==6.0.1
+    # via
+    #   -r requirements/base.txt
+    #   edx-django-release-util
 requests==2.32.2
     # via sphinx
 six==1.16.0
     # via
+    #   -r requirements/base.txt
+    #   edx-django-release-util
     #   pockets
     #   sphinxcontrib-napoleon
 snowballstemmer==2.2.0

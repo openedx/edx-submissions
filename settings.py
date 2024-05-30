@@ -28,6 +28,9 @@ DATABASES = {
     },
 }
 
+# New DB primary keys default to an IntegerField.
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -54,6 +57,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.admindocs',
+    'release_util',
 
     # Submissions
     'submissions'

@@ -17,15 +17,22 @@ django==4.2.13
     #   -r requirements/base.in
     #   django-model-utils
     #   djangorestframework
+    #   edx-django-release-util
     #   jsonfield
 django-model-utils==4.5.1
     # via -r requirements/base.in
 djangorestframework==3.15.1
     # via -r requirements/base.in
+edx-django-release-util==1.4.0
+    # via -r requirements/base.in
 jsonfield==3.1.0
     # via -r requirements/base.in
 pytz==2024.1
     # via -r requirements/base.in
+pyyaml==6.0.1
+    # via edx-django-release-util
+six==1.16.0
+    # via edx-django-release-util
 sqlparse==0.5.0
     # via django
 typing-extensions==4.12.0

@@ -86,6 +86,7 @@ django==4.2.13
     #   -r requirements/test.txt
     #   django-model-utils
     #   djangorestframework
+    #   edx-django-release-util
     #   jsonfield
 django-model-utils==4.5.1
     # via
@@ -103,6 +104,11 @@ docutils==0.19
     #   -r requirements/test.txt
     #   pydata-sphinx-theme
     #   sphinx
+edx-django-release-util==1.4.0
+    # via
+    #   -r requirements/base.txt
+    #   -r requirements/docs.txt
+    #   -r requirements/test.txt
 edx-lint==5.3.6
     # via -r requirements/test.txt
 exceptiongroup==1.2.1
@@ -247,8 +253,11 @@ pytz==2024.1
     #   babel
 pyyaml==6.0.1
     # via
+    #   -r requirements/base.txt
+    #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   code-annotations
+    #   edx-django-release-util
 requests==2.32.2
     # via
     #   -r requirements/docs.txt
@@ -256,8 +265,10 @@ requests==2.32.2
     #   sphinx
 six==1.16.0
     # via
+    #   -r requirements/base.txt
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
+    #   edx-django-release-util
     #   edx-lint
     #   pockets
     #   python-dateutil

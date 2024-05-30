@@ -35,5 +35,5 @@ six==1.16.0
     # via edx-django-release-util
 sqlparse==0.5.0
     # via django
-typing-extensions==4.11.0
+typing-extensions==4.12.0
     # via asgiref

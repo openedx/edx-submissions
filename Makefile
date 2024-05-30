@@ -12,7 +12,8 @@ endef
 export BROWSER_PYSCRIPT
 BROWSER := python -c "$$BROWSER_PYSCRIPT"
 
-.PHONY: clean, coverage, diff_cover, docs, help, dev_requirements, test, test_quality, test_requirements, upgrade
+.PHONY: clean, coverage, diff_cover, docs, help, dev_requirements, test, test_quality, test_requirements, upgrade,\
+		check_keywords
 
 help: ## Display this help message
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -82,6 +83,9 @@ test_quality: ## Run Quality checks
 	pylint submissions
 	isort --check-only submissions manage.py setup.py settings.py --skip migrations
 	pycodestyle . --config=pycodestyle
+
+check_keywords: ## Scan the Django models in all installed apps in this project for restricted field names
+	python manage.py check_reserved_keywords --override_file db_keyword_overrides.yml
 
 ##################
 #Devstack commands

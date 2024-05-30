@@ -7,3 +7,4 @@ django-model-utils
 jsonfield
 pytz
 djangorestframework
+edx-django-release-util

@@ -12,13 +12,13 @@ on:
 
 jobs:
   call-upgrade-python-requirements-workflow:
-    uses: edx/.github/.github/workflows/upgrade-python-requirements.yml@master
+    uses: openedx/.github/.github/workflows/upgrade-python-requirements.yml@master
     with:
       branch: ${{ github.event.inputs.branch || 'master' }}
       # optional parameters below; fill in if you'd like github or email notifications
       # user_reviewers: ""
       # team_reviewers: ""
-      email_address: "masters-requirements-update@edx.opsgenie.net"
+      email_address: "aurora-requirements-update@2u-internal.opsgenie.net"
       send_success_notification: true
     secrets:
       requirements_bot_github_token: ${{ secrets.REQUIREMENTS_BOT_GITHUB_TOKEN }}

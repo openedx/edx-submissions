@@ -44,7 +44,7 @@ beautifulsoup4==4.12.3
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   pydata-sphinx-theme
-certifi==2024.2.2
+certifi==2024.6.2
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -68,7 +68,7 @@ code-annotations==1.8.0
     # via
     #   -r requirements/test.txt
     #   edx-lint
-coverage[toml]==7.5.2
+coverage[toml]==7.5.3
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -117,7 +117,7 @@ exceptiongroup==1.2.1
     #   pytest
 factory-boy==3.3.0
     # via -r requirements/test.txt
-faker==25.2.0
+faker==25.8.0
     # via
     #   -r requirements/test.txt
     #   factory-boy
@@ -169,7 +169,7 @@ mccabe==0.7.0
     #   pylint
 mock==5.1.0
     # via -r requirements/test.txt
-packaging==24.0
+packaging==24.1
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -207,7 +207,7 @@ pygments==2.18.0
     #   accessible-pygments
     #   pydata-sphinx-theme
     #   sphinx
-pylint==3.2.2
+pylint==3.2.3
     # via
     #   -r requirements/test.txt
     #   edx-lint
@@ -227,7 +227,7 @@ pylint-plugin-utils==0.8.2
     #   -r requirements/test.txt
     #   pylint-celery
     #   pylint-django
-pytest==8.2.1
+pytest==8.2.2
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -258,7 +258,7 @@ pyyaml==6.0.1
     #   -r requirements/test.txt
     #   code-annotations
     #   edx-django-release-util
-requests==2.32.2
+requests==2.32.3
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -351,7 +351,7 @@ tomlkit==0.12.5
     # via
     #   -r requirements/test.txt
     #   pylint
-typing-extensions==4.12.0
+typing-extensions==4.12.2
     # via
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
@@ -365,7 +365,7 @@ urllib3==2.2.1
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   requests
-zipp==3.18.2
+zipp==3.19.2
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt

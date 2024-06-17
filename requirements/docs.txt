@@ -10,7 +10,7 @@ alabaster==0.7.13
     # via sphinx
 asgiref==3.8.1
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   django
 babel==2.15.0
     # via
@@ -18,8 +18,8 @@ babel==2.15.0
     #   sphinx
 backports-zoneinfo==0.2.1 ; python_version < "3.9"
     # via
-    #   -c requirements/constraints.txt
-    #   -r requirements/base.txt
+    #   -c constraints.txt
+    #   -r base.txt
     #   django
     #   djangorestframework
 beautifulsoup4==4.12.3
@@ -30,34 +30,34 @@ charset-normalizer==3.3.2
     # via requests
 django==4.2.13
     # via
-    #   -c requirements/common_constraints.txt
-    #   -r requirements/base.txt
+    #   -c common_constraints.txt
+    #   -r base.txt
     #   django-model-utils
     #   djangorestframework
     #   edx-django-release-util
     #   jsonfield
 django-model-utils==4.5.1
-    # via -r requirements/base.txt
+    # via -r base.txt
 djangorestframework==3.15.1
-    # via -r requirements/base.txt
+    # via -r base.txt
 docutils==0.19
     # via
     #   pydata-sphinx-theme
     #   sphinx
 edx-django-release-util==1.4.0
-    # via -r requirements/base.txt
+    # via -r base.txt
 idna==3.7
     # via requests
 imagesize==1.4.1
     # via sphinx
 importlib-metadata==6.11.0
     # via
-    #   -c requirements/common_constraints.txt
+    #   -c common_constraints.txt
     #   sphinx
 jinja2==3.1.4
     # via sphinx
 jsonfield==3.1.0
-    # via -r requirements/base.txt
+    # via -r base.txt
 markupsafe==2.1.5
     # via jinja2
 packaging==24.1
@@ -75,17 +75,17 @@ pygments==2.18.0
     #   sphinx
 pytz==2024.1
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   babel
 pyyaml==6.0.1
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   edx-django-release-util
 requests==2.32.3
     # via sphinx
 six==1.16.0
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   edx-django-release-util
     #   pockets
     #   sphinxcontrib-napoleon
@@ -95,11 +95,11 @@ soupsieve==2.5
     # via beautifulsoup4
 sphinx==6.2.1
     # via
-    #   -r requirements/docs.in
+    #   -r docs.in
     #   pydata-sphinx-theme
     #   sphinx-book-theme
 sphinx-book-theme==1.0.1
-    # via -r requirements/docs.in
+    # via -r docs.in
 sphinxcontrib-applehelp==1.0.4
     # via sphinx
 sphinxcontrib-devhelp==1.0.2
@@ -109,21 +109,21 @@ sphinxcontrib-htmlhelp==2.0.1
 sphinxcontrib-jsmath==1.0.1
     # via sphinx
 sphinxcontrib-napoleon==0.7
-    # via -r requirements/docs.in
+    # via -r docs.in
 sphinxcontrib-qthelp==1.0.3
     # via sphinx
 sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
 sqlparse==0.5.0
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   django
 typing-extensions==4.12.2
     # via
-    #   -r requirements/base.txt
+    #   -r base.txt
     #   asgiref
     #   pydata-sphinx-theme
-urllib3==2.2.1
+urllib3==2.2.2
     # via requests
 zipp==3.19.2
     # via importlib-metadata

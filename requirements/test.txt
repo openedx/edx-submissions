@@ -6,16 +6,16 @@
 #
 accessible-pygments==0.0.4
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   pydata-sphinx-theme
 alabaster==0.7.13
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 asgiref==3.8.1
     # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -r base.txt
+    #   -r docs.txt
     #   django
 astroid==3.2.2
     # via
@@ -23,27 +23,27 @@ astroid==3.2.2
     #   pylint-celery
 babel==2.15.0
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   pydata-sphinx-theme
     #   sphinx
 backports-zoneinfo==0.2.1 ; python_version < "3.9"
     # via
-    #   -c requirements/constraints.txt
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -c constraints.txt
+    #   -r base.txt
+    #   -r docs.txt
     #   django
     #   djangorestframework
 beautifulsoup4==4.12.3
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   pydata-sphinx-theme
-certifi==2024.6.2
+certifi==2024.7.4
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   requests
 charset-normalizer==3.3.2
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   requests
 click==8.1.7
     # via
@@ -57,82 +57,84 @@ code-annotations==1.8.0
 coverage[toml]==7.5.4
     # via pytest-cov
 ddt==1.7.2
-    # via -r requirements/test.in
+    # via -r test.in
 dill==0.3.8
     # via pylint
+django==4.2.13
     # via
-    #   -c requirements/common_constraints.txt
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -c common_constraints.txt
+    #   -r base.txt
+    #   -r docs.txt
     #   django-model-utils
     #   djangorestframework
     #   edx-django-release-util
     #   jsonfield
 django-model-utils==4.5.1
     # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -r base.txt
+    #   -r docs.txt
+djangorestframework==3.15.2
     # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -r base.txt
+    #   -r docs.txt
 docutils==0.19
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   pydata-sphinx-theme
     #   sphinx
 edx-django-release-util==1.4.0
     # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -r base.txt
+    #   -r docs.txt
 edx-lint==5.3.6
-    # via -r requirements/test.in
+    # via -r test.in
 exceptiongroup==1.2.1
     # via pytest
 factory-boy==3.3.0
-    # via -r requirements/test.in
+    # via -r test.in
 faker==25.9.2
     # via factory-boy
 freezegun==1.5.1
-    # via -r requirements/test.in
+    # via -r test.in
 idna==3.7
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   requests
 imagesize==1.4.1
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 importlib-metadata==6.11.0
     # via
-    #   -c requirements/common_constraints.txt
-    #   -r requirements/docs.txt
+    #   -c common_constraints.txt
+    #   -r docs.txt
     #   sphinx
 iniconfig==2.0.0
     # via pytest
 isort==5.13.2
     # via
-    #   -r requirements/test.in
+    #   -r test.in
     #   pylint
 jinja2==3.1.4
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   code-annotations
     #   sphinx
 jsonfield==3.1.0
     # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -r base.txt
+    #   -r docs.txt
 markupsafe==2.1.5
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   jinja2
 mccabe==0.7.0
     # via pylint
 mock==5.1.0
-    # via -r requirements/test.in
+    # via -r test.in
 packaging==24.1
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   pydata-sphinx-theme
     #   pytest
     #   sphinx
@@ -144,17 +146,17 @@ pluggy==1.5.0
     # via pytest
 pockets==0.9.1
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinxcontrib-napoleon
 pycodestyle==2.12.0
-    # via -r requirements/test.in
+    # via -r test.in
 pydata-sphinx-theme==0.14.4
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx-book-theme
 pygments==2.18.0
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   accessible-pygments
     #   pydata-sphinx-theme
     #   sphinx
@@ -177,35 +179,35 @@ pytest==8.2.2
     #   pytest-cov
     #   pytest-django
 pytest-cov==5.0.0
-    # via -r requirements/test.in
+    # via -r test.in
 pytest-django==4.8.0
-    # via -r requirements/test.in
+    # via -r test.in
 python-dateutil==2.9.0.post0
     # via
-    #   -r requirements/test.in
+    #   -r test.in
     #   faker
     #   freezegun
 python-slugify==8.0.4
     # via code-annotations
 pytz==2024.1
     # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -r base.txt
+    #   -r docs.txt
     #   babel
 pyyaml==6.0.1
     # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -r base.txt
+    #   -r docs.txt
     #   code-annotations
     #   edx-django-release-util
 requests==2.32.3
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 six==1.16.0
     # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -r base.txt
+    #   -r docs.txt
     #   edx-django-release-util
     #   edx-lint
     #   pockets
@@ -213,49 +215,49 @@ six==1.16.0
     #   sphinxcontrib-napoleon
 snowballstemmer==2.2.0
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 soupsieve==2.5
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   beautifulsoup4
 sphinx==6.2.1
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   pydata-sphinx-theme
     #   sphinx-book-theme
 sphinx-book-theme==1.0.1
-    # via -r requirements/docs.txt
+    # via -r docs.txt
 sphinxcontrib-applehelp==1.0.4
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 sphinxcontrib-devhelp==1.0.2
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 sphinxcontrib-htmlhelp==2.0.1
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 sphinxcontrib-jsmath==1.0.1
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 sphinxcontrib-napoleon==0.7
-    # via -r requirements/docs.txt
+    # via -r docs.txt
 sphinxcontrib-qthelp==1.0.3
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 sphinxcontrib-serializinghtml==1.1.5
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 sqlparse==0.5.0
     # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -r base.txt
+    #   -r docs.txt
     #   django
 stevedore==5.2.0
     # via code-annotations
@@ -270,17 +272,17 @@ tomlkit==0.12.5
     # via pylint
 typing-extensions==4.12.2
     # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -r base.txt
+    #   -r docs.txt
     #   asgiref
     #   astroid
     #   pydata-sphinx-theme
     #   pylint
 urllib3==2.2.2
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   requests
 zipp==3.19.2
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   importlib-metadata

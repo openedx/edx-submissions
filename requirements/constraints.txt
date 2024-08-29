@@ -13,3 +13,7 @@
 -c common_constraints.txt
 
 backports.zoneinfo;python_version<"3.9"
+
+# Temporary until we drop support for python 3.8
+# Upgrading causes quality error: AttributeError: module 'importlib.resources' has no attribute 'files'
+edx-lint<5.4

@@ -109,8 +109,10 @@ edx-django-release-util==1.4.0
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
-edx-lint==5.4.0
-    # via -r requirements/test.txt
+edx-lint==5.3.7
+    # via
+    #   -c requirements/constraints.txt
+    #   -r requirements/test.txt
 exceptiongroup==1.2.2
     # via
     #   -r requirements/test.txt

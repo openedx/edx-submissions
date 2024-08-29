@@ -84,8 +84,10 @@ edx-django-release-util==1.4.0
     # via
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
-edx-lint==5.4.0
-    # via -r requirements/test.in
+edx-lint==5.3.7
+    # via
+    #   -c requirements/constraints.txt
+    #   -r requirements/test.in
 exceptiongroup==1.2.2
     # via pytest
 factory-boy==3.3.1

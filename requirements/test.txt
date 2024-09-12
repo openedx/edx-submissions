@@ -37,7 +37,7 @@ beautifulsoup4==4.12.3
     # via
     #   -r requirements/docs.txt
     #   pydata-sphinx-theme
-certifi==2024.7.4
+certifi==2024.8.30
     # via
     #   -r requirements/docs.txt
     #   requests
@@ -68,7 +68,7 @@ dill==0.3.8
     #   djangorestframework
     #   edx-django-release-util
     #   jsonfield
-django-model-utils==4.5.1
+django-model-utils==5.0.0
     # via
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
@@ -92,7 +92,7 @@ exceptiongroup==1.2.2
     # via pytest
 factory-boy==3.3.1
     # via -r requirements/test.in
-faker==28.0.0
+faker==28.4.1
     # via factory-boy
 freezegun==1.5.1
     # via -r requirements/test.in
@@ -104,7 +104,7 @@ imagesize==1.4.1
     # via
     #   -r requirements/docs.txt
     #   sphinx
-importlib-metadata==8.4.0
+importlib-metadata==8.5.0
     # via
     #   -r requirements/docs.txt
     #   sphinx
@@ -137,9 +137,9 @@ packaging==24.1
     #   pydata-sphinx-theme
     #   pytest
     #   sphinx
-pbr==6.0.0
+pbr==6.1.0
     # via stevedore
-platformdirs==4.2.2
+platformdirs==4.3.2
     # via pylint
 pluggy==1.5.0
     # via pytest
@@ -159,7 +159,7 @@ pygments==2.18.0
     #   accessible-pygments
     #   pydata-sphinx-theme
     #   sphinx
-pylint==3.2.6
+pylint==3.2.7
     # via
     #   edx-lint
     #   pylint-celery
@@ -173,13 +173,13 @@ pylint-plugin-utils==0.8.2
     # via
     #   pylint-celery
     #   pylint-django
-pytest==8.3.2
+pytest==8.3.3
     # via
     #   pytest-cov
     #   pytest-django
 pytest-cov==5.0.0
     # via -r requirements/test.in
-pytest-django==4.8.0
+pytest-django==4.9.0
     # via -r requirements/test.in
 python-dateutil==2.9.0.post0
     # via
@@ -188,7 +188,7 @@ python-dateutil==2.9.0.post0
     #   freezegun
 python-slugify==8.0.4
     # via code-annotations
-pytz==2024.1
+pytz==2024.2
     # via
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
@@ -277,11 +277,11 @@ typing-extensions==4.12.2
     #   astroid
     #   pydata-sphinx-theme
     #   pylint
-urllib3==2.2.2
+urllib3==2.2.3
     # via
     #   -r requirements/docs.txt
     #   requests
-zipp==3.20.0
+zipp==3.20.1
     # via
     #   -r requirements/docs.txt
     #   importlib-metadata

@@ -24,11 +24,11 @@ backports-zoneinfo==0.2.1 ; python_version < "3.9"
     #   djangorestframework
 beautifulsoup4==4.12.3
     # via pydata-sphinx-theme
-certifi==2024.7.4
+certifi==2024.8.30
     # via requests
 charset-normalizer==3.3.2
     # via requests
-django==4.2.15
+django==4.2.16
     # via
     #   -c requirements/common_constraints.txt
     #   -r requirements/base.txt
@@ -36,7 +36,7 @@ django==4.2.15
     #   djangorestframework
     #   edx-django-release-util
     #   jsonfield
-django-model-utils==4.5.1
+django-model-utils==5.0.0
     # via -r requirements/base.txt
 djangorestframework==3.15.2
     # via -r requirements/base.txt
@@ -50,7 +50,7 @@ idna==3.8
     # via requests
 imagesize==1.4.1
     # via sphinx
-importlib-metadata==8.4.0
+importlib-metadata==8.5.0
     # via sphinx
 jinja2==3.1.4
     # via sphinx
@@ -71,7 +71,7 @@ pygments==2.18.0
     #   accessible-pygments
     #   pydata-sphinx-theme
     #   sphinx
-pytz==2024.1
+pytz==2024.2
     # via
     #   -r requirements/base.txt
     #   babel
@@ -121,7 +121,7 @@ typing-extensions==4.12.2
     #   -r requirements/base.txt
     #   asgiref
     #   pydata-sphinx-theme
-urllib3==2.2.2
+urllib3==2.2.3
     # via requests
-zipp==3.20.0
+zipp==3.20.1
     # via importlib-metadata

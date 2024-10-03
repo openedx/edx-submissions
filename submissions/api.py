@@ -486,6 +486,7 @@ def get_all_course_submission_information(course_id, item_type, read_replica=Tru
         )
 
 
+# pylint: disable=too-many-positional-arguments
 def get_top_submissions(course_id, item_id, item_type, number_of_top_scores, use_cache=True, read_replica=True):
     """
     Get a number of top scores for an assessment based on a particular student item
@@ -807,6 +808,7 @@ def reset_score(student_id, course_id, item_id, clear_state=False, emit_signal=T
     )
 
 
+# pylint: disable=too-many-positional-arguments
 def set_score(submission_uuid, points_earned, points_possible,
               annotation_creator=None, annotation_type=None, annotation_reason=None):
     """

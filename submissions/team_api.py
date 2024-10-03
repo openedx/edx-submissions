@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 @transaction.atomic
+# pylint: disable=too-many-positional-arguments
 def create_submission_for_team(
     course_id,
     item_id,
@@ -359,7 +360,7 @@ def get_team_ids_by_team_submission_uuid(team_submission_uuids):
     }
 
 
-def set_score(team_submission_uuid, points_earned, points_possible,
+def set_score(team_submission_uuid, points_earned, points_possible,  # pylint: disable=too-many-positional-arguments
               annotation_creator=None, annotation_type=None, annotation_reason=None):
     """Set a score for a particular team submission.  This score is calculated
     externally to the API.  Should call _api.set_score(...) for each child submission

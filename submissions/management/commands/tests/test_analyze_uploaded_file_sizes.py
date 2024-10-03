@@ -66,7 +66,7 @@ class BaseMixin:
             same_user=False,
             same_course=False,
             time_delta=None,
-    ):
+    ):  # pylint: disable=too-many-positional-arguments
         """
         Creates a new Submission, copying certain fields from the 'base'
         """

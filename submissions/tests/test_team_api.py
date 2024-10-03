@@ -74,7 +74,7 @@ class TestTeamSubmissionsApi(TestCase):
         team_id=TEAM_1_ID,
         status=None,
         create_submissions=False
-    ):
+    ):  # pylint: disable=too-many-positional-arguments
         """ Convenience method to create test TeamSubmissions with some default values """
         model_args = {
             'attempt_number': attempt_number,

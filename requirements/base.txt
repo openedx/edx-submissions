@@ -8,7 +8,7 @@ asgiref==3.8.1
     # via django
 django==4.2.16
     # via
-    #   -c requirements/common_constraints.txt
+    #   -c /home/runner/work/edx-submissions/edx-submissions/requirements/common_constraints.txt
     #   -r requirements/base.in
     #   django-model-utils
     #   djangorestframework

@@ -28,5 +28,5 @@ pyyaml==6.0.2
     # via edx-django-release-util
 six==1.16.0
     # via edx-django-release-util
-sqlparse==0.5.1
+sqlparse==0.5.2
     # via django

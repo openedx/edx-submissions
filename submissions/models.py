@@ -7,7 +7,6 @@ NOTE: We've switched to migrations, so if you make any edits to this file, you
 need to then generate a matching migration for it using:
 
     ./manage.py makemigrations submissions
-
 """
 
 import logging
@@ -34,7 +33,9 @@ score_reset = Signal()
 
 
 class AnonymizedUserIDField(models.CharField):
-    """ Field for storing anonymized user ids. """
+    """
+    Field for storing anonymized user ids.
+    """
     description = "The anonymized User ID that the XBlock sees"
 
     def __init__(self, *args, **kwargs):
@@ -50,11 +51,13 @@ class AnonymizedUserIDField(models.CharField):
 
 
 class StudentItem(models.Model):
-    """Represents a single item for a single course for a single user.
+    """
+    Represents a single item for a single course for a single user.
 
     This is typically an XBlock problem, but could be something more generic
     like class participation.
 
+    .. no_pii:
     """
     # The anonymized Student ID that the XBlock sees, not their real ID.
     student_id = AnonymizedUserIDField()
@@ -111,6 +114,8 @@ class TeamSubmission(TimeStampedModel):
     An abstraction layer over Submission used to for teams. Since we create a submission record for every team member,
     there is a need to have a single point to connect the team to the workflows.
     TeamSubmission is a 1 to many with Submission
+
+    .. no_pii:
     """
 
     uuid = models.UUIDField(db_index=True, default=uuid4, null=False)
@@ -287,7 +292,8 @@ def validate_only_one_submission_per_team(sender, **kwargs):  # pylint:disable=u
 
 
 class Submission(models.Model):
-    """A single response by a student for a given problem in a given course.
+    """
+    A single response by a student for a given problem in a given course.
 
     A student may have multiple submissions for the same problem. Submissions
     should never be mutated. If the student makes another Submission, or if we
@@ -295,6 +301,7 @@ class Submission(models.Model):
     objects. We want to keep Submissions immutable both for audit purposes, and
     because it makes caching trivial.
 
+    .. no_pii:
     """
     MAXSIZE = 1024*100  # 100KB
 
@@ -363,12 +370,15 @@ class Submission(models.Model):
 
 
 class Score(models.Model):
-    """What the user scored for a given StudentItem at a given time.
+    """
+    What the user scored for a given StudentItem at a given time.
 
     Note that while a Score *can* be tied to a Submission, it doesn't *have* to.
     Specifically, if we want to have scores for things that are not a part of
     the courseware (like "class participation"), there would be no corresponding
     Submission.
+
+    .. no_pii:
     """
     student_item = models.ForeignKey(StudentItem, on_delete=models.CASCADE)
     submission = models.ForeignKey(Submission, null=True, on_delete=models.CASCADE)
@@ -449,7 +459,6 @@ class Score(models.Model):
 
         Raises:
             DatabaseError: An error occurred while creating the score
-
         """
         # By setting the "reset" flag, we ensure that the "highest"
         # score in the score summary will point to this score.
@@ -468,7 +477,11 @@ class Score(models.Model):
 
 
 class ScoreSummary(models.Model):
-    """Running store of the highest and most recent Scores for a StudentItem."""
+    """
+    Running store of the highest and most recent Scores for a StudentItem.
+
+    .. no_pii:
+    """
     student_item = models.OneToOneField(StudentItem, on_delete=models.CASCADE)
 
     highest = models.ForeignKey(Score, related_name="+", on_delete=models.CASCADE)
@@ -488,7 +501,6 @@ class ScoreSummary(models.Model):
 
         Kwargs:
             instance (Score): The score model whose save triggered this receiver.
-
         """
         score = kwargs['instance']
         try:
@@ -529,7 +541,11 @@ class ScoreSummary(models.Model):
 
 
 class ScoreAnnotation(models.Model):
-    """ Annotate individual scores with extra information if necessary. """
+    """
+    Annotate individual scores with extra information if necessary.
+
+    .. no_pii:
+    """
 
     class Meta:
         app_label = "submissions"

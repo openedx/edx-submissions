@@ -20,7 +20,7 @@ colorama==0.4.6
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
     #   tox
-coverage[toml]==7.6.4
+coverage[toml]==7.6.9
     # via coveralls
 coveralls==4.0.1
     # via -r requirements/ci.in
@@ -61,7 +61,7 @@ tox==4.23.2
     # via -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
 urllib3==2.2.3
     # via requests
-virtualenv==20.27.1
+virtualenv==20.28.0
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
     #   tox

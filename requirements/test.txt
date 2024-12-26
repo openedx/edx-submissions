@@ -17,7 +17,7 @@ asgiref==3.8.1
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   django
-astroid==3.3.6
+astroid==3.3.8
     # via
     #   pylint
     #   pylint-celery
@@ -30,15 +30,15 @@ beautifulsoup4==4.12.3
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   pydata-sphinx-theme
-certifi==2024.8.30
+certifi==2024.12.14
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   requests
-charset-normalizer==3.4.0
+charset-normalizer==3.4.1
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   requests
-click==8.1.7
+click==8.1.8
     # via
     #   click-log
     #   code-annotations
@@ -101,7 +101,7 @@ isort==5.13.2
     # via
     #   -r requirements/test.in
     #   pylint
-jinja2==3.1.4
+jinja2==3.1.5
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   code-annotations
@@ -135,7 +135,7 @@ pockets==0.9.1
     #   sphinxcontrib-napoleon
 pycodestyle==2.12.1
     # via -r requirements/test.in
-pydata-sphinx-theme==0.16.0
+pydata-sphinx-theme==0.16.1
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   sphinx-book-theme
@@ -145,7 +145,7 @@ pygments==2.18.0
     #   accessible-pygments
     #   pydata-sphinx-theme
     #   sphinx
-pylint==3.3.2
+pylint==3.3.3
     # via
     #   edx-lint
     #   pylint-celery
@@ -254,7 +254,7 @@ typing-extensions==4.12.2
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   faker
     #   pydata-sphinx-theme
-urllib3==2.2.3
+urllib3==2.3.0
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   requests

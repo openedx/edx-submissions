@@ -86,3 +86,13 @@ class TeamSubmissionInternalError(SubmissionInternalError):
 
 class TeamSubmissionRequestError(SubmissionRequestError):
     """ SubmissionRequestError for teams """
+
+
+class SubmissionSignalError(SubmissionError):
+    """
+    Error that occurs during submission event handling.
+
+    This error is raised when there is a problem emitting or processing
+    submission events, such as connection issues with the event bus
+    or serialization errors with the event data.
+    """

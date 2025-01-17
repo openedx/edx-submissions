@@ -13,12 +13,15 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import DatabaseError, IntegrityError, transaction
 
+from openedx_events.learning.data import SubmissionData
+from openedx_events.learning.signals import SUBMISSION_CREATED
+
 # SubmissionError imported so that code importing this api has access
 from submissions.errors import (  # pylint: disable=unused-import
     SubmissionError,
     SubmissionInternalError,
     SubmissionNotFoundError,
-    SubmissionRequestError
+    SubmissionRequestError, SubmissionSignalError
 )
 from submissions.models import (
     DELETED,
@@ -48,7 +51,8 @@ MAX_TOP_SUBMISSIONS = 100
 TOP_SUBMISSIONS_CACHE_TIMEOUT = 300
 
 
-def create_submission(student_item_dict, answer, submitted_at=None, attempt_number=None, team_submission=None):
+def create_submission(student_item_dict, answer, submitted_at=None,
+                      attempt_number=None, team_submission=None, **kwargs):
     """Creates a submission for assessment.
 
     Generic means by which to submit an answer for assessment.
@@ -104,11 +108,15 @@ def create_submission(student_item_dict, answer, submitted_at=None, attempt_numb
 
     """
     student_item_model = _get_or_create_student_item(student_item_dict)
+
     if attempt_number is None:
-        first_submission = None
         attempt_number = 1
         try:
-            first_submission = Submission.objects.filter(student_item=student_item_model).first()
+            first_submission = Submission.objects.filter(
+                student_item=student_item_model
+            ).first()
+            if first_submission:
+                attempt_number = first_submission.attempt_number + 1
         except DatabaseError as error:
             error_message = (
                 "An error occurred while filtering submissions "
@@ -116,9 +124,6 @@ def create_submission(student_item_dict, answer, submitted_at=None, attempt_numb
             )
             logger.exception(error_message)
             raise SubmissionInternalError(error_message) from error
-
-        if first_submission:
-            attempt_number = first_submission.attempt_number + 1
 
     model_kwargs = {
         "student_item": student_item_model.pk,
@@ -134,10 +139,18 @@ def create_submission(student_item_dict, answer, submitted_at=None, attempt_numb
         submission_serializer = SubmissionSerializer(data=model_kwargs)
         if not submission_serializer.is_valid():
             raise SubmissionRequestError(field_errors=submission_serializer.errors)
-        submission_serializer.save()
 
+        submission = submission_serializer.save()
         sub_data = submission_serializer.data
         _log_submission(sub_data, student_item_dict)
+        send_signal(
+                answer=answer,
+                attempt_number=attempt_number,
+                **student_item_dict,
+                submission_uid=str(submission.uuid),
+                submitted_at=submission.submitted_at,
+                team_submission_uuid=model_kwargs.get("team_submission_uuid")
+        )
 
         return sub_data
 
@@ -148,7 +161,6 @@ def create_submission(student_item_dict, answer, submitted_at=None, attempt_numb
         )
         logger.exception(error_message)
         raise SubmissionInternalError(error_message) from error
-
 
 def _get_submission_model(uuid, read_replica=False):
     """
@@ -1030,3 +1042,30 @@ def _use_read_replica(queryset):
         if "read_replica" in settings.DATABASES
         else queryset
     )
+
+
+def send_signal(**kwargs):
+    """
+    Emit the submission created event.
+
+    Args:
+        **kwargs: Data needed to create the SubmissionData object.
+
+    Raises:
+        SubmissionSignalError: If there is an error sending the event.
+    """
+
+    # Emit the submission created event
+    # .. event_implemented_name: SUBMISSION_CREATED
+    try:
+        logger.info("Sending submission event to bus")
+        SUBMISSION_CREATED.send_event(
+            submission=SubmissionData(
+                **kwargs
+            )
+        )
+        logger.info("Submission event sent to bus successfully")
+    except Exception as e:
+        error_message = f"Unexpected error sending submission event to bus: {str(e)}"
+        logger.error(error_message)
+        raise SubmissionSignalError(error_message) from e

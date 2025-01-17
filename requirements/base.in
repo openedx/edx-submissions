@@ -8,3 +8,4 @@ jsonfield
 pytz
 djangorestframework
 edx-django-release-util
+openedx-events

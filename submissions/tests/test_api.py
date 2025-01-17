@@ -14,7 +14,7 @@ from django.utils.timezone import now
 from freezegun import freeze_time
 
 from submissions import api
-from submissions.errors import SubmissionInternalError
+from submissions.errors import SubmissionInternalError, SubmissionSignalError
 from submissions.models import ScoreAnnotation, ScoreSummary, StudentItem, Submission, score_set
 from submissions.serializers import StudentItemSerializer
 
@@ -863,3 +863,48 @@ class TestSubmissionsApi(TestCase):
                 mock_get_item.side_effect = StudentItem.DoesNotExist
                 with self.assertRaisesMessage(SubmissionInternalError, "An error occurred creating student item"):
                     api._get_or_create_student_item(STUDENT_ITEM)  # pylint: disable=protected-access
+
+    @mock.patch('submissions.api.SUBMISSION_CREATED')
+    def test_submission_event_signal(self, mock_signal):
+        """Test that create_submission emits the event correctly."""
+        _ = api.create_submission(STUDENT_ITEM, ANSWER_ONE)
+        mock_signal.send_event.assert_called_once()
+
+    @mock.patch('submissions.api.SUBMISSION_CREATED')
+    def test_send_signal_success(self, mock_signal):
+        """Test send_signal with valid data."""
+        test_data = {
+            'student_id': 'test_student',
+            'item_id': 'test_item',
+            'course_id': 'test_course',
+            'item_type': 'test_type',
+            'answer': 'test_answer',
+            'attempt_number': 1,
+            'submitted_at': datetime.datetime.now(),
+            'submission_uid': 'test-uid'
+        }
+        api.send_signal(**test_data)
+        mock_signal.send_event.assert_called_once()
+
+    @mock.patch('submissions.api.SUBMISSION_CREATED')
+    @mock.patch('submissions.api.logger')
+    def test_send_signal_error(self, mock_logger, mock_signal):
+        """Test send_signal error handling."""
+        mock_signal.send_event.side_effect = Exception('Test error')
+        test_data = {
+            'student_id': 'test_student',
+            'item_id': 'test_item',
+            'course_id': 'test_course',
+            'item_type': 'test_type',
+            'answer': 'test_answer',
+            'attempt_number': 1,
+            'submitted_at': datetime.datetime.now(),
+            'submission_uid': 'test-uid'
+        }
+
+        with self.assertRaises(SubmissionSignalError):
+            api.send_signal(**test_data)
+
+        mock_logger.error.assert_called_once_with(
+            'Unexpected error sending submission event to bus: Test error'
+        )

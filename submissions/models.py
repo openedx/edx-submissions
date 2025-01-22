@@ -10,11 +10,14 @@ need to then generate a matching migration for it using:
 """
 
 import logging
+import os
 from datetime import timedelta
 from uuid import uuid4
 
 from django.conf import settings
 from django.contrib import auth
+from django.core.files.base import ContentFile
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import DatabaseError, models, transaction
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import Signal, receiver
@@ -693,3 +696,102 @@ class ExternalGraderDetail(models.Model):
     def create_from_uuid(cls, submission_uuid, **kwargs):
         submission = Submission.objects.get(uuid=submission_uuid)
         return cls.objects.create(submission=submission, **kwargs)
+
+
+def submission_file_path(instance, _):
+    """
+    Generate file path for submission files.
+    Format: queue_name/uuid
+    The filename is replaced with the UUID to ensure uniqueness without preserving extension.
+    """
+    return os.path.join(
+        instance.submission_queue.queue_name,
+        f"{instance.uid}"
+    )
+
+
+class SubmissionFile(models.Model):
+    """
+    Model to handle files associated with submissions
+    """
+    uid = models.UUIDField(default=uuid4, editable=False)
+    # legacy S3 key
+    submission_queue = models.ForeignKey(
+        'submissions.ExternalGraderDetail',
+        on_delete=models.SET_NULL,
+        related_name='files',
+        null=True,
+    )
+    file = models.FileField(
+        upload_to=submission_file_path,
+        max_length=512
+    )
+    original_filename = models.CharField(max_length=255)  # This is necessary to send file name to xqueue-watcher
+    created_at = models.DateTimeField(default=now)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['submission_queue', 'uid']),
+        ]
+
+    @property
+    def xqueue_url(self):
+        """
+        Returns URL in xqueue format: /queue_name/uid
+        """
+        return f"/{self.submission_queue.queue_name}/{self.uid}"
+
+
+class SubmissionFileManager:
+    """
+    Manages file operations for submissions
+    """
+
+    def __init__(self, submission_queue):
+        self.submission_queue = submission_queue
+
+    def process_files(self, files_dict):
+        """
+        Process uploaded files.
+        Returns URLs in xqueue compatible format.
+        """
+        files_urls = {}
+        for filename, file_obj in files_dict.items():
+            if not (isinstance(file_obj, (bytes, ContentFile, SimpleUploadedFile)) or hasattr(file_obj, 'read')):
+                logger.warning(f"Invalid file object type for {filename}")
+                continue
+
+            if hasattr(file_obj, 'read'):
+                try:
+                    file_content = file_obj.read()
+                    if isinstance(file_content, bytes):
+                        file_obj = ContentFile(file_content, name=filename)
+                    else:
+                        continue
+                except (IOError, OSError) as e:
+                    logger.error(f"Error reading file {filename}: {e}")
+                    continue
+                except UnicodeDecodeError as e:
+                    logger.error(f"Error decoding file {filename}: {e}")
+                    continue
+
+            if isinstance(file_obj, bytes):
+                file_obj = ContentFile(file_obj, name=filename)
+
+            submission_file = SubmissionFile.objects.create(
+                submission_queue=self.submission_queue,
+                file=file_obj,
+                original_filename=filename
+            )
+            files_urls[filename] = submission_file.xqueue_url
+
+        return files_urls
+
+    def get_files_for_grader(self):
+        """
+        Returns files in format expected by xwatcher
+        """
+        return {
+            file.original_filename: file.file.url
+            for file in self.submission_queue.files.all()
+        }

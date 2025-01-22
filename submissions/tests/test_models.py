@@ -328,7 +328,7 @@ class TestExternalGraderDetail(TestCase):
         )
 
     def test_default_status(self):
-        """Test that new queue records are created with 'pending' status."""
+        """Test that new external graders are created with 'pending' status."""
         self.assertEqual(self.external_grader_detail.status, 'pending')
         self.assertEqual(self.external_grader_detail.num_failures, 0)
 
@@ -748,7 +748,7 @@ class TestSubmissionFile(TestCase):
         )
 
     def test_related_name_access(self):
-        """Test accessing files through the submission queue record."""
+        """Test accessing files through the submission external grader."""
         files = self.external_grader_detail.files.all()
         self.assertEqual(files.count(), 1)
         self.assertEqual(files.first(), self.submission_file)

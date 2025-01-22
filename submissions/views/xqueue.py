@@ -9,6 +9,8 @@ from django.db import DatabaseError, transaction
 from django.db.models import Q
 from django.http import HttpResponse
 from django.utils import timezone
+from openedx_events.learning.data import ExternalGraderScoreData
+from openedx_events.learning.signals import EXTERNAL_GRADER_SCORE_SUBMITTED
 from rest_framework import status, viewsets
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import action
@@ -229,6 +231,24 @@ class XqueueViewSet(viewsets.ViewSet):
             external_grader.save()
             external_grader.update_status('retired')
             log.info("Successfully updated submission score for submission %s", submission_id)
+
+            # Modify the event emission in put_result
+            EXTERNAL_GRADER_SCORE_SUBMITTED.send_event(
+                send_robust=False,
+                score=ExternalGraderScoreData(
+                    points_possible=external_grader.points_possible,
+                    points_earned=points_earned,
+                    course_id=external_grader.submission.student_item.course_id,
+                    score_msg=score_msg,
+                    submission_id=submission_id,
+                    # Extract these from the submission
+                    user_id=external_grader.submission.student_item.student_id,
+                    module_id=external_grader.submission.student_item.item_id,
+                    queue_key=external_grader.queue_key,
+                    queue_name=external_grader.queue_name
+                )
+            )
+            log.info("Score event sent to bus successfully")
 
         except Exception:
             log.exception("Error when execute set_score")

@@ -625,6 +625,7 @@ class ExternalGraderDetail(models.Model):
     )
 
     queue_name = models.CharField(max_length=128)
+    queue_key = models.CharField(max_length=128, null=True)
     grader_file_name = models.CharField(max_length=128, default='')
     points_possible = models.PositiveIntegerField(default=1)
 

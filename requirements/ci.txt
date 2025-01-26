@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
-cachetools==5.5.0
+cachetools==5.5.1
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
     #   tox
@@ -30,7 +30,7 @@ distlib==0.3.9
     #   virtualenv
 docopt==0.6.2
     # via coveralls
-filelock==3.16.1
+filelock==3.17.0
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
     #   tox
@@ -51,19 +51,19 @@ pluggy==1.5.0
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
     #   tox
-pyproject-api==1.8.0
+pyproject-api==1.9.0
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
     #   tox
 requests==2.32.3
     # via coveralls
-tox==4.23.2
+tox==4.24.1
     # via -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
 urllib3==2.2.3
     # via
     #   -c /home/runner/work/edx-submissions/edx-submissions/requirements/common_constraints.txt
     #   requests
-virtualenv==20.28.1
+virtualenv==20.29.1
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
     #   tox

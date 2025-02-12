@@ -12,17 +12,17 @@ asgiref==3.8.1
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
     #   django
-babel==2.16.0
+babel==2.17.0
     # via
     #   pydata-sphinx-theme
     #   sphinx
-beautifulsoup4==4.12.3
+beautifulsoup4==4.13.3
     # via pydata-sphinx-theme
-certifi==2024.12.14
+certifi==2025.1.31
     # via requests
 charset-normalizer==3.4.1
     # via requests
-django==4.2.18
+django==4.2.19
     # via
     #   -c /home/runner/work/edx-submissions/edx-submissions/requirements/common_constraints.txt
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
@@ -61,7 +61,7 @@ pygments==2.19.1
     #   accessible-pygments
     #   pydata-sphinx-theme
     #   sphinx
-pytz==2024.2
+pytz==2025.1
     # via -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
 pyyaml==6.0.2
     # via
@@ -105,7 +105,9 @@ sqlparse==0.5.3
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
     #   django
 typing-extensions==4.12.2
-    # via pydata-sphinx-theme
+    # via
+    #   beautifulsoup4
+    #   pydata-sphinx-theme
 urllib3==2.2.3
     # via
     #   -c /home/runner/work/edx-submissions/edx-submissions/requirements/common_constraints.txt

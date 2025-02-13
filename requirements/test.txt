@@ -21,16 +21,16 @@ astroid==3.3.8
     # via
     #   pylint
     #   pylint-celery
-babel==2.16.0
+babel==2.17.0
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   pydata-sphinx-theme
     #   sphinx
-beautifulsoup4==4.12.3
+beautifulsoup4==4.13.3
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   pydata-sphinx-theme
-certifi==2024.12.14
+certifi==2025.1.31
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   requests
@@ -47,7 +47,7 @@ click-log==0.4.0
     # via edx-lint
 code-annotations==2.2.0
     # via edx-lint
-coverage[toml]==7.6.10
+coverage[toml]==7.6.12
     # via pytest-cov
 ddt==1.7.2
     # via -r requirements/test.in
@@ -81,9 +81,9 @@ edx-lint==5.3.7
     # via
     #   -c /home/runner/work/edx-submissions/edx-submissions/requirements/constraints.txt
     #   -r requirements/test.in
-factory-boy==3.3.1
+factory-boy==3.3.3
     # via -r requirements/test.in
-faker==35.0.0
+faker==36.1.0
     # via factory-boy
 freezegun==1.5.1
     # via -r requirements/test.in
@@ -97,7 +97,7 @@ imagesize==1.4.1
     #   sphinx
 iniconfig==2.0.0
     # via pytest
-isort==5.13.2
+isort==6.0.0
     # via
     #   -r requirements/test.in
     #   pylint
@@ -123,7 +123,7 @@ packaging==24.2
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   pytest
     #   sphinx
-pbr==6.1.0
+pbr==6.1.1
     # via stevedore
 platformdirs==4.3.6
     # via pylint
@@ -145,7 +145,7 @@ pygments==2.19.1
     #   accessible-pygments
     #   pydata-sphinx-theme
     #   sphinx
-pylint==3.3.3
+pylint==3.3.4
     # via
     #   edx-lint
     #   pylint-celery
@@ -165,16 +165,15 @@ pytest==8.3.4
     #   pytest-django
 pytest-cov==6.0.0
     # via -r requirements/test.in
-pytest-django==4.9.0
+pytest-django==4.10.0
     # via -r requirements/test.in
 python-dateutil==2.9.0.post0
     # via
     #   -r requirements/test.in
-    #   faker
     #   freezegun
 python-slugify==8.0.4
     # via code-annotations
-pytz==2024.2
+pytz==2025.1
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
@@ -252,10 +251,15 @@ tomlkit==0.13.2
 typing-extensions==4.12.2
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
-    #   faker
+    #   beautifulsoup4
     #   pydata-sphinx-theme
+tzdata==2025.1
+    # via faker
 urllib3==2.2.3
     # via
     #   -c /home/runner/work/edx-submissions/edx-submissions/requirements/common_constraints.txt
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   requests
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools

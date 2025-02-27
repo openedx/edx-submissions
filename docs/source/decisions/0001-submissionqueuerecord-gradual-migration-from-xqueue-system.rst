@@ -42,7 +42,7 @@ Key Features
     - Clearer connection between submissions and their grading results
     - Improved error handling and retry capabilities
     - Easier monitoring of the grading process
-    - Simplify the xwatcher and edx platform queue processing architecture
+    - Simplify the xqueue-watcher and edx-platform queue processing architecture
     - Reduce inter-service communication overhead
 
 Implementation Approach
@@ -66,7 +66,7 @@ Model Structure:
    * Protected state changes using atomic transactions
 
 Integration:
-   * Compatible with existing XWatcher interface
+   * Compatible with existing xqueue-watcher interface
    * Maintains current queue naming patterns
    * Enables parallel system operation during migration
 
@@ -83,7 +83,7 @@ Technical Challenges:
 
 Testing Needs:
    * Comprehensive state transition testing required
-   * Integration testing with xwatcher
+   * Integration testing with xqueue-watcher
 
 Neutral:
 --------
@@ -105,6 +105,7 @@ Current System Documentation:
 
 Migration Documents:
    * Current XQueue Documentation: https://github.com/openedx/edx-submissions/tree/master/docs
+   * ADR to follow steps migration: https://github.com/openedx/edx-platform/pull/36258
 
 Related Repositories:
    * edx-submissions: https://github.com/openedx/edx-submissions

@@ -17,7 +17,7 @@ from freezegun import freeze_time
 
 # Local imports
 from submissions import api
-from submissions.errors import ExternalGraderQueueCanNotBeEmptyError, SubmissionInternalError
+from submissions.errors import ExternalGraderQueueEmptyError, SubmissionInternalError
 from submissions.models import ExternalGraderDetail, ScoreAnnotation, ScoreSummary, StudentItem, Submission, score_set
 from submissions.serializers import StudentItemSerializer
 
@@ -876,8 +876,8 @@ class TestSubmissionsApi(TestCase):
             attempt_number=1
         )
 
-        event_data = {'queue_name': 'test_queue'}
-        queue_record = api.create_external_grader_detail(submission, event_data)
+        external_grader_detail = {'queue_name': 'test_queue'}
+        queue_record = api.create_external_grader_detail(submission.id, external_grader_detail)
 
         self.assertEqual(queue_record.submission.id, submission.id)
         self.assertEqual(queue_record.queue_name, 'test_queue')
@@ -891,8 +891,8 @@ class TestSubmissionsApi(TestCase):
             attempt_number=1
         )
 
-        event_data1 = {'queue_name': 'test_queue'}
-        queue_record1 = api.create_external_grader_detail(submission1, event_data1)
+        external_grader_detail1 = {'queue_name': 'test_queue'}
+        queue_record1 = api.create_external_grader_detail(submission1.id, external_grader_detail1)
 
         self.assertEqual(queue_record1.submission.id, submission1.id)
         self.assertEqual(queue_record1.queue_name, 'test_queue')
@@ -904,8 +904,8 @@ class TestSubmissionsApi(TestCase):
             attempt_number=1
         )
 
-        event_data2 = {'queue_name': 'test_queue'}
-        queue_record2 = api.create_external_grader_detail(submission2, event_data2)
+        external_grader_detail2 = {'queue_name': 'test_queue'}
+        queue_record2 = api.create_external_grader_detail(submission2.id, external_grader_detail2)
 
         self.assertEqual(queue_record2.submission.id, submission2.id)
         self.assertEqual(queue_record2.queue_name, 'test_queue')
@@ -919,7 +919,7 @@ class TestSubmissionsApi(TestCase):
             attempt_number=1
         )
 
-        with self.assertRaises(ExternalGraderQueueCanNotBeEmptyError):
+        with self.assertRaises(ExternalGraderQueueEmptyError):
             api.create_external_grader_detail(submission, {"queue_name": ""})
 
     def test_create_external_grader_detail_directly_database_error(self):
@@ -931,17 +931,17 @@ class TestSubmissionsApi(TestCase):
             attempt_number=1
         )
 
-        event_data = {'queue_name': 'test_queue'}
+        external_grader_detail = {'queue_name': 'test_queue'}
 
         with mock.patch.object(ExternalGraderDetail.objects, 'create') as mock_create:
             mock_create.side_effect = DatabaseError("Database connection failed")
 
             with self.assertRaises(api.SubmissionInternalError):
-                api.create_external_grader_detail(submission, event_data)
+                api.create_external_grader_detail(submission, external_grader_detail)
 
     def test_create_submission_with_queue_record(self):
         """
-        Test that create_submission correctly creates a queue record when event_data is provided.
+        Test that create_submission correctly creates a queue record when external_grader_detail is provided.
         """
 
         submission_dict = api.create_submission(STUDENT_ITEM,

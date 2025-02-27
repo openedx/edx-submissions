@@ -2,22 +2,19 @@
 Public interface for the submissions app.
 
 """
-# Stdlib imports
 import itertools
 import logging
 import operator
 import warnings
 from uuid import UUID
 
-# Django imports
 from django.conf import settings
 from django.core.cache import cache
 from django.db import DatabaseError, IntegrityError, transaction
 
-# Local imports
 # SubmissionError imported so that code importing this api has access
 from submissions.errors import (  # pylint: disable=unused-import
-    ExternalGraderQueueCanNotBeEmptyError,
+    ExternalGraderQueueEmptyError,
     SubmissionError,
     SubmissionInternalError,
     SubmissionNotFoundError,
@@ -52,39 +49,39 @@ MAX_TOP_SUBMISSIONS = 100
 TOP_SUBMISSIONS_CACHE_TIMEOUT = 300
 
 
-def create_external_grader_detail(submission, event_data):
+def create_external_grader_detail(submission_id, external_grader_detail):
     """
     Creates a ExternalGraderDetail for a given submission.
 
     Args:
-        submission (Submission): The submission object to create a queue record for.
-        event_data (dict): Data to be included in the queue record. Must include a 'queue_name' key.
+        submission_id (Submission): The submission id for object to create a queue record for.
+        external_grader_detail (dict): Data to be included in the queue record. Must include a 'queue_name' key.
 
     Returns:
         ExternalGraderDetail: The created queue record.
 
     Raises:
-        ExternalGraderQueueCanNotBeEmptyError: If event_data doesn't contain required queue_name.
+        ExternalGraderQueueEmptyError: If external_grader_detail doesn't contain required queue_name.
         SubmissionInternalError: If there's an error creating the queue record.
     """
 
-    if not event_data.get('queue_name'):
-        raise ExternalGraderQueueCanNotBeEmptyError("event_data must contain 'queue_name'")
+    if not external_grader_detail.get('queue_name'):
+        raise ExternalGraderQueueEmptyError("external_grader_detail must contain 'queue_name'")
 
     try:
         queue_record = ExternalGraderDetail.objects.create(
-            submission=submission,
-            queue_name=event_data['queue_name'],
-            grader_file_name=event_data.get('grader_file_name', ''),
-            points_possible=event_data.get('points_possible', 1),
+            submission_id=submission_id,
+            queue_name=external_grader_detail['queue_name'],
+            grader_file_name=external_grader_detail.get('grader_file_name', ''),
+            points_possible=external_grader_detail.get('points_possible', 1),
 
         )
         return queue_record
 
     except DatabaseError as error:
         error_message = (
-            f"An error occurred while creating queue record for submission {submission.uuid} "
-            f"with event data: {event_data}"
+            f"An error occurred while creating queue record for submission {submission_id} "
+            f"with event data: {external_grader_detail}"
         )
         logger.exception(error_message)
         raise SubmissionInternalError(error_message) from error
@@ -96,7 +93,7 @@ def create_submission(
     submitted_at=None,
     attempt_number=None,
     team_submission=None,
-    **event_data
+    **external_grader_detail
 ):
     """
     Creates a submission for assessment.
@@ -122,7 +119,7 @@ def create_submission(
         team_submission (TeamSubmission, optional): The team submission this individual
             submission is associated with, if any.
 
-        event_data (dict, optional): If provided, creates a ExternalGraderDetail
+        external_grader_detail (dict, optional): If provided, creates a ExternalGraderDetail
             for this submission. Must contain at least a ``queue_name`` key.
 
     Returns:
@@ -147,7 +144,7 @@ def create_submission(
 
         SubmissionInternalError: Raised when submission access causes an internal error.
 
-        ValueError: If event_data is provided but missing required queue_name.
+        ValueError: If external_grader_detail is provided but missing required queue_name.
 
     Examples:
         >>> student_item_dict = {
@@ -199,8 +196,8 @@ def create_submission(
 
         submission_instance = submission_serializer.save()
 
-        if event_data.get("queue_name"):
-            create_external_grader_detail(submission_instance, event_data)
+        if external_grader_detail.get("queue_name"):
+            create_external_grader_detail(submission_instance.id, external_grader_detail)
 
         sub_data = submission_serializer.data
         _log_submission(sub_data, student_item_dict)

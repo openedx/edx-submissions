@@ -31,7 +31,7 @@ class SubmissionNotFoundError(SubmissionError):
     """
 
 
-class ExternalGraderQueueCanNotBeEmptyError(SubmissionError):
+class ExternalGraderQueueEmptyError(SubmissionError):
     """
     This error is raised when queue name is empty.
 

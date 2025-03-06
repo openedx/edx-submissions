@@ -83,7 +83,7 @@ edx-lint==5.3.7
     #   -r requirements/test.in
 factory-boy==3.3.3
     # via -r requirements/test.in
-faker==36.1.0
+faker==36.1.1
     # via factory-boy
 freezegun==1.5.1
     # via -r requirements/test.in
@@ -121,6 +121,7 @@ mock==5.1.0
 packaging==24.2
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
+    #   pydata-sphinx-theme
     #   pytest
     #   sphinx
 pbr==6.1.1
@@ -135,7 +136,7 @@ pockets==0.9.1
     #   sphinxcontrib-napoleon
 pycodestyle==2.12.1
     # via -r requirements/test.in
-pydata-sphinx-theme==0.16.1
+pydata-sphinx-theme==0.15.4
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   sphinx-book-theme
@@ -187,6 +188,10 @@ requests==2.32.3
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   sphinx
+roman-numerals-py==3.1.0
+    # via
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
+    #   sphinx
 six==1.17.0
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
@@ -204,12 +209,12 @@ soupsieve==2.6
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   beautifulsoup4
-sphinx==8.1.3
+sphinx==8.2.1
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   pydata-sphinx-theme
     #   sphinx-book-theme
-sphinx-book-theme==1.1.3
+sphinx-book-theme==1.1.4
     # via -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
 sphinxcontrib-applehelp==2.0.0
     # via
@@ -242,7 +247,7 @@ sqlparse==0.5.3
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   django
-stevedore==5.4.0
+stevedore==5.4.1
     # via code-annotations
 text-unidecode==1.3
     # via python-slugify

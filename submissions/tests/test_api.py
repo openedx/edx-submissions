@@ -1,21 +1,25 @@
 """ Api Module Tests. """
 
-
+# Stdlib imports
 import copy
 import datetime
 from unittest import mock
 
+# Third party imports
 import ddt
 import pytz
+# Django imports
 from django.core.cache import cache
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import DatabaseError, IntegrityError, connection, transaction
 from django.test import TestCase
 from django.utils.timezone import now
 from freezegun import freeze_time
 
+# Local imports
 from submissions import api
-from submissions.errors import SubmissionInternalError
-from submissions.models import ScoreAnnotation, ScoreSummary, StudentItem, Submission, score_set
+from submissions.errors import ExternalGraderQueueCanNotBeEmptyError, SubmissionInternalError
+from submissions.models import ExternalGraderDetail, ScoreAnnotation, ScoreSummary, StudentItem, Submission, score_set
 from submissions.serializers import StudentItemSerializer
 
 STUDENT_ITEM = {
@@ -863,3 +867,208 @@ class TestSubmissionsApi(TestCase):
                 mock_get_item.side_effect = StudentItem.DoesNotExist
                 with self.assertRaisesMessage(SubmissionInternalError, "An error occurred creating student item"):
                     api._get_or_create_student_item(STUDENT_ITEM)  # pylint: disable=protected-access
+
+    def test_create_queue_record(self):
+        """Test the direct creation of a submission queue record."""
+        student_item = api._get_or_create_student_item(STUDENT_ITEM)  # pylint: disable=protected-access
+        submission = Submission.objects.create(
+            student_item=student_item,
+            answer=ANSWER_ONE,
+            attempt_number=1
+        )
+
+        event_data = {'queue_name': 'test_queue'}
+        queue_record = api.create_external_grader_detail(submission, event_data)
+
+        self.assertEqual(queue_record.submission.id, submission.id)
+        self.assertEqual(queue_record.queue_name, 'test_queue')
+
+    def test_create_multiple_queue_record(self):
+        """Test the direct creation of a submission queue record."""
+        student_item1 = api._get_or_create_student_item(STUDENT_ITEM)  # pylint: disable=protected-access
+        submission1 = Submission.objects.create(
+            student_item=student_item1,
+            answer=ANSWER_ONE,
+            attempt_number=1
+        )
+
+        event_data1 = {'queue_name': 'test_queue'}
+        queue_record1 = api.create_external_grader_detail(submission1, event_data1)
+
+        self.assertEqual(queue_record1.submission.id, submission1.id)
+        self.assertEqual(queue_record1.queue_name, 'test_queue')
+
+        student_item2 = api._get_or_create_student_item(SECOND_STUDENT_ITEM)  # pylint: disable=protected-access
+        submission2 = Submission.objects.create(
+            student_item=student_item2,
+            answer=ANSWER_ONE,
+            attempt_number=1
+        )
+
+        event_data2 = {'queue_name': 'test_queue'}
+        queue_record2 = api.create_external_grader_detail(submission2, event_data2)
+
+        self.assertEqual(queue_record2.submission.id, submission2.id)
+        self.assertEqual(queue_record2.queue_name, 'test_queue')
+
+    def test_create_external_grader_detail_directly_missing_queue_name(self):
+        """Test that create_external_grader_detail validates queue_name existence."""
+        student_item = api._get_or_create_student_item(STUDENT_ITEM)  # pylint: disable=protected-access
+        submission = Submission.objects.create(
+            student_item=student_item,
+            answer=ANSWER_ONE,
+            attempt_number=1
+        )
+
+        with self.assertRaises(ExternalGraderQueueCanNotBeEmptyError):
+            api.create_external_grader_detail(submission, {"queue_name": ""})
+
+    def test_create_external_grader_detail_directly_database_error(self):
+        """Test database error handling in create_external_grader_detail."""
+        student_item = api._get_or_create_student_item(STUDENT_ITEM)  # pylint: disable=protected-access
+        submission = Submission.objects.create(
+            student_item=student_item,
+            answer=ANSWER_ONE,
+            attempt_number=1
+        )
+
+        event_data = {'queue_name': 'test_queue'}
+
+        with mock.patch.object(ExternalGraderDetail.objects, 'create') as mock_create:
+            mock_create.side_effect = DatabaseError("Database connection failed")
+
+            with self.assertRaises(api.SubmissionInternalError):
+                api.create_external_grader_detail(submission, event_data)
+
+    def test_create_submission_with_queue_record(self):
+        """
+        Test that create_submission correctly creates a queue record when event_data is provided.
+        """
+
+        submission_dict = api.create_submission(STUDENT_ITEM,
+                                                ANSWER_ONE,
+                                                queue_name="test_queue",
+                                                files={}
+                                                )
+
+        student_item = self._get_student_item(STUDENT_ITEM)
+        self._assert_submission(submission_dict, ANSWER_ONE, student_item.pk, 1)
+
+        queue_record = ExternalGraderDetail.objects.get(submission__uuid=submission_dict['uuid'])
+        self.assertEqual(queue_record.queue_name, 'test_queue')
+
+    def test_create_multiple_submission_queue_records(self):
+        """
+        Test that multiple submissions can have queue records with the same queue_name.
+        """
+
+        submission1_dict = api.create_submission(STUDENT_ITEM,
+                                                 ANSWER_ONE,
+                                                 queue_name="shared_queue",
+                                                 files={})
+
+        second_student = SECOND_STUDENT_ITEM
+        submission2_dict = api.create_submission(second_student, ANSWER_TWO,
+                                                 queue_name="shared_queue",
+                                                 files={})
+
+        submission1 = Submission.objects.get(uuid=submission1_dict['uuid'])
+        queue_record1 = submission1.queue_record
+
+        submission2 = Submission.objects.get(uuid=submission2_dict['uuid'])
+        queue_record2 = submission2.queue_record
+
+        self.assertEqual(queue_record1.queue_name, 'shared_queue')
+        self.assertEqual(queue_record2.queue_name, 'shared_queue')
+        self.assertNotEqual(queue_record1.submission.uuid, queue_record2.submission.uuid)
+
+    def test_create_external_grader_detail_database_error_integration(self):
+        """
+        Test database error handling when creating a queue record through create_submission.
+        """
+        with mock.patch.object(ExternalGraderDetail.objects, 'create') as mock_create:
+            mock_create.side_effect = DatabaseError("Database connection failed")
+
+            with self.assertRaises(api.SubmissionInternalError):
+                api.create_submission(STUDENT_ITEM, ANSWER_ONE, queue_name="test_queue", files={})
+
+    def test_create_external_grader_detail_with_files(self):
+        """Test creating a queue record with file handling."""
+        student_item = api._get_or_create_student_item(STUDENT_ITEM)  # pylint: disable=protected-access
+        submission = Submission.objects.create(
+            student_item=student_item,
+            answer=ANSWER_ONE,
+            attempt_number=1
+        )
+
+        test_file = SimpleUploadedFile(
+            "test.txt",
+            b"test content",
+            content_type="text/plain"
+        )
+
+        event_data = {
+            'queue_name': 'test_queue',
+            'files': {'test.txt': test_file}
+        }
+
+        queue_record = api.create_external_grader_detail(submission, event_data)
+
+        self.assertEqual(queue_record.submission.id, submission.id)
+        self.assertEqual(queue_record.queue_name, 'test_queue')
+
+        self.assertEqual(queue_record.files.count(), 1)
+        submission_file = queue_record.files.first()
+        self.assertEqual(submission_file.original_filename, 'test.txt')
+
+    def test_create_external_grader_detail_with_multiple_files(self):
+        """Test creating a queue record with multiple files."""
+        student_item = api._get_or_create_student_item(STUDENT_ITEM)  # pylint: disable=protected-access
+        submission = Submission.objects.create(
+            student_item=student_item,
+            answer=ANSWER_ONE,
+            attempt_number=1
+        )
+
+        test_files = {
+            'test1.txt': SimpleUploadedFile(
+                "test1.txt",
+                b"test content 1",
+                content_type="text/plain"
+            ),
+            'test2.txt': SimpleUploadedFile(
+                "test2.txt",
+                b"test content 2",
+                content_type="text/plain"
+            )
+        }
+
+        event_data = {
+            'queue_name': 'test_queue',
+            'files': test_files
+        }
+
+        queue_record = api.create_external_grader_detail(submission, event_data)
+
+        self.assertEqual(queue_record.files.count(), 2)
+        filenames = set(queue_record.files.values_list('original_filename', flat=True))
+        self.assertEqual(filenames, {'test1.txt', 'test2.txt'})
+
+    def test_create_external_grader_detail_without_files(self):
+        """Test creating a queue record without any files still works."""
+        student_item = api._get_or_create_student_item(STUDENT_ITEM)  # pylint: disable=protected-access
+        submission = Submission.objects.create(
+            student_item=student_item,
+            answer=ANSWER_ONE,
+            attempt_number=1
+        )
+
+        event_data = {
+            'queue_name': 'test_queue'
+        }
+
+        queue_record = api.create_external_grader_detail(submission, event_data)
+
+        self.assertEqual(queue_record.submission.id, submission.id)
+        self.assertEqual(queue_record.queue_name, 'test_queue')
+        self.assertEqual(queue_record.files.count(), 0)

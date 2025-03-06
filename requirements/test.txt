@@ -53,7 +53,7 @@ ddt==1.7.2
     # via -r test.in
 dill==0.3.9
     # via pylint
-django==4.2.19
+django==4.2.20
     # via
     #   -c common_constraints.txt
     #   -r base.txt

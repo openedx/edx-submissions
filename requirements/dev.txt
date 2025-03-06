@@ -70,7 +70,7 @@ dill==0.3.9
     # via
     #   -r test.txt
     #   pylint
-django==4.2.19
+django==4.2.20
     # via
     #   -c common_constraints.txt
     #   -r base.txt

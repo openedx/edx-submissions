@@ -31,6 +31,15 @@ class SubmissionNotFoundError(SubmissionError):
     """
 
 
+class ExternalGraderQueueEmptyError(SubmissionError):
+    """
+    This error is raised when queue name is empty.
+
+    If the create submission call have an event data with queue name empty,
+    this error may be raised.
+    """
+
+
 class SubmissionRequestError(SubmissionError):
     """
     This error is raised when there was a request-specific error

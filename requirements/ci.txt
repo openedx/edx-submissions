@@ -57,13 +57,13 @@ pyproject-api==1.9.0
     #   tox
 requests==2.32.3
     # via coveralls
-tox==4.24.1
+tox==4.24.2
     # via -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
 urllib3==2.2.3
     # via
     #   -c /home/runner/work/edx-submissions/edx-submissions/requirements/common_constraints.txt
     #   requests
-virtualenv==20.29.2
+virtualenv==20.29.3
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
     #   tox

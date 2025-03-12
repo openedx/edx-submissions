@@ -23,7 +23,14 @@ API Documentation
 
    api
 
+Architecture Decisions
+----------------------
 
+.. toctree::
+   :maxdepth: 1
+   :glob:
+
+   decisions/*
 
 Indices and tables
 ==================

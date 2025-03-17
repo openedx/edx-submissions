@@ -281,10 +281,15 @@ class TestXqueueViewSet(APITestCase):
         self.queue_record.refresh_from_db()
 
     @patch('submissions.views.xqueue.log')
-    def test_logging(self, mock_log):
+    def test_put_result_logging(self, mock_log):
         """
         Test that appropriate logging occurs in various scenarios.
         """
+        self.submission.queue_record.status = 'pulled'
+        self.submission.queue_record.save()
+        self.submission.queue_record.refresh_from_db()
+        self.assertEqual(self.submission.queue_record.status, 'pulled')
+
         payload = {
             'xqueue_header': json.dumps({
                 'submission_id': self.submission.id,
@@ -300,10 +305,52 @@ class TestXqueueViewSet(APITestCase):
             mock_set_score.return_value = True
             self.client.post(self.url, payload, format='json')
 
-        mock_log.info.assert_called_with(
+        mock_log.info.assert_any_call(
+            "Score event sent to bus successfully <====="
+        )
+
+        mock_log.info.assert_any_call(
             "Successfully updated submission score for submission %s",
             self.submission.id
         )
+
+    @patch('submissions.views.xqueue.log')
+    def test_put_result_success(self, mock_log):
+        """
+        Test that appropriate logging occurs in various scenarios.
+        """
+        self.submission.queue_record.status = 'pulled'
+        self.submission.queue_record.save()
+        self.submission.queue_record.refresh_from_db()
+        self.assertEqual(self.submission.queue_record.status, 'pulled')
+
+        payload = {
+            'xqueue_header': json.dumps({
+                'submission_id': self.submission.id,
+                'submission_key': 'test_pull_key'
+            }),
+            'xqueue_body': json.dumps({'score': 8})
+        }
+
+        with patch('submissions.api.set_score') as mock_set_score:
+            self.client.login(username='testuser', password='testpass')
+            response = self.client.post(self.url_status)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            mock_set_score.return_value = True
+            response = self.client.post(self.url, payload, format='json')
+
+        mock_log.info.assert_any_call(
+            "Successfully updated submission score for submission %s",
+            self.submission.id
+        )
+
+        response_data = json.loads(response.content)
+        self.assertEqual(
+            response_data,
+            self.viewset.compose_reply(True, '')
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_permissions_login(self):
         """Test permissions for login endpoint"""

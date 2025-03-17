@@ -8,6 +8,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.db import transaction
 from django.http import HttpResponse
 from django.utils import timezone
+from openedx_events.content_authoring.data import ExternalGraderScoreData
+from openedx_events.content_authoring.signals import EXTERNAL_GRADER_SCORE_SUBMITTED
 from rest_framework import status, viewsets
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import action
@@ -158,11 +160,10 @@ class XqueueViewSet(viewsets.ViewSet):
             answer = submission_record.submission.answer
             submission_data = {
                 "grader_payload": json.dumps({
-                    "grader": ""
-
+                    "grader": submission_record.grader_file_name
                 }),
                 "student_info": json.dumps({
-                    "anonymous_student_id": str(submission_record.submission.uuid),
+                    "anonymous_student_id": str(submission_record.submission.student_item.student_id,),
                     "submission_time": str(int(submission_record.created_at.timestamp())),
                     "random_seed": 1
                 }),
@@ -207,7 +208,8 @@ class XqueueViewSet(viewsets.ViewSet):
 
         try:
             submission_record = ExternalGraderDetail.objects.select_for_update(
-                                                                        nowait=True).get(submission__id=submission_id)
+                                                                        nowait=True
+            ).get(submission__id=submission_id)
         except ExternalGraderDetail.DoesNotExist:
             log.error(
                 "Grader submission_id refers to nonexistent entry in Submission DB: "
@@ -236,11 +238,30 @@ class XqueueViewSet(viewsets.ViewSet):
                       points_earned,
                       1
                       )
-
+            log.info(f"=====> Saving score {score_msg}")
             submission_record.grader_reply = score_msg
             submission_record.status_time = timezone.now()
-            submission_record.status = "returned"
+            submission_record.update_status('retired')
             submission_record.save()
+            log.info("=====> Sending score to event bus")
+
+            # Modify the event emission in put_result
+            EXTERNAL_GRADER_SCORE_SUBMITTED.send_event(
+                send_robust=False,
+                score=ExternalGraderScoreData(
+                    points_possible=submission_record.points_possible,
+                    points_earned=points_earned,
+                    course_id=submission_record.submission.student_item.course_id,
+                    score_msg=score_msg,
+                    submission_id=submission_id,
+                    # Extract these from the submission
+                    user_id=submission_record.submission.student_item.student_id,
+                    module_id=submission_record.submission.student_item.item_id,
+                    queue_key=submission_record.queue_key,
+                    queue_name=submission_record.queue_name
+                )
+            )
+            log.info("Score event sent to bus successfully <=====")
             log.info("Successfully updated submission score for submission %s", submission_id)
 
         except Exception as e:

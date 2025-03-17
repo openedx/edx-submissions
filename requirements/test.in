@@ -14,3 +14,4 @@ pycodestyle>=2.5.0
 pytest-cov
 pytest-django
 python-dateutil>=2.8.0
+-e git+https://github.com/aulasneo/openedx-events.git@XQU-44-add-signal-to-call-xqueue-callback#egg=openedx-events

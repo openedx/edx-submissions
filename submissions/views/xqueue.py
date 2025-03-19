@@ -3,9 +3,11 @@
 import json
 import logging
 import uuid
+from datetime import timedelta
 
 from django.contrib.auth import authenticate, login, logout
-from django.db import transaction
+from django.db import DatabaseError, transaction
+from django.db.models import Q
 from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework import status, viewsets
@@ -115,6 +117,7 @@ class XqueueViewSet(viewsets.ViewSet):
         - Submission data with pull information if successful
         - Error message if queue is empty or invalid
         """
+
         queue_name = request.query_params.get('queue_name')
 
         if not queue_name:
@@ -123,59 +126,70 @@ class XqueueViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        submission_record = ExternalGraderDetail.objects.filter(
-            queue_name=queue_name,
-            status__in=['pending']
-        ).select_related('submission').order_by('status_time').first()
-
-        if not submission_record:
-            return Response(
-                self.compose_reply(False, f"Queue '{queue_name}' is empty"),
-                status=status.HTTP_404_NOT_FOUND
-            )
-
+        timeout_threshold = timezone.now() - timedelta(minutes=5)
         try:
-            pull_time = timezone.now()
-            pullkey = str(uuid.uuid4())
-            submission_record.update_status('pulled')
-            submission_record.pullkey = pullkey
-            submission_record.status_time = pull_time
-            submission_record.save(update_fields=['pullkey', 'status_time'])
-
-            ext_header = {
-                'submission_id': submission_record.submission.id,
-                'submission_key': pullkey
-            }
-            answer = submission_record.submission.answer
-            submission_data = {
-                "grader_payload": json.dumps({
-                    "grader": ""
-
-                }),
-                "student_info": json.dumps({
-                    "anonymous_student_id": str(submission_record.submission.uuid),
-                    "submission_time": str(int(submission_record.created_at.timestamp())),
-                    "random_seed": 1
-                }),
-                "student_response": answer
-            }
-
-            payload = {
-                'xqueue_header': json.dumps(ext_header),
-                'xqueue_body': json.dumps(submission_data),
-                'xqueue_files': json.dumps(get_files_for_grader(submission_record))
-            }
-
+            submission_record = (
+                ExternalGraderDetail.objects
+                .select_for_update(nowait=True)
+                .filter(
+                    Q(queue_name=queue_name, status='pending') |
+                    Q(queue_name=queue_name, status='pulled', status_time__lt=timeout_threshold)
+                )
+                .select_related('submission')
+                .order_by('status_time')
+                .first()
+            )
+        except DatabaseError:
             return Response(
-                self.compose_reply(True, content=json.dumps(payload)),
-                status=status.HTTP_200_OK
+                self.compose_reply(False, "Submission already in process"),
+                status=status.HTTP_409_CONFLICT
             )
 
-        except ValueError as e:
-            return Response(
-                self.compose_reply(False, f"Error processing submission: {str(e)}"),
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if submission_record:
+            try:
+                pull_time = timezone.now()
+                pullkey = str(uuid.uuid4())
+                submission_record.update_status('pulled')
+                submission_record.pullkey = pullkey
+                submission_record.status_time = pull_time
+                submission_record.save(update_fields=['pullkey', 'status_time'])
+
+                submission_data = {
+                    "grader_payload": json.dumps({"grader": submission_record.grader_file_name}),
+                    "student_info": json.dumps({
+                        "anonymous_student_id": str(submission_record.submission.student_item.student_id),
+                        "submission_time": str(int(submission_record.created_at.timestamp())),
+                        "random_seed": 1
+                    }),
+                    "student_response": submission_record.submission.answer
+                }
+
+                file_manager = SubmissionFileManager(submission_record)
+
+                payload = {
+                    'xqueue_header': json.dumps({
+                        'submission_id': submission_record.submission.id,
+                        'submission_key': pullkey
+                    }),
+                    'xqueue_body': json.dumps(submission_data),
+                    'xqueue_files': json.dumps(file_manager.get_files_for_grader())
+                }
+
+                return Response(
+                    self.compose_reply(True, content=json.dumps(payload)),
+                    status=status.HTTP_200_OK
+                )
+
+            except ValueError as e:
+                return Response(
+                    self.compose_reply(False, f"Error processing submission: {str(e)}"),
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        return Response(
+            self.compose_reply(False, f"Queue '{queue_name}' is empty"),
+            status=status.HTTP_404_NOT_FOUND
+        )
 
     @action(detail=False, methods=['post'], url_name='put_result')
     @transaction.atomic
@@ -225,10 +239,10 @@ class XqueueViewSet(viewsets.ViewSet):
                       points_earned,
                       1
                       )
-
+            log.info(f"=====> Saving score {score_msg}")
             submission_record.grader_reply = score_msg
             submission_record.status_time = timezone.now()
-            submission_record.status = "returned"
+            submission_record.update_status('retired')
             submission_record.save()
             log.info("Successfully updated submission score for submission %s", submission_id)
 

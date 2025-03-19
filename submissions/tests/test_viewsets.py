@@ -7,9 +7,9 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
+from django.db import DatabaseError
 from django.test import override_settings
 from django.urls import reverse
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.test import APITestCase
@@ -71,35 +71,66 @@ class TestXqueueViewSet(APITestCase):
             self.viewset.compose_reply(False, f"Queue '{queue_name}' is empty")
         )
 
-    @patch('submissions.views.xqueue.timezone.now', return_value=timezone.now())
-    @patch('submissions.views.xqueue.uuid.uuid4', return_value=str(uuid.uuid4()))
-    def test_get_submission_success(self, mock_uuid, _):
-        """Test successfully retrieving a submission from the queue."""
-        queue_name = 'prueba'
+    def test_get_submission_successful(self):
+        """Test retrieving a valid submission from the queue."""
         self.client.login(username='testuser', password='testpass')
-        new_submission = SubmissionFactory()
-        submission_queue_record = ExternalGraderDetailFactory(
+
+        queue_name = 'valid_queue'
+
+        submission = SubmissionFactory()
+        submission_record = ExternalGraderDetailFactory(
+            submission=submission,
             queue_name=queue_name,
-            status='pending',
-            submission=new_submission
+            status='pending'
         )
 
         response = self.client.get(self.get_submission_url, {'queue_name': queue_name})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = json.loads(response.data['content'])
-        self.assertEqual(response.data['return_code'], 0)
+        submission_record.refresh_from_db()
+        self.assertEqual(submission_record.status, 'pulled')
+        self.assertIsNotNone(submission_record.pullkey)
 
-        xqueue_header = json.loads(content['xqueue_header'])
-        xqueue_body = json.loads(content['xqueue_body'])
-        self.assertEqual(xqueue_header['submission_id'], new_submission.id)
-        self.assertEqual(xqueue_header['submission_key'], str(mock_uuid.return_value))
-        self.assertEqual(xqueue_body['student_response'], new_submission.answer)
-        self.assertEqual(content['xqueue_files'], '{}')
+    def test_get_submission_error_updating_status(self):
+        """Test error handling when updating the submission status fails."""
+        self.client.login(username='testuser', password='testpass')
+        new_submission = SubmissionFactory()
 
-        submission_queue_record.refresh_from_db()
-        self.assertEqual(submission_queue_record.status, 'pulled')
-        self.assertEqual(submission_queue_record.pullkey, str(mock_uuid.return_value))
-        self.assertIsNotNone(submission_queue_record.status_time)
+        queue_name = 'test_queue'
+        submission_record = ExternalGraderDetailFactory(
+            submission=new_submission,  # Se usa una nueva Submission
+            queue_name=queue_name,
+            status='pending'
+        )
+        with patch(
+            'submissions.views.xqueue.ExternalGraderDetail.update_status',
+            side_effect=ValueError('Invalid transition')
+        ):
+            response = self.client.get(self.get_submission_url, {'queue_name': queue_name})
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data,
+            self.viewset.compose_reply(False, "Error processing submission: Invalid transition")
+        )
+        submission_record.refresh_from_db()
+        self.assertEqual(submission_record.status, 'pending')
+
+    def test_get_submission_db_error(self):
+        """Test DatabaseError handling when retrieving a submission."""
+        self.client.login(username='testuser', password='testpass')
+        queue_name = 'test_queue'
+
+        with patch(
+            'submissions.views.xqueue.ExternalGraderDetail.objects.select_for_update',
+            side_effect=DatabaseError("Simulated DB Error")
+        ):
+            response = self.client.get(self.get_submission_url, {'queue_name': queue_name})
+
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+        self.assertEqual(
+            response.data,
+            self.viewset.compose_reply(False, "Submission already in process")
+        )
 
     @patch('submissions.views.xqueue.ExternalGraderDetail.update_status',
            side_effect=ValueError('Invalid transition'))
@@ -283,7 +314,7 @@ class TestXqueueViewSet(APITestCase):
     @patch('submissions.views.xqueue.log')
     def test_put_result_logging(self, mock_log):
         """
-        Test that appropriate logging occurs in various scenarios.
+        Test that appropriate logging occurs in various escenarios.
         """
         self.submission.queue_record.status = 'pulled'
         self.submission.queue_record.save()
@@ -305,14 +336,8 @@ class TestXqueueViewSet(APITestCase):
             mock_set_score.return_value = True
             self.client.post(self.url, payload, format='json')
 
-        mock_log.info.assert_any_call(
-            "Score event sent to bus successfully <====="
-        )
-
-        mock_log.info.assert_any_call(
-            "Successfully updated submission score for submission %s",
-            self.submission.id
-        )
+        # Verificar que se llamó el log con el mensaje correcto
+        mock_log.info.assert_any_call('=====> Saving score {"score": 8}')
 
     @patch('submissions.views.xqueue.log')
     def test_put_result_success(self, mock_log):

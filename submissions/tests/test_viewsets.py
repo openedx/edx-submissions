@@ -3,6 +3,7 @@ Tests for XQueue API views.
 """
 import json
 import uuid
+from datetime import timedelta
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -10,6 +11,7 @@ from django.core.files.base import ContentFile
 from django.db import DatabaseError
 from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.test import APITestCase
@@ -35,7 +37,7 @@ class TestXqueueViewSet(APITestCase):
             password='testpass'
         )
         self.submission = SubmissionFactory()
-        self.queue_record = ExternalGraderDetailFactory(
+        self.external_grader_detail = ExternalGraderDetailFactory(
             submission=self.submission,
             pullkey='test_pull_key',
             status='pending',
@@ -145,7 +147,7 @@ class TestXqueueViewSet(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         new_submission = SubmissionFactory()
-        queue_record = ExternalGraderDetailFactory(
+        external_grader_detail = ExternalGraderDetailFactory(
             submission=new_submission,
             queue_name=queue_name,
             status='pending'
@@ -160,8 +162,8 @@ class TestXqueueViewSet(APITestCase):
             self.viewset.compose_reply(False, "Error processing submission: Invalid transition")
         )
 
-        queue_record.refresh_from_db()
-        self.assertEqual(queue_record.status, 'pending')
+        external_grader_detail.refresh_from_db()
+        self.assertEqual(external_grader_detail.status, 'pending')
 
     def test_put_result_invalid_submission_id(self):
         """Test put_result with non-existent submission ID."""
@@ -253,9 +255,9 @@ class TestXqueueViewSet(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.queue_record.refresh_from_db()
-        self.assertEqual(self.queue_record.num_failures, 1)
-        self.assertEqual(self.queue_record.status, 'pending')
+        self.external_grader_detail.refresh_from_db()
+        self.assertEqual(self.external_grader_detail.num_failures, 1)
+        self.assertEqual(self.external_grader_detail.status, 'pending')
 
     def test_put_result_set_score_fail_30_times(self):
         """
@@ -279,10 +281,10 @@ class TestXqueueViewSet(APITestCase):
 
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-            self.queue_record.refresh_from_db()
-            self.assertEqual(self.queue_record.num_failures, each+1)
+            self.external_grader_detail.refresh_from_db()
+            self.assertEqual(self.external_grader_detail.num_failures, each+1)
 
-        self.assertEqual(self.queue_record.status, 'failed')
+        self.assertEqual(self.external_grader_detail.status, 'failed')
 
     def test_put_result_auto_retire(self):
         """
@@ -292,8 +294,8 @@ class TestXqueueViewSet(APITestCase):
         response = self.client.post(self.url_status)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         initial_failures = 29
-        self.queue_record.num_failures = initial_failures
-        self.queue_record.save()
+        self.external_grader_detail.num_failures = initial_failures
+        self.external_grader_detail.save()
 
         payload = {
             'xqueue_header': json.dumps({
@@ -307,19 +309,19 @@ class TestXqueueViewSet(APITestCase):
             with patch('submissions.api.set_score') as mock_set_score:
                 mock_set_score.side_effect = Exception('Test error')
                 _ = self.client.post(self.url, payload, format='json')
-                self.queue_record.refresh_from_db()
+                self.external_grader_detail.refresh_from_db()
 
-        self.queue_record.refresh_from_db()
+        self.external_grader_detail.refresh_from_db()
 
     @patch('submissions.views.xqueue.log')
     def test_put_result_logging(self, mock_log):
         """
         Test that appropriate logging occurs in various escenarios.
         """
-        self.submission.queue_record.status = 'pulled'
-        self.submission.queue_record.save()
-        self.submission.queue_record.refresh_from_db()
-        self.assertEqual(self.submission.queue_record.status, 'pulled')
+        self.submission.external_grader_detail.status = 'pulled'
+        self.submission.external_grader_detail.save()
+        self.submission.external_grader_detail.refresh_from_db()
+        self.assertEqual(self.submission.external_grader_detail.status, 'pulled')
 
         payload = {
             'xqueue_header': json.dumps({
@@ -344,10 +346,10 @@ class TestXqueueViewSet(APITestCase):
         """
         Test that appropriate logging occurs in various scenarios.
         """
-        self.submission.queue_record.status = 'pulled'
-        self.submission.queue_record.save()
-        self.submission.queue_record.refresh_from_db()
-        self.assertEqual(self.submission.queue_record.status, 'pulled')
+        self.submission.external_grader_detail.status = 'pulled'
+        self.submission.external_grader_detail.save()
+        self.submission.external_grader_detail.refresh_from_db()
+        self.assertEqual(self.submission.external_grader_detail.status, 'pulled')
 
         payload = {
             'xqueue_header': json.dumps({
@@ -498,7 +500,7 @@ class TestXqueueViewSet(APITestCase):
 
         file_content = b'Test file content'
         submission_file = SubmissionFile.objects.create(
-            submission_queue=self.queue_record,
+            submission_queue=self.external_grader_detail,
             file=ContentFile(file_content, name='test.txt'),
             original_filename='test.txt'
         )
@@ -525,7 +527,7 @@ class TestXqueueViewSet(APITestCase):
         created_files = []
         for filename, content in files_data:
             submission_file = SubmissionFile.objects.create(
-                submission_queue=self.queue_record,
+                submission_queue=self.external_grader_detail,
                 file=ContentFile(content, name=filename),
                 original_filename=filename
             )
@@ -548,7 +550,7 @@ class TestXqueueViewSet(APITestCase):
 
         test_uuid = uuid.uuid4()
         _ = SubmissionFile.objects.create(
-            submission_queue=self.queue_record,
+            submission_queue=self.external_grader_detail,
             file=ContentFile(b'content', name='test.txt'),
             original_filename='test.txt',
             uid=test_uuid
@@ -561,3 +563,29 @@ class TestXqueueViewSet(APITestCase):
 
         expected_url = f'/test_queue/{test_uuid}'
         self.assertEqual(xqueue_files['test.txt'], expected_url)
+
+    def test_get_submission_already_pulled_status(self):
+        """Test get_submission when the status is already 'pulled'."""
+        self.client.login(username='testuser', password='testpass')
+
+        queue_name = 'test_already_pulled'
+        submission = SubmissionFactory()
+        old_time = timezone.now() - timedelta(minutes=10)
+
+        external_grader_detail = ExternalGraderDetailFactory(
+            submission=submission,
+            queue_name=queue_name,
+            status='pulled',
+            status_time=old_time,
+            pullkey='original_key'
+        )
+
+        response = self.client.get(self.get_submission_url, {'queue_name': queue_name})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        external_grader_detail.refresh_from_db()
+
+        self.assertEqual(external_grader_detail.pullkey, 'original_key')
+        self.assertEqual(external_grader_detail.status, 'pulled')
+        self.assertEqual(external_grader_detail.status_time, old_time)

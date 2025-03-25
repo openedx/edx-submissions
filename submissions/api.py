@@ -50,7 +50,6 @@ MAX_TOP_SUBMISSIONS = 100
 TOP_SUBMISSIONS_CACHE_TIMEOUT = 300
 
 
-# pylint: disable=unused-argument
 def create_external_grader_detail(student_item_dict,
                                   answer,
                                   queue_name: str,
@@ -95,7 +94,7 @@ def create_external_grader_detail(student_item_dict,
             queue_name=queue_name,
             grader_file_name=grader_file_name,
             points_possible=points_possible,
-
+            queue_key=external_grader_additional_data.get('queue_key'),
         )
 
         files_dict = external_grader_additional_data.get('files')

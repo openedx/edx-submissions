@@ -20,7 +20,7 @@ colorama==0.4.6
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
     #   tox
-coverage[toml]==7.6.12
+coverage[toml]==7.7.1
     # via coveralls
 coveralls==4.0.1
     # via -r requirements/ci.in
@@ -30,7 +30,7 @@ distlib==0.3.9
     #   virtualenv
 docopt==0.6.2
     # via coveralls
-filelock==3.17.0
+filelock==3.18.0
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
     #   tox
@@ -42,7 +42,7 @@ packaging==24.2
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
     #   pyproject-api
     #   tox
-platformdirs==4.3.6
+platformdirs==4.3.7
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
     #   tox
@@ -57,13 +57,13 @@ pyproject-api==1.9.0
     #   tox
 requests==2.32.3
     # via coveralls
-tox==4.24.1
+tox==4.24.2
     # via -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
 urllib3==2.2.3
     # via
     #   -c /home/runner/work/edx-submissions/edx-submissions/requirements/common_constraints.txt
     #   requests
-virtualenv==20.29.2
+virtualenv==20.29.3
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
     #   tox

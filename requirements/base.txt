@@ -6,7 +6,7 @@
 #
 asgiref==3.8.1
     # via django
-django==4.2.19
+django==4.2.20
     # via
     #   -c /home/runner/work/edx-submissions/edx-submissions/requirements/common_constraints.txt
     #   -r requirements/base.in
@@ -22,7 +22,7 @@ edx-django-release-util==1.4.0
     # via -r requirements/base.in
 jsonfield==3.1.0
     # via -r requirements/base.in
-pytz==2025.1
+pytz==2025.2
     # via -r requirements/base.in
 pyyaml==6.0.2
     # via edx-django-release-util

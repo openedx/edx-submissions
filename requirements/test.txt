@@ -6,37 +6,37 @@
 #
 accessible-pygments==0.0.5
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   pydata-sphinx-theme
 alabaster==1.0.0
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   sphinx
 asgiref==3.8.1
     # via
-    #   -r base.txt
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   django
-astroid==3.3.8
+astroid==3.3.9
     # via
     #   pylint
     #   pylint-celery
 babel==2.17.0
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   pydata-sphinx-theme
     #   sphinx
 beautifulsoup4==4.13.3
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   pydata-sphinx-theme
 certifi==2025.1.31
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   requests
 charset-normalizer==3.4.1
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   requests
 click==8.1.8
     # via
@@ -47,108 +47,106 @@ click-log==0.4.0
     # via edx-lint
 code-annotations==2.2.0
     # via edx-lint
-coverage[toml]==7.6.12
+coverage[toml]==7.7.1
     # via pytest-cov
 ddt==1.7.2
-    # via -r test.in
+    # via -r requirements/test.in
 dill==0.3.9
     # via pylint
-django==4.2.19
     # via
-    #   -c common_constraints.txt
-    #   -r base.txt
-    #   -r docs.txt
+    #   -c /home/runner/work/edx-submissions/edx-submissions/requirements/common_constraints.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   django-model-utils
     #   djangorestframework
     #   edx-django-release-util
     #   jsonfield
 django-model-utils==5.0.0
     # via
-    #   -r base.txt
-    #   -r docs.txt
-djangorestframework==3.15.2
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     # via
-    #   -r base.txt
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
 docutils==0.21.2
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   pydata-sphinx-theme
     #   sphinx
 edx-django-release-util==1.4.0
     # via
-    #   -r base.txt
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
 edx-lint==5.3.7
     # via
-    #   -c constraints.txt
-    #   -r test.in
+    #   -c /home/runner/work/edx-submissions/edx-submissions/requirements/constraints.txt
+    #   -r requirements/test.in
 factory-boy==3.3.3
-    # via -r test.in
-faker==36.1.1
+    # via -r requirements/test.in
+faker==37.1.0
     # via factory-boy
 freezegun==1.5.1
-    # via -r test.in
+    # via -r requirements/test.in
 idna==3.10
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   requests
 imagesize==1.4.1
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   sphinx
-iniconfig==2.0.0
+iniconfig==2.1.0
     # via pytest
-isort==6.0.0
+isort==6.0.1
     # via
-    #   -r test.in
+    #   -r requirements/test.in
     #   pylint
 jinja2==3.1.6
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   code-annotations
     #   sphinx
 jsonfield==3.1.0
     # via
-    #   -r base.txt
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
 markupsafe==3.0.2
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   jinja2
 mccabe==0.7.0
     # via pylint
-mock==5.1.0
-    # via -r test.in
+mock==5.2.0
+    # via -r requirements/test.in
 packaging==24.2
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   pydata-sphinx-theme
     #   pytest
     #   sphinx
 pbr==6.1.1
     # via stevedore
-platformdirs==4.3.6
+platformdirs==4.3.7
     # via pylint
 pluggy==1.5.0
     # via pytest
 pockets==0.9.1
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   sphinxcontrib-napoleon
 pycodestyle==2.12.1
-    # via -r test.in
+    # via -r requirements/test.in
 pydata-sphinx-theme==0.15.4
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   sphinx-book-theme
 pygments==2.19.1
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   accessible-pygments
     #   pydata-sphinx-theme
     #   sphinx
-pylint==3.3.4
+pylint==3.3.6
     # via
     #   edx-lint
     #   pylint-celery
@@ -162,42 +160,42 @@ pylint-plugin-utils==0.8.2
     # via
     #   pylint-celery
     #   pylint-django
-pytest==8.3.4
+pytest==8.3.5
     # via
     #   pytest-cov
     #   pytest-django
 pytest-cov==6.0.0
-    # via -r test.in
+    # via -r requirements/test.in
 pytest-django==4.10.0
-    # via -r test.in
+    # via -r requirements/test.in
 python-dateutil==2.9.0.post0
     # via
-    #   -r test.in
+    #   -r requirements/test.in
     #   freezegun
 python-slugify==8.0.4
     # via code-annotations
-pytz==2025.1
+pytz==2025.2
     # via
-    #   -r base.txt
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
 pyyaml==6.0.2
     # via
-    #   -r base.txt
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   code-annotations
     #   edx-django-release-util
 requests==2.32.3
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   sphinx
 roman-numerals-py==3.1.0
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   sphinx
 six==1.17.0
     # via
-    #   -r base.txt
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   edx-django-release-util
     #   edx-lint
     #   pockets
@@ -205,49 +203,49 @@ six==1.17.0
     #   sphinxcontrib-napoleon
 snowballstemmer==2.2.0
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   sphinx
 soupsieve==2.6
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   beautifulsoup4
-sphinx==8.2.1
+sphinx==8.2.3
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   pydata-sphinx-theme
     #   sphinx-book-theme
 sphinx-book-theme==1.1.4
-    # via -r docs.txt
+    # via -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
 sphinxcontrib-applehelp==2.0.0
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   sphinx
 sphinxcontrib-devhelp==2.0.0
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   sphinx
 sphinxcontrib-htmlhelp==2.1.0
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   sphinx
 sphinxcontrib-jsmath==1.0.1
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   sphinx
 sphinxcontrib-napoleon==0.7
-    # via -r docs.txt
+    # via -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
 sphinxcontrib-qthelp==2.0.0
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   sphinx
 sphinxcontrib-serializinghtml==2.0.0
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   sphinx
 sqlparse==0.5.3
     # via
-    #   -r base.txt
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   django
 stevedore==5.4.1
     # via code-annotations
@@ -255,17 +253,17 @@ text-unidecode==1.3
     # via python-slugify
 tomlkit==0.13.2
     # via pylint
-typing-extensions==4.12.2
+typing-extensions==4.13.0
     # via
-    #   -r docs.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   beautifulsoup4
     #   pydata-sphinx-theme
-tzdata==2025.1
+tzdata==2025.2
     # via faker
 urllib3==2.2.3
     # via
-    #   -c common_constraints.txt
-    #   -r docs.txt
+    #   -c /home/runner/work/edx-submissions/edx-submissions/requirements/common_constraints.txt
+    #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   requests
 
 # The following packages are considered to be unsafe in a requirements file:

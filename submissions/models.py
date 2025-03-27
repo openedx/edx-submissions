@@ -10,10 +10,15 @@ need to then generate a matching migration for it using:
 """
 
 import logging
+import os
+from datetime import timedelta
 from uuid import uuid4
 
+from django.conf import settings
 from django.contrib import auth
-from django.db import DatabaseError, models
+from django.core.files.base import ContentFile
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import DatabaseError, models, transaction
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import Signal, receiver
 from django.utils.timezone import now
@@ -557,3 +562,236 @@ class ScoreAnnotation(models.Model):
 
     creator = AnonymizedUserIDField()
     reason = models.TextField()
+
+
+class ExternalGraderDetailManager(models.Manager):
+    """
+    Manager for handling queue-related operations on Submissions.
+    """
+
+    def get_queue_length(self, queue_name):
+        """Count pending submissions in a specific queue"""
+        return self.time_filter().filter(
+            queue_name=queue_name,
+            status='pending'
+        ).count()
+
+    def get_next_submission(self, queue_name):
+        """Safely retrieve the next available submission for processing"""
+        return self.time_filter().filter(
+            queue_name=queue_name,
+            status='pending'
+        ).select_related('submission').order_by(
+            'created_at'
+        ).select_for_update().first()
+
+    def time_filter(self):
+        """
+        Filter submissions based on processing delay window.
+        Ensures we don't process submissions that were recently updated.
+        """
+        processing_window = now() - timedelta(
+            minutes=getattr(settings, 'SUBMISSION_PROCESSING_DELAY', 60)
+        )
+        return self.filter(status_time__lte=processing_window)
+
+
+class ExternalGraderDetail(models.Model):
+    """
+    Tracks queue processing information for a Submission.
+    """
+
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Pending'
+        PULLED = 'pulled', 'Pulled'
+        RETIRED = 'retired', 'Retired'
+        FAILED = 'failed', 'Failed'
+
+    VALID_TRANSITIONS = {
+        'pending': ['pulled', 'failed'],
+        'pulled': ['retired', 'failed'],
+        'failed': ['pending'],
+        'retired': []
+    }
+    submission = models.OneToOneField(
+        Submission,
+        on_delete=models.CASCADE,
+        related_name='external_grader_detail',
+    )
+
+    queue_name = models.CharField(max_length=128)
+    grader_file_name = models.CharField(max_length=128, default='')
+    points_possible = models.PositiveIntegerField(default=1)
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING
+    )
+
+    # Secret key generated when a submission is pulled by an external grader.
+    # Acts as a security token that must be provided when submitting results,
+    # preventing unauthorized grade submissions and ensuring only the service
+    # that pulled the submission can grade it.
+    pullkey = models.CharField(max_length=128, null=True, blank=True)
+    grader_reply = models.TextField(null=True, blank=True)
+
+    # Timestamp of the most recent status change for this submission.
+    # Used to track when state transitions occur, determine processing
+    # eligibility based on time thresholds, and prioritize submissions
+    # in processing queues (oldest first).
+    status_time = models.DateTimeField(default=now, db_index=True)
+    created_at = models.DateTimeField(default=now, db_index=True)
+
+    num_failures = models.PositiveIntegerField(default=0)
+
+    objects = ExternalGraderDetailManager()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['queue_name', 'status', 'status_time']),
+        ]
+        ordering = ['-created_at']
+
+    @property
+    def is_processable(self):
+        """
+        Indicates if this submission can be processed based on its current state
+        and time since last update.
+        """
+        if self.status not in ['pending', 'failed']:
+            return False
+
+        processing_window = now() - timedelta(
+            minutes=getattr(settings, 'SUBMISSION_PROCESSING_DELAY', 60)
+        )
+        return self.status_time <= processing_window
+
+    def can_transition_to(self, new_status, current_status=None):
+        """Check if the transition to new_status is valid."""
+        from_status = current_status if current_status is not None else self.status
+        return new_status in self.VALID_TRANSITIONS.get(from_status, [])
+
+    @transaction.atomic
+    def update_status(self, new_status):
+        """
+        Update status and timestamp atomically
+        """
+        if not self.can_transition_to(new_status):
+            raise ValueError(
+                f"Invalid transition from {self.status} to {new_status} for "
+                f"ExternalGraderDetail(id={self.id}, "
+                f"submission_uuid={self.submission.uuid})")
+
+        self.status = new_status
+        self.status_time = now()
+
+        if new_status == 'failed':
+            self.num_failures += 1
+            self.save(update_fields=['status', 'status_time', 'num_failures'])
+        else:
+            self.save(update_fields=['status', 'status_time'])
+
+    @classmethod
+    def create_from_uuid(cls, submission_uuid, **kwargs):
+        submission = Submission.objects.get(uuid=submission_uuid)
+        return cls.objects.create(submission=submission, **kwargs)
+
+
+def submission_file_path(instance, _):
+    """
+    Generate file path for submission files.
+    Format: queue_name/uuid
+    The filename is replaced with the UUID to ensure uniqueness without preserving extension.
+    """
+    return os.path.join(
+        instance.submission_queue.queue_name,
+        f"{instance.uid}"
+    )
+
+
+class SubmissionFile(models.Model):
+    """
+    Model to handle files associated with submissions
+    """
+    uid = models.UUIDField(default=uuid4, editable=False)
+    # legacy S3 key
+    submission_queue = models.ForeignKey(
+        'submissions.ExternalGraderDetail',
+        on_delete=models.SET_NULL,
+        related_name='files',
+        null=True,
+    )
+    file = models.FileField(
+        upload_to=submission_file_path,
+        max_length=512
+    )
+    original_filename = models.CharField(max_length=255)  # This is necessary to send file name to xqueue-watcher
+    created_at = models.DateTimeField(default=now)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['submission_queue', 'uid']),
+        ]
+
+    @property
+    def xqueue_url(self):
+        """
+        Returns URL in xqueue format: /queue_name/uid
+        """
+        return f"/{self.submission_queue.queue_name}/{self.uid}"
+
+
+class SubmissionFileManager:
+    """
+    Manages file operations for submissions
+    """
+
+    def __init__(self, submission_queue):
+        self.submission_queue = submission_queue
+
+    def process_files(self, files_dict):
+        """
+        Process uploaded files.
+        Returns URLs in xqueue compatible format.
+        """
+        files_urls = {}
+        for filename, file_obj in files_dict.items():
+            if not (isinstance(file_obj, (bytes, ContentFile, SimpleUploadedFile)) or hasattr(file_obj, 'read')):
+                logger.warning(f"Invalid file object type for {filename}")
+                continue
+
+            if hasattr(file_obj, 'read'):
+                try:
+                    file_content = file_obj.read()
+                    if isinstance(file_content, bytes):
+                        file_obj = ContentFile(file_content, name=filename)
+                    else:
+                        continue
+                except (IOError, OSError) as e:
+                    logger.error(f"Error reading file {filename}: {e}")
+                    continue
+                except UnicodeDecodeError as e:
+                    logger.error(f"Error decoding file {filename}: {e}")
+                    continue
+
+            if isinstance(file_obj, bytes):
+                file_obj = ContentFile(file_obj, name=filename)
+
+            submission_file = SubmissionFile.objects.create(
+                submission_queue=self.submission_queue,
+                file=file_obj,
+                original_filename=filename
+            )
+            files_urls[filename] = submission_file.xqueue_url
+
+        return files_urls
+
+    def get_files_for_grader(self):
+        """
+        Returns files in format expected by xwatcher
+        """
+        return {
+            file.original_filename: file.file.url
+            for file in self.submission_queue.files.all()
+        }

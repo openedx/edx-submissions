@@ -1,21 +1,24 @@
 """ Api Module Tests. """
 
-
+# Stdlib imports
 import copy
 import datetime
 from unittest import mock
 
+# Third party imports
 import ddt
 import pytz
+# Django imports
 from django.core.cache import cache
 from django.db import DatabaseError, IntegrityError, connection, transaction
 from django.test import TestCase
 from django.utils.timezone import now
 from freezegun import freeze_time
 
+# Local imports
 from submissions import api
-from submissions.errors import SubmissionInternalError
-from submissions.models import ScoreAnnotation, ScoreSummary, StudentItem, Submission, score_set
+from submissions.errors import ExternalGraderQueueEmptyError, SubmissionInternalError
+from submissions.models import ExternalGraderDetail, ScoreAnnotation, ScoreSummary, StudentItem, Submission, score_set
 from submissions.serializers import StudentItemSerializer
 
 STUDENT_ITEM = {
@@ -863,3 +866,60 @@ class TestSubmissionsApi(TestCase):
                 mock_get_item.side_effect = StudentItem.DoesNotExist
                 with self.assertRaisesMessage(SubmissionInternalError, "An error occurred creating student item"):
                     api._get_or_create_student_item(STUDENT_ITEM)  # pylint: disable=protected-access
+
+    def test_create_external_grader_detail(self):
+        external_grader_detail_data = {'queue_name': 'test_queue'}
+        external_grader_detail = api.create_external_grader_detail(STUDENT_ITEM, ANSWER_ONE,
+                                                                   **external_grader_detail_data)
+
+        submission = Submission.objects.get(uuid=external_grader_detail.submission.uuid)
+        self.assertEqual(submission.answer, ANSWER_ONE)
+
+        self.assertEqual(external_grader_detail.submission.uuid, submission.uuid)
+        self.assertEqual(external_grader_detail.queue_name, 'test_queue')
+
+    def test_create_multiple_external_grader_detail(self):
+        external_grader_detail_data1 = {'queue_name': 'test_queue'}
+        external_grader_detail1 = api.create_external_grader_detail(STUDENT_ITEM, ANSWER_ONE,
+                                                                    **external_grader_detail_data1)
+
+        external_grader_detail_data2 = {'queue_name': 'test_queue'}
+        external_grader_detail2 = api.create_external_grader_detail(SECOND_STUDENT_ITEM, ANSWER_ONE,
+                                                                    **external_grader_detail_data2)
+
+        submission1 = Submission.objects.get(uuid=external_grader_detail1.submission.uuid)
+        self.assertEqual(external_grader_detail1.submission.uuid, submission1.uuid)
+        self.assertEqual(external_grader_detail1.queue_name, 'test_queue')
+
+        submission2 = Submission.objects.get(uuid=external_grader_detail2.submission.uuid)
+        self.assertEqual(external_grader_detail2.submission.uuid, submission2.uuid)
+        self.assertEqual(external_grader_detail2.queue_name, 'test_queue')
+
+        self.assertNotEqual(external_grader_detail1.submission.uuid, external_grader_detail2.submission.uuid)
+
+    def test_create_external_grader_detail_directly_missing_queue_name(self):
+        with self.assertRaises(ExternalGraderQueueEmptyError):
+            api.create_external_grader_detail(STUDENT_ITEM, ANSWER_ONE, queue_name="")
+
+    def test_create_external_grader_detail_directly_database_error(self):
+        with mock.patch.object(ExternalGraderDetail, 'create_from_uuid') as mock_create:
+            mock_create.side_effect = DatabaseError("Database connection failed")
+
+            with self.assertRaises(api.SubmissionInternalError):
+                api.create_external_grader_detail(STUDENT_ITEM, ANSWER_ONE, queue_name="test_queue")
+
+    def test_create_multiple_submission_external_grader_details(self):
+        external_grader_detail1 = api.create_external_grader_detail(STUDENT_ITEM, ANSWER_ONE, queue_name="shared_queue")
+
+        external_grader_detail2 = api.create_external_grader_detail(SECOND_STUDENT_ITEM, ANSWER_TWO,
+                                                                    queue_name="shared_queue")
+
+        submission1 = Submission.objects.get(uuid=external_grader_detail1.submission.uuid)
+        self.assertEqual(external_grader_detail1.queue_name, 'shared_queue')
+        self.assertEqual(submission1.answer, ANSWER_ONE)
+
+        submission2 = Submission.objects.get(uuid=external_grader_detail2.submission.uuid)
+        self.assertEqual(external_grader_detail2.queue_name, 'shared_queue')
+        self.assertEqual(submission2.answer, ANSWER_TWO)
+
+        self.assertNotEqual(external_grader_detail1.submission.uuid, external_grader_detail2.submission.uuid)

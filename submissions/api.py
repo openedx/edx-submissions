@@ -2,7 +2,6 @@
 Public interface for the submissions app.
 
 """
-
 import itertools
 import logging
 import operator
@@ -15,6 +14,7 @@ from django.db import DatabaseError, IntegrityError, transaction
 
 # SubmissionError imported so that code importing this api has access
 from submissions.errors import (  # pylint: disable=unused-import
+    ExternalGraderQueueEmptyError,
     SubmissionError,
     SubmissionInternalError,
     SubmissionNotFoundError,
@@ -22,6 +22,7 @@ from submissions.errors import (  # pylint: disable=unused-import
 )
 from submissions.models import (
     DELETED,
+    ExternalGraderDetail,
     Score,
     ScoreAnnotation,
     ScoreSummary,
@@ -48,64 +49,134 @@ MAX_TOP_SUBMISSIONS = 100
 TOP_SUBMISSIONS_CACHE_TIMEOUT = 300
 
 
-def create_submission(student_item_dict, answer, submitted_at=None, attempt_number=None, team_submission=None):
-    """Creates a submission for assessment.
+# pylint: disable=unused-argument
+def create_external_grader_detail(student_item_dict,
+                                  answer,
+                                  queue_name: str,
+                                  grader_file_name="",
+                                  points_possible=1,
+                                  **external_grader_additional_data
+                                  ):
+    """
+    Creates a submission and an associated ExternalGraderDetail record.
+
+    Args:
+        student_item_dict (dict): The student_item this submission is associated with.
+            This is used to determine which course, student, and location the submission belongs to.
+
+        answer (JSON-serializable): The answer given by the student to be assessed.
+
+        queue_name (str): The name of the queue for the external grader.
+
+        grader_file_name (str, optional): The name of the grader file. Defaults to "".
+
+        points_possible (int, optional): The maximum possible points for this submission. Defaults to 1.
+
+        external_grader_additional_data: Additional keyword arguments that may be used for the external grader.
+
+    Returns:
+        ExternalGraderDetail: The created external grader detail record that references the submission.
+
+    Raises:
+        ExternalGraderQueueEmptyError: If queue_name is empty.
+        SubmissionInternalError: If there's an error creating the submission or external grader detail.
+    """
+
+    submission = create_submission(student_item_dict, answer)
+    submission_uuid = submission.get('uuid')
+
+    if not queue_name:
+        raise ExternalGraderQueueEmptyError("The parameter queue_name can not be empty.")
+
+    try:
+        instance = ExternalGraderDetail.create_from_uuid(
+            submission_uuid=submission_uuid,
+            queue_name=queue_name,
+            grader_file_name=grader_file_name,
+            points_possible=points_possible,
+
+        )
+        return instance
+
+    except DatabaseError as error:
+        error_message = (
+            f"An error occurred while creating external grader for submission {submission_uuid}"
+        )
+        logger.exception(error_message)
+        raise SubmissionInternalError(error_message) from error
+
+
+def create_submission(
+    student_item_dict,
+    answer,
+    submitted_at=None,
+    attempt_number=None,
+    team_submission=None,
+):
+    """
+    Creates a submission for assessment.
 
     Generic means by which to submit an answer for assessment.
 
     Args:
-        student_item_dict (dict): The student_item this
-            submission is associated with. This is used to determine which
-            course, student, and location this submission belongs to.
+        student_item_dict (dict): The student_item this submission is associated with.
+            This is used to determine which course, student, and location this
+            submission belongs to.
 
         answer (JSON-serializable): The answer given by the student to be assessed.
 
-        submitted_at (datetime): The date in which this submission was submitted.
+        submitted_at (datetime, optional): The date on which this submission was submitted.
             If not specified, defaults to the current date.
 
-        attempt_number (int): A student may be able to submit multiple attempts
+        attempt_number (int, optional): A student may be able to submit multiple attempts
             per question. This allows the designated attempt to be overridden.
             If the attempt is not specified, it will take the most recent
             submission, as specified by the submitted_at time, and use its
             attempt_number plus one.
 
+        team_submission (TeamSubmission, optional): The team submission this individual
+            submission is associated with, if any.
+
     Returns:
-        dict: A representation of the created Submission. The submission
-        contains five attributes: student_item, attempt_number, submitted_at,
-        created_at, and answer. 'student_item' is the ID of the related student
-        item for the submission. 'attempt_number' is the attempt this submission
-        represents for this question. 'submitted_at' represents the time this
-        submission was submitted, which can be configured, versus the
-        'created_at' date, which is when the submission is first created.
+        dict: A representation of the created Submission. The submission contains
+        five attributes: student_item, attempt_number, submitted_at, created_at,
+        and answer.
+
+        The returned dictionary includes:
+        - student_item: ID of the related student item for the submission
+        - attempt_number: Attempt this submission represents for this question
+        - submitted_at: Time this submission was submitted
+        - created_at: Time the submission was first created
+        - answer: The submitted answer
 
     Raises:
         SubmissionRequestError: Raised when there are validation errors for the
-            student item or submission. This can be caused by the student item
-            missing required values, the submission being too long, the
-            attempt_number is negative, or the given submitted_at time is invalid.
-        SubmissionInternalError: Raised when submission access causes an
-            internal error.
+            student item or submission. This can occur due to:
+            - Student item missing required values
+            - Submission being too long
+            - Attempt number is negative
+            - Submitted time is invalid
+
+        SubmissionInternalError: Raised when submission access causes an internal error.
 
     Examples:
-        >>> student_item_dict = dict(
-        >>>    student_id="Tim",
-        >>>    item_id="item_1",
-        >>>    course_id="course_1",
-        >>>    item_type="type_one"
-        >>> )
-        >>> create_submission(student_item_dict, "The answer is 42.", datetime.utcnow, 1)
+        >>> student_item_dict = {
+        ...     "student_id": "Tim",
+        ...     "item_id": "item_1",
+        ...     "course_id": "course_1",
+        ...     "item_type": "type_one"
+        ... }
+        >>> create_submission(student_item_dict, "The answer is 42.", datetime.utcnow(), 1)
         {
             'student_item': 2,
             'attempt_number': 1,
-            'submitted_at': datetime.datetime(2014, 1, 29, 17, 14, 52, 649284 tzinfo=<UTC>),
+            'submitted_at': datetime.datetime(2014, 1, 29, 17, 14, 52, 649284, tzinfo=<UTC>),
             'created_at': datetime.datetime(2014, 1, 29, 17, 14, 52, 668850, tzinfo=<UTC>),
-            'answer': u'The answer is 42.'
+            'answer': 'The answer is 42.'
         }
-
     """
     student_item_model = _get_or_create_student_item(student_item_dict)
     if attempt_number is None:
-        first_submission = None
         attempt_number = 1
         try:
             first_submission = Submission.objects.filter(student_item=student_item_model).first()
@@ -134,6 +205,7 @@ def create_submission(student_item_dict, answer, submitted_at=None, attempt_numb
         submission_serializer = SubmissionSerializer(data=model_kwargs)
         if not submission_serializer.is_valid():
             raise SubmissionRequestError(field_errors=submission_serializer.errors)
+
         submission_serializer.save()
 
         sub_data = submission_serializer.data

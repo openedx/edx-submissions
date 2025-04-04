@@ -10,11 +10,14 @@ need to then generate a matching migration for it using:
 """
 
 import logging
+import os
 from datetime import timedelta
 from uuid import uuid4
 
 from django.conf import settings
 from django.contrib import auth
+from django.core.files.base import ContentFile
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import DatabaseError, models, transaction
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import Signal, receiver
@@ -22,7 +25,13 @@ from django.utils.timezone import now
 from jsonfield import JSONField
 from model_utils.models import TimeStampedModel
 
-from submissions.errors import DuplicateTeamSubmissionsError, TeamSubmissionInternalError, TeamSubmissionNotFoundError
+from submissions.errors import (
+    DuplicateTeamSubmissionsError,
+    FileProcessingError,
+    InvalidFileTypeError,
+    TeamSubmissionInternalError,
+    TeamSubmissionNotFoundError
+)
 
 logger = logging.getLogger(__name__)
 User = auth.get_user_model()
@@ -693,3 +702,136 @@ class ExternalGraderDetail(models.Model):
     def create_from_uuid(cls, submission_uuid, **kwargs):
         submission = Submission.objects.get(uuid=submission_uuid)
         return cls.objects.create(submission=submission, **kwargs)
+
+
+def submission_file_path(instance, _):
+    """
+    Generate file path for submission files.
+    Format: queue_name/uuid
+    The filename is replaced with the UUID to ensure uniqueness without preserving extension.
+    """
+    return os.path.join(
+        instance.external_grader.queue_name,
+        f"{instance.uid}"
+    )
+
+
+class SubmissionFile(models.Model):
+    """
+    Model to handle files associated with submissions
+    """
+    uid = models.UUIDField(default=uuid4, editable=False)  # legacy S3 key
+    external_grader = models.ForeignKey(
+        'submissions.ExternalGraderDetail',
+        on_delete=models.SET_NULL,
+        related_name='files',
+        null=True,
+    )
+    file = models.FileField(
+        upload_to=submission_file_path,
+        max_length=512
+    )
+    original_filename = models.CharField(max_length=255)  # This is necessary to send file name to xqueue-watcher
+    created_at = models.DateTimeField(default=now)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['external_grader', 'uid']),
+        ]
+
+    @property
+    def xqueue_url(self):
+        """
+        Returns URL in xqueue format: /queue_name/uid
+        """
+        return f"/{self.external_grader.queue_name}/{self.uid}"
+
+
+class SubmissionFileManager:
+    """
+    Manages file operations for submissions
+    """
+
+    def __init__(self, external_grader):
+        self.external_grader = external_grader
+
+    def process_files(self, files_dict):
+        """
+        Process uploaded files from an Open edX environment and store them as SubmissionFile objects.
+
+        This method handles various file object types that might be received from Open edX, including:
+        - Native Open edX FileObjForWebobFiles objects
+        - Bytes objects
+        - ContentFile objects
+        - SimpleUploadedFile objects
+        - Any object with a 'read' method
+
+        The method performs the following operations:
+        1. Validates each file object type
+        2. Reads content from file-like objects
+        3. Converts byte content to ContentFile objects
+        4. Creates SubmissionFile records in the database
+        5. Returns URLs in xqueue-compatible format
+
+        Args:
+            files_dict (dict): Dictionary mapping filenames to file objects.
+                              Format: {filename: file_object, ...}
+
+        Returns:
+            dict: Dictionary mapping original filenames to xqueue URLs.
+                  Format: {filename: "/queue_name/uuid", ...}
+
+        Raises:
+            InvalidFileTypeError: If a file object has an unsupported type.
+            FileProcessingError: If there's an error reading from a file object,
+                                including I/O errors or Unicode decoding errors.
+
+        Example:
+            >>> file_manager = SubmissionFileManager(external_grader)
+            >>> files = {'assignment.py': file_obj}
+            >>> urls = file_manager.process_files(files)
+            >>> print(urls)
+            {'assignment.py': '/my_queue/550e8400-e29b-41d4-a716-446655440000'}
+        """
+        files_urls = {}
+        for filename, file_obj in files_dict.items():
+            # Validate file object type
+            if not (isinstance(file_obj, (bytes, ContentFile, SimpleUploadedFile)) or hasattr(file_obj, 'read')):
+                logger.error(f"Invalid file object type for {filename}")
+                raise InvalidFileTypeError(f"Invalid file object type for {filename}")
+
+            # Handle file-like objects by reading their content
+            # This returns a bytes object that will be converted to ContentFile later
+            if hasattr(file_obj, 'read'):
+                try:
+                    file_obj = file_obj.read()  # read() returns a bytes object
+                except (IOError, OSError) as e:
+                    logger.error(f"Error reading file {filename}: {e}")
+                    raise FileProcessingError(f"Error reading file {filename}: {e}") from e
+                except UnicodeDecodeError as e:
+                    logger.error(f"Error decoding file {filename}: {e}")
+                    raise FileProcessingError(f"Error decoding file {filename}: {e}") from e
+
+            # Convert bytes to ContentFile
+            # The read() method from file-like objects returns bytes, which we handle here
+            if isinstance(file_obj, bytes):
+                file_obj = ContentFile(file_obj, name=filename)
+
+            # Create a SubmissionFile record for storage and retrieval
+            submission_file = SubmissionFile.objects.create(
+                external_grader=self.external_grader,
+                file=file_obj,
+                original_filename=filename
+            )
+            files_urls[filename] = submission_file.xqueue_url
+
+        return files_urls
+
+    def get_files_for_grader(self):
+        """
+        Returns files in format expected by xqueue-watcher
+        """
+        return {
+            file.original_filename: file.file.url
+            for file in self.external_grader.files.all()
+        }

@@ -28,6 +28,7 @@ from submissions.models import (
     ScoreSummary,
     StudentItem,
     Submission,
+    SubmissionFileManager,
     score_reset,
     score_set
 )
@@ -49,7 +50,6 @@ MAX_TOP_SUBMISSIONS = 100
 TOP_SUBMISSIONS_CACHE_TIMEOUT = 300
 
 
-# pylint: disable=unused-argument
 def create_external_grader_detail(student_item_dict,
                                   answer,
                                   queue_name: str,
@@ -96,6 +96,12 @@ def create_external_grader_detail(student_item_dict,
             points_possible=points_possible,
 
         )
+
+        files_dict = external_grader_additional_data.get('files')
+        if files_dict:
+            file_manager = SubmissionFileManager(instance)
+            file_manager.process_files(files_dict)
+
         return instance
 
     except DatabaseError as error:

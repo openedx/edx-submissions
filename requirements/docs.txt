@@ -32,7 +32,7 @@ django==4.2.20
     #   jsonfield
 django-model-utils==5.0.0
     # via -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
-djangorestframework==3.15.2
+djangorestframework==3.16.0
     # via -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
 docutils==0.21.2
     # via
@@ -108,7 +108,7 @@ sqlparse==0.5.3
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
     #   django
-typing-extensions==4.13.0
+typing-extensions==4.13.2
     # via
     #   beautifulsoup4
     #   pydata-sphinx-theme

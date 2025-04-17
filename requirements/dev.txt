@@ -56,11 +56,11 @@ click-log==0.4.0
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
     #   edx-lint
-code-annotations==2.2.0
+code-annotations==2.3.0
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
     #   edx-lint
-coverage[toml]==7.7.1
+coverage[toml]==7.8.0
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
     #   pytest-cov
@@ -85,7 +85,7 @@ django-model-utils==5.0.0
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
-djangorestframework==3.15.2
+djangorestframework==3.16.0
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
@@ -177,7 +177,7 @@ pockets==0.9.1
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
     #   sphinxcontrib-napoleon
-pycodestyle==2.12.1
+pycodestyle==2.13.0
     # via -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
 pydata-sphinx-theme==0.15.4
     # via
@@ -216,9 +216,9 @@ pytest==8.3.5
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
     #   pytest-cov
     #   pytest-django
-pytest-cov==6.0.0
+pytest-cov==6.1.1
     # via -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
-pytest-django==4.10.0
+pytest-django==4.11.1
     # via -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
 python-dateutil==2.9.0.post0
     # via
@@ -332,7 +332,7 @@ tomlkit==0.13.2
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
     #   pylint
-typing-extensions==4.13.0
+typing-extensions==4.13.2
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt

@@ -31,12 +31,12 @@ babel==2.17.0
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
     #   pydata-sphinx-theme
     #   sphinx
-beautifulsoup4==4.13.3
+beautifulsoup4==4.13.4
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
     #   pydata-sphinx-theme
-certifi==2025.1.31
+certifi==2025.4.26
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
@@ -66,7 +66,7 @@ coverage[toml]==7.8.0
     #   pytest-cov
 ddt==1.7.2
     # via -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
-dill==0.3.9
+dill==0.4.0
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
     #   pylint
@@ -96,7 +96,7 @@ docutils==0.21.2
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
     #   pydata-sphinx-theme
     #   sphinx
-edx-django-release-util==1.4.0
+edx-django-release-util==1.5.0
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
@@ -153,7 +153,7 @@ mccabe==0.7.0
     #   pylint
 mock==5.2.0
     # via -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
-packaging==24.2
+packaging==25.0
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
@@ -265,7 +265,7 @@ snowballstemmer==2.2.0
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
     #   sphinx
-soupsieve==2.6
+soupsieve==2.7
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt

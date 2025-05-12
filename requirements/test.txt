@@ -17,7 +17,7 @@ asgiref==3.8.1
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/base.txt
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   django
-astroid==3.3.9
+astroid==3.3.10
     # via
     #   pylint
     #   pylint-celery
@@ -34,11 +34,11 @@ certifi==2025.4.26
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   requests
-charset-normalizer==3.4.1
+charset-normalizer==3.4.2
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   requests
-click==8.1.8
+click==8.2.0
     # via
     #   click-log
     #   code-annotations
@@ -126,7 +126,7 @@ packaging==25.0
     #   sphinx
 pbr==6.1.1
     # via stevedore
-platformdirs==4.3.7
+platformdirs==4.3.8
     # via pylint
 pluggy==1.5.0
     # via pytest
@@ -146,7 +146,7 @@ pygments==2.19.1
     #   accessible-pygments
     #   pydata-sphinx-theme
     #   sphinx
-pylint==3.3.6
+pylint==3.3.7
     # via
     #   edx-lint
     #   pylint-celery
@@ -201,7 +201,7 @@ six==1.17.0
     #   pockets
     #   python-dateutil
     #   sphinxcontrib-napoleon
-snowballstemmer==2.2.0
+snowballstemmer==3.0.1
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   sphinx

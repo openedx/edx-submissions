@@ -8,22 +8,22 @@ asgiref==3.8.1
     # via django
 django==4.2.21
     # via
-    #   -c common_constraints.txt
-    #   -r base.in
+    #   -c /home/runner/work/edx-submissions/edx-submissions/requirements/common_constraints.txt
+    #   -r requirements/base.in
     #   django-model-utils
     #   djangorestframework
     #   edx-django-release-util
     #   jsonfield
 django-model-utils==5.0.0
-    # via -r base.in
+    # via -r requirements/base.in
 djangorestframework==3.16.0
-    # via -r base.in
+    # via -r requirements/base.in
 edx-django-release-util==1.5.0
-    # via -r base.in
+    # via -r requirements/base.in
 jsonfield==3.1.0
-    # via -r base.in
+    # via -r requirements/base.in
 pytz==2025.2
-    # via -r base.in
+    # via -r requirements/base.in
 pyyaml==6.0.2
     # via edx-django-release-util
 six==1.17.0

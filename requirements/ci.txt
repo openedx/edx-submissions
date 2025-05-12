@@ -67,3 +67,5 @@ virtualenv==20.30.0
     # via
     #   -r /Users/leonardoberoes/Documents/Aulasneo/Projects/edx-submissions/requirements/tox.txt
     #   tox
+openedx-events==10.2.0
+    # via -r /home/gabriel/aulasneo/edx-submissions/requirements/base.txt

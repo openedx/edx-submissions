@@ -16,6 +16,8 @@ filelock==3.18.0
     # via
     #   tox
     #   virtualenv
+openedx-events==10.2.0
+    # via tox
 packaging==25.0
     # via
     #   pyproject-api

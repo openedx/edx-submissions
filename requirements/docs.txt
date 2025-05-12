@@ -50,6 +50,8 @@ jsonfield==3.1.0
     # via -r /Users/leonardoberoes/Documents/Aulasneo/Projects/edx-submissions/requirements/base.txt
 markupsafe==3.0.2
     # via jinja2
+openedx-events==10.2.0
+    # via -r base.txt
 packaging==25.0
     # via
     #   pydata-sphinx-theme

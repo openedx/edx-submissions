@@ -284,3 +284,5 @@ urllib3==2.2.3
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
+openedx-events==10.2.0
+    # via -r requirements/test.in

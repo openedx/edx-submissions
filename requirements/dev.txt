@@ -180,6 +180,9 @@ mccabe==0.7.0
     #   pylint
 mock==5.2.0
     # via -r test.txt
+openedx-events==10.2.0
+    # via
+    #   -r /Users/leonardoberoes/Documents/Aulasneo/Projects/edx-submissions/requirements/base.txt
 packaging==25.0
     # via
     #   -r /Users/leonardoberoes/Documents/Aulasneo/Projects/edx-submissions/requirements/docs.txt

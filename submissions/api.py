@@ -15,6 +15,7 @@ from django.db import DatabaseError, IntegrityError, transaction
 # SubmissionError imported so that code importing this api has access
 from submissions.errors import (  # pylint: disable=unused-import
     ExternalGraderQueueEmptyError,
+    FileProcessingError,
     SubmissionError,
     SubmissionInternalError,
     SubmissionNotFoundError,
@@ -28,6 +29,7 @@ from submissions.models import (
     ScoreSummary,
     StudentItem,
     Submission,
+    SubmissionFile,
     score_reset,
     score_set
 )
@@ -49,7 +51,6 @@ MAX_TOP_SUBMISSIONS = 100
 TOP_SUBMISSIONS_CACHE_TIMEOUT = 300
 
 
-# pylint: disable=unused-argument
 def create_external_grader_detail(student_item_dict,
                                   answer,
                                   queue_name: str,
@@ -93,9 +94,13 @@ def create_external_grader_detail(student_item_dict,
             submission_uuid=submission_uuid,
             queue_name=queue_name,
             grader_file_name=grader_file_name,
-            points_possible=points_possible,
+            points_possible=points_possible)
 
-        )
+        files_dict = external_grader_additional_data.get('files')
+        if files_dict:
+            file_processor = SubmissionFileProcessor(instance)
+            file_processor.process_files(files_dict)
+
         return instance
 
     except DatabaseError as error:
@@ -104,6 +109,65 @@ def create_external_grader_detail(student_item_dict,
         )
         logger.exception(error_message)
         raise SubmissionInternalError(error_message) from error
+
+
+class SubmissionFileProcessor:
+    """
+    Process file operations for submissions
+    """
+
+    def __init__(self, external_grader):
+        self.external_grader = external_grader
+
+    def process_files(self, files_dict):
+        """
+        Process uploaded files from an Open edX environment and store them as SubmissionFile objects.
+
+        This method specifically handles native OpenedX FileObjForWebobFiles objects.
+
+        The method performs the following operations:
+        1. Stores each file directly as a SubmissionFile object in the database
+        2. Returns URLs in xqueue-compatible format
+
+        Args:
+            files_dict (dict): Dictionary mapping filenames to file objects.
+                              Format: {filename: file_object, ...}
+
+        Returns:
+            dict: Dictionary mapping original filenames to xqueue URLs.
+                  Format: {filename: "/queue_name/uuid", ...}
+
+        Example:
+            >>> external_grader = ExternalGraderDetail.create_from_uuid(
+            submission_uuid=submission_uuid,
+            queue_name=queue_name,
+            grader_file_name=grader_file_name,
+            points_possible=points_possible)
+            >>> file_processor = SubmissionFileProcessor(external_grader)
+            >>> files = {'assignment.py': file_obj}
+            >>> urls = file_processor.process_files(files)
+            >>> print(urls)
+            {'assignment.py': '/my_queue/550e8400-e29b-41d4-a716-446655440000'}
+        """
+        files_urls = {}
+        for filename, file_obj in files_dict.items():
+            submission_file = SubmissionFile.objects.create(
+                external_grader=self.external_grader,
+                file=file_obj.file,
+                original_filename=filename
+            )
+            files_urls[filename] = submission_file.xqueue_url
+
+        return files_urls
+
+    def get_files_for_grader(self):
+        """
+        Returns files in format expected by xqueue-watcher
+        """
+        return {
+            file.original_filename: file.file.url
+            for file in self.external_grader.files.all()
+        }
 
 
 def create_submission(

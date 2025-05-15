@@ -63,3 +63,4 @@ test.txt.tmp
 
 # VSCode
 .vscode
+test_queue/*

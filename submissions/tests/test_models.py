@@ -7,7 +7,9 @@ from unittest import mock
 
 import pytest
 from django.contrib import auth
-from django.test import TestCase
+from django.core.files.storage import FileSystemStorage
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, override_settings
 from django.utils.timezone import now
 from pytz import UTC
 
@@ -20,7 +22,10 @@ from submissions.models import (
     ScoreSummary,
     StudentItem,
     Submission,
-    TeamSubmission
+    SubmissionFile,
+    TeamSubmission,
+    _get_storage_cached,
+    get_storage
 )
 
 User = auth.get_user_model()
@@ -687,3 +692,146 @@ class TestSubmission(TestCase):
         self.assertEqual(re_fetched.answer, new_answer)
         self.assertEqual(re_fetched.attempt_number, new_attempt)
         self.assertEqual(re_fetched.submitted_at, new_time)
+
+
+class TestSubmissionFile(TestCase):
+    """
+    Test the SubmissionFile model functionality.
+    """
+
+    def setUp(self):
+        """Set up common test data."""
+
+        self.student_item = StudentItem.objects.create(
+            student_id="test_student",
+            course_id="test_course",
+            item_id="test_item"
+        )
+        self.submission = Submission.objects.create(
+            student_item=self.student_item,
+            answer="test answer",
+            attempt_number=1
+        )
+        self.external_grader_detail = ExternalGraderDetail.objects.create(
+            submission=self.submission,
+            queue_name="test_queue"
+        )
+
+        self.test_file = SimpleUploadedFile(
+            "test_file.txt",
+            b"test content",
+            content_type="text/plain"
+        )
+
+        self.submission_file = SubmissionFile.objects.create(
+            external_grader=self.external_grader_detail,
+            file=self.test_file,
+            original_filename="test_file.txt"
+        )
+
+    def test_create_submission_file(self):
+        """Test basic submission file creation."""
+        self.assertIsNotNone(self.submission_file.uuid)
+        self.assertEqual(self.submission_file.original_filename, "test_file.txt")
+        self.assertEqual(self.submission_file.external_grader, self.external_grader_detail)
+        self.assertIsNotNone(self.submission_file.created_at)
+
+    def test_xqueue_url_format(self):
+        """Test that xqueue_url property returns the correct format."""
+        expected_url = f"/{self.external_grader_detail.queue_name}/{self.submission_file.uuid}"
+        self.assertEqual(self.submission_file.xqueue_url, expected_url)
+
+    def test_multiple_files_per_submission(self):
+        """Test that multiple files can be associated with a single submission."""
+        second_file = SimpleUploadedFile(
+            "second_file.txt",
+            b"more content",
+            content_type="text/plain"
+        )
+
+        second_submission_file = SubmissionFile.objects.create(
+            external_grader=self.external_grader_detail,
+            file=second_file,
+            original_filename="second_file.txt"
+        )
+
+        files = self.external_grader_detail.files.all()
+        self.assertEqual(files.count(), 2)
+        self.assertIn(self.submission_file, files)
+        self.assertIn(second_submission_file, files)
+
+    def test_file_path_generation(self):
+        """Test that files are stored with the correct path structure."""
+        file_path = self.submission_file.file.name
+        expected_parts = [
+            self.external_grader_detail.queue_name,
+            str(self.submission_file.uuid)
+        ]
+
+        for part in expected_parts:
+            self.assertIn(part, file_path)
+
+    def test_unique_uids(self):
+        """Test that each file gets a unique UUID."""
+        second_file = SimpleUploadedFile(
+            "another_file.txt",
+            b"content",
+            content_type="text/plain"
+        )
+
+        second_submission_file = SubmissionFile.objects.create(
+            external_grader=self.external_grader_detail,
+            file=second_file,
+            original_filename="another_file.txt"
+        )
+
+        self.assertNotEqual(
+            self.submission_file.uuid,
+            second_submission_file.uuid
+        )
+
+    def test_related_name_access(self):
+        """Test accessing files through the submission queue record."""
+        files = self.external_grader_detail.files.all()
+        self.assertEqual(files.count(), 1)
+        self.assertEqual(files.first(), self.submission_file)
+
+    def test_ordering(self):
+        """Test that files are ordered by created_at."""
+        past_time = now() - timedelta(hours=1)
+
+        older_file = SimpleUploadedFile(
+            "older_file.txt",
+            b"old content",
+            content_type="text/plain"
+        )
+        older_submission_file = SubmissionFile.objects.create(
+            external_grader=self.external_grader_detail,
+            file=older_file,
+            original_filename="older_file.txt",
+            created_at=past_time
+        )
+
+        files = self.external_grader_detail.files.all()
+        self.assertEqual(files[0], self.submission_file)
+        self.assertEqual(files[1], older_submission_file)
+
+    def test_get_storage_with_custom_config(self):
+        """Test that get_storage returns the custom storage from EDX_SUBMISSIONS if configured."""
+
+        # Create a custom storage for testing
+        custom_storage = FileSystemStorage(location='/tmp/test_storage')
+
+        # Override settings to include our custom storage
+        with override_settings(EDX_SUBMISSIONS={'MEDIA': custom_storage}):
+
+            # Clear any existing cache before testing
+            try:
+                # If we have direct access to the cached function
+                _get_storage_cached.cache_clear()
+            except (ImportError, AttributeError):
+                pass
+
+            storage = get_storage()
+            self.assertEqual(storage, custom_storage)
+            self.assertEqual(storage.location, '/tmp/test_storage')

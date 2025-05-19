@@ -15,7 +15,6 @@ from django.db import DatabaseError, IntegrityError, transaction
 # SubmissionError imported so that code importing this api has access
 from submissions.errors import (  # pylint: disable=unused-import
     ExternalGraderQueueEmptyError,
-    SubmissionError,
     SubmissionInternalError,
     SubmissionNotFoundError,
     SubmissionRequestError
@@ -28,6 +27,7 @@ from submissions.models import (
     ScoreSummary,
     StudentItem,
     Submission,
+    SubmissionFile,
     score_reset,
     score_set
 )
@@ -49,7 +49,6 @@ MAX_TOP_SUBMISSIONS = 100
 TOP_SUBMISSIONS_CACHE_TIMEOUT = 300
 
 
-# pylint: disable=unused-argument
 def create_external_grader_detail(student_item_dict,
                                   answer,
                                   queue_name: str,
@@ -58,7 +57,7 @@ def create_external_grader_detail(student_item_dict,
                                   **external_grader_additional_data
                                   ):
     """
-    Creates a submission and an associated ExternalGraderDetail record.
+    Creates a submission and an associated ExternalGraderDetail record with optional file attachments.
 
     Args:
         student_item_dict (dict): The student_item this submission is associated with.
@@ -73,13 +72,28 @@ def create_external_grader_detail(student_item_dict,
         points_possible (int, optional): The maximum possible points for this submission. Defaults to 1.
 
         external_grader_additional_data: Additional keyword arguments that may be used for the external grader.
+            If a 'files' dictionary is included, files will be processed and stored as SubmissionFile objects.
+            The 'files' dictionary should map filenames to file objects (typically FileObjForWebobFiles).
 
     Returns:
         ExternalGraderDetail: The created external grader detail record that references the submission.
+            Any processed files are accessible through the `files` related_name on this object.
 
     Raises:
         ExternalGraderQueueEmptyError: If queue_name is empty.
         SubmissionInternalError: If there's an error creating the submission or external grader detail.
+
+    Example:
+        >>> files = {'assignment.py': file_obj}
+        >>> external_grader = create_external_grader_detail(
+        ...     student_item_dict,
+        ...     answer,
+        ...     'python_grader',
+        ...     files=files
+        ... )
+        >>> # Access files through external_grader.files.all()
+        >>> # Get URLs for external systems:
+        >>> urls = {f.original_filename: f.xqueue_url for f in external_grader.files.all()}
     """
 
     submission = create_submission(student_item_dict, answer)
@@ -93,9 +107,20 @@ def create_external_grader_detail(student_item_dict,
             submission_uuid=submission_uuid,
             queue_name=queue_name,
             grader_file_name=grader_file_name,
-            points_possible=points_possible,
+            points_possible=points_possible)
 
-        )
+        files_dict = external_grader_additional_data.get('files')
+        if files_dict:
+
+            files_urls = {}
+            for filename, file_obj in files_dict.items():
+                submission_file = SubmissionFile.objects.create(
+                    external_grader=instance,
+                    file=file_obj.file,
+                    original_filename=filename
+                )
+                files_urls[filename] = submission_file.xqueue_url
+
         return instance
 
     except DatabaseError as error:
@@ -104,6 +129,16 @@ def create_external_grader_detail(student_item_dict,
         )
         logger.exception(error_message)
         raise SubmissionInternalError(error_message) from error
+
+
+def get_files_for_grader(external_grader):
+    """
+    Returns files in format expected by xqueue-watcher when is calling by get_submission endpoint.
+    """
+    return {
+        file.original_filename: file.file.url
+        for file in external_grader.files.all()
+    }
 
 
 def create_submission(

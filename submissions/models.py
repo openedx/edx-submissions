@@ -9,15 +9,19 @@ need to then generate a matching migration for it using:
     ./manage.py makemigrations submissions
 """
 
+import functools
 import logging
+import os
 from datetime import timedelta
 from uuid import uuid4
 
 from django.conf import settings
 from django.contrib import auth
+from django.core.files.storage import default_storage
 from django.db import DatabaseError, models, transaction
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import Signal, receiver
+from django.utils.module_loading import import_string
 from django.utils.timezone import now
 from jsonfield import JSONField
 from model_utils.models import TimeStampedModel
@@ -693,3 +697,113 @@ class ExternalGraderDetail(models.Model):
     def create_from_uuid(cls, submission_uuid, **kwargs):
         submission = Submission.objects.get(uuid=submission_uuid)
         return cls.objects.create(submission=submission, **kwargs)
+
+
+def submission_file_path(instance, _):
+    """
+    Generate file path for submission files.
+    Format: queue_name/uuid
+    The filename is replaced with the UUID to ensure uniqueness without preserving extension.
+    """
+    return os.path.join(
+        instance.external_grader.queue_name,
+        f"{instance.uuid}"
+    )
+
+
+@functools.cache
+def _get_storage_cached():
+    """
+    Cached implementation to get the configured storage backend.
+
+    This private function loads storage configuration from settings and
+    dynamically instantiates the specified storage backend. It expects
+    EDX_SUBMISSIONS['MEDIA'] to be a dict with 'BACKEND' (string path to
+    storage class) and optional 'OPTIONS' (dict of parameters).
+
+    This function is for internal use only and is cached to improve performance.
+    """
+    edx_submissions_config = getattr(settings, 'EDX_SUBMISSIONS', {})
+    storage_config = edx_submissions_config.get('MEDIA')
+
+    if storage_config:
+        storage_cls = import_string(storage_config['BACKEND'])
+        options = storage_config.get('OPTIONS', {})
+        return storage_cls(**options)
+
+    return default_storage
+
+
+def get_storage():
+    """
+    Get the configured storage backend or fallback to default storage.
+
+    This function checks for a storage configuration in the Django settings.
+    It first looks for 'MEDIA' in the 'EDX_SUBMISSIONS' configuration dictionary.
+
+    The function uses an internal cached implementation while remaining
+    serializable for Django migrations, avoiding "Cannot serialize" errors.
+
+    Returns:
+        Storage instance: Returns the configured storage if found in EDX_SUBMISSIONS['MEDIA'],
+                         otherwise returns Django's default_storage.
+
+    Example:
+        # In settings.py
+        EDX_SUBMISSIONS = {
+            'MEDIA': {
+                'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+                'OPTIONS': {
+                    'bucket_name': 'my-bucket'
+                }
+            }
+        }
+
+        # Then get_storage() will return an S3Boto3Storage instance
+    """
+    return _get_storage_cached()  # For performance while keeping this function serializable for migrations
+
+
+class SubmissionFile(models.Model):
+    """
+    Model to handle files associated with submissions
+    """
+    uuid = models.UUIDField(default=uuid4, editable=False)  # legacy S3 key
+    external_grader = models.ForeignKey(
+        'submissions.ExternalGraderDetail',
+        on_delete=models.SET_NULL,
+        related_name='files',
+        null=True,
+    )
+    file = models.FileField(
+        upload_to=submission_file_path,
+        max_length=512,
+        storage=get_storage
+    )
+    original_filename = models.CharField(max_length=255)  # This is necessary to send file name to xqueue-watcher
+    created_at = models.DateTimeField(default=now)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['external_grader', 'uuid']),
+        ]
+
+    @property
+    def xqueue_url(self):
+        """
+        Returns a URL in the XQueue-compatible format: /queue_name/uuid
+
+        This format is used for file references in both the legacy XQueue system
+        and the new integrated standard. It maintains backward compatibility
+        while supporting the migration from the external XQueue API to the
+        integrated Open edX solution.
+
+        The URL follows the pattern: /{queue_name}/{submission_uuid}
+        where:
+        - queue_name: identifies the external grader queue
+        - uuid: uniquely identifies this submission (legacy S3 key)
+
+        Returns:
+            str: Formatted URL path following XQueue conventions
+        """
+        return f"/{self.external_grader.queue_name}/{self.uuid}"

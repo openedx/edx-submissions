@@ -10,6 +10,8 @@ import ddt
 import pytz
 # Django imports
 from django.core.cache import cache
+from django.core.files.base import ContentFile
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import DatabaseError, IntegrityError, connection, transaction
 from django.test import TestCase
 from django.utils.timezone import now
@@ -17,8 +19,17 @@ from freezegun import freeze_time
 
 # Local imports
 from submissions import api
+from submissions.api import create_external_grader_detail, get_files_for_grader
 from submissions.errors import ExternalGraderQueueEmptyError, SubmissionInternalError
-from submissions.models import ExternalGraderDetail, ScoreAnnotation, ScoreSummary, StudentItem, Submission, score_set
+from submissions.models import (
+    ExternalGraderDetail,
+    ScoreAnnotation,
+    ScoreSummary,
+    StudentItem,
+    Submission,
+    SubmissionFile,
+    score_set
+)
 from submissions.serializers import StudentItemSerializer
 
 STUDENT_ITEM = {
@@ -923,3 +934,188 @@ class TestSubmissionsApi(TestCase):
         self.assertEqual(submission2.answer, ANSWER_TWO)
 
         self.assertNotEqual(external_grader_detail1.submission.uuid, external_grader_detail2.submission.uuid)
+
+    def test_create_external_grader_detail_with_files(self):
+        """Test creating a queue record with file handling."""
+
+        class MockFileObj:
+            def __init__(self, file_content):
+                self.file = SimpleUploadedFile(
+                    "test.txt",
+                    file_content,
+                    content_type="text/plain"
+                )
+
+        test_file = MockFileObj(b"test content")
+
+        event_data = {
+            'queue_name': 'test_queue',
+            'files': {'test.txt': test_file}
+        }
+
+        external_grader_detail = api.create_external_grader_detail(STUDENT_ITEM, ANSWER_ONE, **event_data)
+
+        self.assertEqual(external_grader_detail.queue_name, 'test_queue')
+        self.assertEqual(external_grader_detail.files.count(), 1)
+        submission_file = external_grader_detail.files.first()
+        self.assertEqual(submission_file.original_filename, 'test.txt')
+
+    def test_create_external_grader_detail_with_multiple_files(self):
+        """Test creating a queue record with multiple files."""
+
+        class MockFileObj:
+            def __init__(self, filename, content):
+                self.file = SimpleUploadedFile(
+                    filename,
+                    content,
+                    content_type="text/plain"
+                )
+
+        test_files = {
+            'test1.txt': MockFileObj("test1.txt", b"test content 1"),
+            'test2.txt': MockFileObj("test2.txt", b"test content 2")
+        }
+
+        external_grader_detail = {
+            'queue_name': 'test_queue',
+            'files': test_files
+        }
+        external_grader_detail = api.create_external_grader_detail(STUDENT_ITEM, ANSWER_ONE, **external_grader_detail)
+
+        self.assertEqual(external_grader_detail.files.count(), 2)
+        filenames = set(external_grader_detail.files.values_list('original_filename', flat=True))
+        self.assertEqual(filenames, {'test1.txt', 'test2.txt'})
+
+    def test_create_external_grader_detail_without_files(self):
+        """Test creating a queue record without any files still works."""
+        external_grader_instance = api.create_external_grader_detail(STUDENT_ITEM, ANSWER_ONE, queue_name="test_queue")
+        self.assertEqual(external_grader_instance.queue_name, 'test_queue')
+        self.assertEqual(external_grader_instance.files.count(), 0)
+
+
+class TestExternalGraderFileProcessing(TestCase):
+    """
+    Test the file processing functionality for external graders.
+    """
+
+    def setUp(self):
+        """Set up common test data."""
+        self.student_item_dict = {
+            "student_id": "test_student",
+            "course_id": "test_course",
+            "item_id": "test_item",
+            "item_type": "test_type"
+        }
+        self.answer = "test answer"
+        self.queue_name = "test_queue"
+
+    def test_create_external_grader_with_files(self):
+        """Test processing files within create_external_grader_detail."""
+
+        class FileObjWithFileAttr:
+            def __init__(self):
+                self.file = SimpleUploadedFile("test.txt", b"test content")
+
+        file_obj = FileObjWithFileAttr()
+        files_dict = {"test.txt": file_obj}
+
+        # Create external grader with files
+        instance = create_external_grader_detail(
+            student_item_dict=self.student_item_dict,
+            answer=self.answer,
+            queue_name=self.queue_name,
+            files=files_dict
+        )
+
+        # Verify SubmissionFile was created correctly
+        submission_file = SubmissionFile.objects.get(
+            external_grader=instance,
+            original_filename="test.txt"
+        )
+        self.assertTrue(submission_file.xqueue_url.startswith(f"/{self.queue_name}/"))
+
+    def test_get_files_for_grader(self):
+        """Test the standalone get_files_for_grader function."""
+
+        class FileObjWithFileAttr:
+            def __init__(self):
+                self.file = SimpleUploadedFile("test.txt", b"test content")
+
+        # Create external grader with a file
+        instance = create_external_grader_detail(
+            student_item_dict=self.student_item_dict,
+            answer=self.answer,
+            queue_name=self.queue_name,
+            files={"test.txt": FileObjWithFileAttr()}
+        )
+
+        # Test get_files_for_grader function
+        grader_files = get_files_for_grader(instance)
+        self.assertEqual(len(grader_files), 1)
+        self.assertIn("test.txt", grader_files)
+        self.assertTrue(isinstance(grader_files["test.txt"], str))
+
+    def test_multiple_files_processing(self):
+        """Test processing multiple files through create_external_grader_detail."""
+
+        class FileObjWithFileAttr1:
+            def __init__(self):
+                self.file = SimpleUploadedFile("test1.txt", b"content1")
+
+        class FileObjWithFileAttr2:
+            def __init__(self):
+                self.file = SimpleUploadedFile("test2.txt", b"content2")
+
+        files_dict = {
+            "test1.txt": FileObjWithFileAttr1(),
+            "test2.txt": FileObjWithFileAttr2()
+        }
+
+        # Create external grader with multiple files
+        instance = create_external_grader_detail(
+            student_item_dict=self.student_item_dict,
+            answer=self.answer,
+            queue_name=self.queue_name,
+            files=files_dict
+        )
+
+        # Verify both files were created
+        submission_files = SubmissionFile.objects.filter(external_grader=instance)
+        self.assertEqual(submission_files.count(), 2)
+
+        # Test get_files_for_grader
+        grader_files = get_files_for_grader(instance)
+        self.assertEqual(len(grader_files), 2)
+        self.assertIn("test1.txt", grader_files)
+        self.assertIn("test2.txt", grader_files)
+
+    def test_complete_file_processing_flow(self):
+        """
+        Test the complete flow of processing a file through to SubmissionFile creation.
+        """
+
+        class FileObjWithFileAttr:
+            def __init__(self):
+                self.file = ContentFile(b"test binary content", name="complete_test.txt")
+
+        files_dict = {"complete_test.txt": FileObjWithFileAttr()}
+
+        # Create external grader with file
+        instance = create_external_grader_detail(
+            student_item_dict=self.student_item_dict,
+            answer=self.answer,
+            queue_name=self.queue_name,
+            files=files_dict
+        )
+
+        # Verify SubmissionFile was created correctly
+        submission_file = SubmissionFile.objects.get(
+            external_grader=instance,
+            original_filename="complete_test.txt"
+        )
+
+        # Verify URL format
+        self.assertTrue(submission_file.xqueue_url.startswith(f"/{self.queue_name}/"))
+
+        # Verify file content is accessible
+        self.assertEqual(submission_file.file.read(), b"test binary content")

@@ -4,12 +4,13 @@ Tests for submission models.
 import time
 from datetime import datetime, timedelta
 from unittest import mock
+from unittest.mock import patch
 
 import pytest
 from django.contrib import auth
-from django.core.files.storage import FileSystemStorage
+from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.utils.timezone import now
 from pytz import UTC
 
@@ -816,22 +817,9 @@ class TestSubmissionFile(TestCase):
         self.assertEqual(files[0], self.submission_file)
         self.assertEqual(files[1], older_submission_file)
 
-    def test_get_storage_with_custom_config(self):
-        """Test that get_storage returns the custom storage from EDX_SUBMISSIONS if configured."""
+    def test_get_storage_default_with_mock(self):
+        """Test that get_storage returns default_storage when no custom configuration exists."""
+        _get_storage_cached.cache_clear()
 
-        # Create a custom storage for testing
-        custom_storage = FileSystemStorage(location='/tmp/test_storage')
-
-        # Override settings to include our custom storage
-        with override_settings(EDX_SUBMISSIONS={'MEDIA': custom_storage}):
-
-            # Clear any existing cache before testing
-            try:
-                # If we have direct access to the cached function
-                _get_storage_cached.cache_clear()
-            except (ImportError, AttributeError):
-                pass
-
-            storage = get_storage()
-            self.assertEqual(storage, custom_storage)
-            self.assertEqual(storage.location, '/tmp/test_storage')
+        with patch('submissions.models.getattr', return_value={}):
+            self.assertEqual(get_storage(), default_storage)

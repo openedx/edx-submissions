@@ -21,6 +21,7 @@ from django.core.files.storage import default_storage
 from django.db import DatabaseError, models, transaction
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import Signal, receiver
+from django.utils.module_loading import import_string
 from django.utils.timezone import now
 from jsonfield import JSONField
 from model_utils.models import TimeStampedModel
@@ -714,13 +715,21 @@ def submission_file_path(instance, _):
 def _get_storage_cached():
     """
     Cached implementation to get the configured storage backend.
-    This function is for internal use only.
+
+    This private function loads storage configuration from settings and
+    dynamically instantiates the specified storage backend. It expects
+    EDX_SUBMISSIONS['MEDIA'] to be a dict with 'BACKEND' (string path to
+    storage class) and optional 'OPTIONS' (dict of parameters).
+
+    This function is for internal use only and is cached to improve performance.
     """
     edx_submissions_config = getattr(settings, 'EDX_SUBMISSIONS', {})
     storage_config = edx_submissions_config.get('MEDIA')
 
     if storage_config:
-        return storage_config
+        storage_cls = import_string(storage_config['BACKEND'])
+        options = storage_config.get('OPTIONS', {})
+        return storage_cls(**options)
 
     return default_storage
 
@@ -728,23 +737,29 @@ def _get_storage_cached():
 def get_storage():
     """
     Get the configured storage backend or fallback to default storage.
-    Private helper with caching to avoid Django migration serialization errors.
 
     This function checks for a storage configuration in the Django settings.
     It first looks for 'MEDIA' in the 'EDX_SUBMISSIONS' configuration dictionary.
+
+    The function uses an internal cached implementation while remaining
+    serializable for Django migrations, avoiding "Cannot serialize" errors.
 
     Returns:
         Storage instance: Returns the configured storage if found in EDX_SUBMISSIONS['MEDIA'],
                          otherwise returns Django's default_storage.
 
     Example:
-        # In settings
-        from storages.backends.s3boto3 import S3Boto3Storage
+        # In settings.py
         EDX_SUBMISSIONS = {
-            'MEDIA': S3Boto3Storage(bucket_name='my-bucket')
+            'MEDIA': {
+                'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+                'OPTIONS': {
+                    'bucket_name': 'my-bucket'
+                }
+            }
         }
 
-        # Then get_storage() will return the S3Boto3Storage instance
+        # Then get_storage() will return an S3Boto3Storage instance
     """
     return _get_storage_cached()  # For performance while keeping this function serializable for migrations
 

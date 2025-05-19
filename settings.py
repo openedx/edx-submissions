@@ -82,3 +82,11 @@ MIDDLEWARE = (
 )
 
 TEST_APPS = ('submissions',)
+
+EDX_SUBMISSIONS = {
+    'MEDIA': {
+        'BACKEND': 'django.core.files.storage.InMemoryStorage',
+        'OPTIONS': {
+        }
+    }
+}

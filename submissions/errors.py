@@ -40,17 +40,6 @@ class ExternalGraderQueueEmptyError(SubmissionError):
     """
 
 
-class FileProcessingError(SubmissionError):
-    """
-    Exception raised when there's an error reading or processing a file.
-
-    This exception is raised when file operations fail, such as:
-    - I/O errors when reading file content
-    - OS errors during file operations
-    - Unicode decoding errors when processing file content
-    """
-
-
 class SubmissionRequestError(SubmissionError):
     """
     This error is raised when there was a request-specific error

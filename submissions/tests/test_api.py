@@ -19,7 +19,7 @@ from freezegun import freeze_time
 
 # Local imports
 from submissions import api
-from submissions.api import SubmissionFileProcessor
+from submissions.api import create_external_grader_detail, get_files_for_grader
 from submissions.errors import ExternalGraderQueueEmptyError, SubmissionInternalError
 from submissions.models import (
     ExternalGraderDetail,
@@ -993,31 +993,24 @@ class TestSubmissionsApi(TestCase):
         self.assertEqual(external_grader_instance.files.count(), 0)
 
 
-class TestSubmissionFileProcessor(TestCase):
+class TestExternalGraderFileProcessing(TestCase):
     """
-    Test the SubmissionFileProcessor functionality.
+    Test the file processing functionality for external graders.
     """
 
     def setUp(self):
         """Set up common test data."""
-        self.student_item = StudentItem.objects.create(
-            student_id="test_student",
-            course_id="test_course",
-            item_id="test_item"
-        )
-        self.submission = Submission.objects.create(
-            student_item=self.student_item,
-            answer="test answer",
-            attempt_number=1
-        )
-        self.external_grader_detail = ExternalGraderDetail.objects.create(
-            submission=self.submission,
-            queue_name="test_queue"
-        )
-        self.processor = SubmissionFileProcessor(self.external_grader_detail)
+        self.student_item_dict = {
+            "student_id": "test_student",
+            "course_id": "test_course",
+            "item_id": "test_item",
+            "item_type": "test_type"
+        }
+        self.answer = "test answer"
+        self.queue_name = "test_queue"
 
-    def test_process_files_with_file_objects(self):
-        """Test processing files with file objects that have a file attribute."""
+    def test_create_external_grader_with_files(self):
+        """Test processing files within create_external_grader_detail."""
 
         class FileObjWithFileAttr:
             def __init__(self):
@@ -1025,12 +1018,46 @@ class TestSubmissionFileProcessor(TestCase):
 
         file_obj = FileObjWithFileAttr()
         files_dict = {"test.txt": file_obj}
-        urls = self.processor.process_files(files_dict)
-        self.assertEqual(len(urls), 1)
-        self.assertTrue(urls["test.txt"].startswith(f"/{self.external_grader_detail.queue_name}/"))
+
+        # Create external grader with files
+        instance = create_external_grader_detail(
+            student_item_dict=self.student_item_dict,
+            answer=self.answer,
+            queue_name=self.queue_name,
+            files=files_dict
+        )
+
+        # Verify SubmissionFile was created correctly
+        submission_file = SubmissionFile.objects.get(
+            external_grader=instance,
+            original_filename="test.txt"
+        )
+        self.assertTrue(submission_file.xqueue_url.startswith(f"/{self.queue_name}/"))
 
     def test_get_files_for_grader(self):
-        """Test retrieving files in xwatcher format."""
+        """Test the standalone get_files_for_grader function."""
+
+        class FileObjWithFileAttr:
+            def __init__(self):
+                self.file = SimpleUploadedFile("test.txt", b"test content")
+
+        # Create external grader with a file
+        instance = create_external_grader_detail(
+            student_item_dict=self.student_item_dict,
+            answer=self.answer,
+            queue_name=self.queue_name,
+            files={"test.txt": FileObjWithFileAttr()}
+        )
+
+        # Test get_files_for_grader function
+        grader_files = get_files_for_grader(instance)
+        self.assertEqual(len(grader_files), 1)
+        self.assertIn("test.txt", grader_files)
+        self.assertTrue(isinstance(grader_files["test.txt"], str))
+
+    def test_multiple_files_processing(self):
+        """Test processing multiple files through create_external_grader_detail."""
+
         class FileObjWithFileAttr1:
             def __init__(self):
                 self.file = SimpleUploadedFile("test1.txt", b"content1")
@@ -1039,16 +1066,30 @@ class TestSubmissionFileProcessor(TestCase):
             def __init__(self):
                 self.file = SimpleUploadedFile("test2.txt", b"content2")
 
-        self.processor.process_files({
+        files_dict = {
             "test1.txt": FileObjWithFileAttr1(),
             "test2.txt": FileObjWithFileAttr2()
-        })
+        }
 
-        grader_files = self.processor.get_files_for_grader()
+        # Create external grader with multiple files
+        instance = create_external_grader_detail(
+            student_item_dict=self.student_item_dict,
+            answer=self.answer,
+            queue_name=self.queue_name,
+            files=files_dict
+        )
+
+        # Verify both files were created
+        submission_files = SubmissionFile.objects.filter(external_grader=instance)
+        self.assertEqual(submission_files.count(), 2)
+
+        # Test get_files_for_grader
+        grader_files = get_files_for_grader(instance)
         self.assertEqual(len(grader_files), 2)
-        self.assertTrue(all(isinstance(url, str) for url in grader_files.values()))
+        self.assertIn("test1.txt", grader_files)
+        self.assertIn("test2.txt", grader_files)
 
-    def test_process_files_complete_flow(self):
+    def test_complete_file_processing_flow(self):
         """
         Test the complete flow of processing a file through to SubmissionFile creation.
         """
@@ -1059,17 +1100,22 @@ class TestSubmissionFileProcessor(TestCase):
 
         files_dict = {"complete_test.txt": FileObjWithFileAttr()}
 
-        # Process the file
-        urls = self.processor.process_files(files_dict)
-
-        # Verify URL was created
-        self.assertEqual(len(urls), 1)
-        file_url = urls["complete_test.txt"]
-        self.assertTrue(file_url.startswith(f"/{self.external_grader_detail.queue_name}/"))
+        # Create external grader with file
+        instance = create_external_grader_detail(
+            student_item_dict=self.student_item_dict,
+            answer=self.answer,
+            queue_name=self.queue_name,
+            files=files_dict
+        )
 
         # Verify SubmissionFile was created correctly
         submission_file = SubmissionFile.objects.get(
-            external_grader=self.external_grader_detail,
+            external_grader=instance,
             original_filename="complete_test.txt"
         )
-        self.assertEqual(submission_file.xqueue_url, file_url)
+
+        # Verify URL format
+        self.assertTrue(submission_file.xqueue_url.startswith(f"/{self.queue_name}/"))
+
+        # Verify file content is accessible
+        self.assertEqual(submission_file.file.read(), b"test binary content")

@@ -4,11 +4,13 @@ from uuid import uuid4
 
 import factory
 from django.contrib import auth
+from django.utils import timezone
 from django.utils.timezone import now
 from factory.django import DjangoModelFactory
 from pytz import UTC
 
 from submissions import models
+from submissions.models import ExternalGraderDetail
 
 User = auth.get_user_model()
 
@@ -71,3 +73,18 @@ class TeamSubmissionFactory(DjangoModelFactory):
     item_id = factory.Faker('sha1')
     team_id = factory.Faker('sha1')
     submitted_by = factory.SubFactory(UserFactory)
+
+
+class ExternalGraderDetailFactory(DjangoModelFactory):
+    """
+    Factory for the ExternalGraderDetail model.
+    """
+    class Meta:
+        model = ExternalGraderDetail
+
+    submission = factory.SubFactory(SubmissionFactory)
+    pullkey = factory.Sequence(lambda n: f'test_pull_key_{n}')
+    status = 'pending'
+    num_failures = 0
+    grader_reply = ''
+    status_time = factory.LazyFunction(timezone.now)

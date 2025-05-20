@@ -14,3 +14,4 @@ pycodestyle>=2.5.0
 pytest-cov
 pytest-django
 python-dateutil>=2.8.0
+openedx-events==10.2.0

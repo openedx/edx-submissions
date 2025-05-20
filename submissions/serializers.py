@@ -8,7 +8,7 @@ import json
 from rest_framework import serializers
 from rest_framework.fields import DateTimeField, Field, IntegerField
 
-from submissions.models import Score, ScoreAnnotation, StudentItem, Submission, TeamSubmission
+from submissions.models import ExternalGraderDetail, Score, ScoreAnnotation, StudentItem, Submission, TeamSubmission
 
 
 class RawField(Field):
@@ -220,4 +220,42 @@ class ScoreSerializer(serializers.ModelSerializer):
             # Computed
             'submission_uuid',
             'annotations',
+        )
+
+
+class SubmissionListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Submission
+        fields = (
+            'id',
+            'uuid',
+            'student_item',
+            'attempt_number',
+            'submitted_at',
+            'created_at',
+            'answer',
+            'status',
+            'team_submission'
+        )
+
+
+class ExternalGraderDetailSerializer(serializers.ModelSerializer):
+    """ Serializer for ExternalGraderDetail """
+    submission = SubmissionListSerializer(read_only=True)
+
+    class Meta:
+        model = ExternalGraderDetail
+        fields = (
+            'id',
+            'submission',
+            'queue_name',
+            'queue_key',
+            'grader_file_name',
+            'points_possible',
+            'status',
+            'pullkey',
+            'grader_reply',
+            'status_time',
+            'created_at',
+            'num_failures'
         )

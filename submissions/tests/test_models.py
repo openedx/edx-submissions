@@ -328,7 +328,7 @@ class TestExternalGraderDetail(TestCase):
         )
 
     def test_default_status(self):
-        """Test that new queue records are created with 'pending' status."""
+        """Test that new external graders are created with 'pending' status."""
         self.assertEqual(self.external_grader_detail.status, 'pending')
         self.assertEqual(self.external_grader_detail.num_failures, 0)
 
@@ -337,7 +337,8 @@ class TestExternalGraderDetail(TestCase):
         self.assertEqual(self.external_grader_detail.num_failures, 0)
 
         # Transition to failed status should increment counter
-        self.external_grader_detail.update_status('failed')
+        self.external_grader_detail.update_status('pulled')
+        self.external_grader_detail.update_status('retry')
         self.assertEqual(self.external_grader_detail.num_failures, 1)
 
     def test_status_time_updates(self):
@@ -349,6 +350,29 @@ class TestExternalGraderDetail(TestCase):
 
         self.external_grader_detail.update_status('pulled')
         self.assertGreater(self.external_grader_detail.status_time, original_time)
+
+    def test_valid_status_transitions(self):
+        """Test valid status transitions"""
+        # Test pending -> pulled
+        self.external_grader_detail.update_status('pulled')
+        self.assertEqual(self.external_grader_detail.status, 'pulled')
+
+        # Test pulled -> retired
+        self.external_grader_detail.update_status('retired')
+        self.assertEqual(self.external_grader_detail.status, 'retired')
+
+    def test_invalid_status_transitions(self):
+        """Test invalid status transitions raise error"""
+        # Can't go from pending to retired
+        with self.assertRaises(ValueError):
+            self.external_grader_detail.update_status('retired')
+
+        # Set to pulled first
+        self.external_grader_detail.update_status('pulled')
+
+        # Can't go from pulled to pending
+        with self.assertRaises(ValueError):
+            self.external_grader_detail.update_status('pending')
 
     def test_clean_new_instance(self):
         """Test clean method for new instances (no pk assigned yet)"""
@@ -661,7 +685,7 @@ class TestSubmissionFile(TestCase):
         )
 
     def test_related_name_access(self):
-        """Test accessing files through the submission queue record."""
+        """Test accessing files through the submission external grader."""
         files = self.external_grader_detail.files.all()
         self.assertEqual(files.count(), 1)
         self.assertEqual(files.first(), self.submission_file)

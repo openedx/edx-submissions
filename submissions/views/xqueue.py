@@ -2,7 +2,6 @@
 
 import json
 import logging
-import uuid
 from datetime import timedelta
 
 from django.contrib.auth import authenticate, login, logout
@@ -22,16 +21,9 @@ from submissions.models import ExternalGraderDetail
 log = logging.getLogger(__name__)
 
 
-class XQueueSessionAuthentication(SessionAuthentication):
-    def enforce_csrf(self, request):
-        if 'put_result' in request.path:
-            return None
-        return super().enforce_csrf(request)
-
-
 class XqueueViewSet(viewsets.ViewSet):
     """
-    A collection of services for xwatcher interactions and authentication.
+    A collection of services for xqueue-watcher interactions and authentication.
 
     This ViewSet provides endpoints for managing external grader results
     and handling user authentication in the system.
@@ -48,7 +40,7 @@ class XqueueViewSet(viewsets.ViewSet):
     - logout: Endpoint for ending user sessions
     """
 
-    authentication_classes = [XQueueSessionAuthentication]
+    authentication_classes = [SessionAuthentication]
 
     def get_permissions(self):
         """
@@ -117,7 +109,6 @@ class XqueueViewSet(viewsets.ViewSet):
         - Submission data with pull information if successful
         - Error message if queue is empty or invalid
         """
-
         queue_name = request.query_params.get('queue_name')
 
         if not queue_name:
@@ -128,11 +119,12 @@ class XqueueViewSet(viewsets.ViewSet):
 
         timeout_threshold = timezone.now() - timedelta(minutes=5)
         try:
-            submission_record = (
+            external_grader = (
                 ExternalGraderDetail.objects
                 .select_for_update(nowait=True)
                 .filter(
                     Q(queue_name=queue_name, status='pending') |
+                    Q(queue_name=queue_name, status='retry') |
                     Q(queue_name=queue_name, status='pulled', status_time__lt=timeout_threshold)
                 )
                 .select_related('submission')
@@ -145,34 +137,28 @@ class XqueueViewSet(viewsets.ViewSet):
                 status=status.HTTP_409_CONFLICT
             )
 
-        if submission_record:
+        if external_grader:
             try:
-                pull_time = timezone.now()
-                pullkey = str(uuid.uuid4())
-                submission_record.update_status('pulled')
-                submission_record.pullkey = pullkey
-                submission_record.status_time = pull_time
-                submission_record.save(update_fields=['pullkey', 'status_time'])
+                if external_grader.status != "pulled":
+                    external_grader.update_status("pulled")
 
                 submission_data = {
-                    "grader_payload": json.dumps({"grader": submission_record.grader_file_name}),
+                    "grader_payload": json.dumps({"grader": external_grader.grader_file_name}),
                     "student_info": json.dumps({
-                        "anonymous_student_id": str(submission_record.submission.student_item.student_id),
-                        "submission_time": str(int(submission_record.created_at.timestamp())),
+                        "anonymous_student_id": str(external_grader.submission.student_item.student_id),
+                        "submission_time": str(int(external_grader.created_at.timestamp())),
                         "random_seed": 1
                     }),
-                    "student_response": submission_record.submission.answer
+                    "student_response": external_grader.submission.answer
                 }
-
-                file_manager = SubmissionFileManager(submission_record)
 
                 payload = {
                     'xqueue_header': json.dumps({
-                        'submission_id': submission_record.submission.id,
-                        'submission_key': pullkey
+                        'submission_id': external_grader.submission.id,
+                        'submission_key': external_grader.pullkey
                     }),
                     'xqueue_body': json.dumps(submission_data),
-                    'xqueue_files': json.dumps(file_manager.get_files_for_grader())
+                    'xqueue_files': json.dumps(get_files_for_grader(external_grader))
                 }
 
                 return Response(
@@ -209,7 +195,7 @@ class XqueueViewSet(viewsets.ViewSet):
             )
 
         try:
-            submission_record = ExternalGraderDetail.objects.select_for_update(
+            external_grader = ExternalGraderDetail.objects.select_for_update(
                                                                         nowait=True).get(submission__id=submission_id)
         except ExternalGraderDetail.DoesNotExist:
             log.error(
@@ -224,9 +210,9 @@ class XqueueViewSet(viewsets.ViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        if not submission_record.pullkey or submission_key != submission_record.pullkey:
+        if not external_grader.pullkey or submission_key != external_grader.pullkey:
             log.error(f"Invalid pullkey: submission key from xwatcher {submission_key} "
-                      f"and submission key stored {submission_record.pullkey} are different")
+                      f"and submission key stored {external_grader.pullkey} are different")
             return Response(
                 self.compose_reply(False, 'Incorrect key for submission'),
                 status=status.HTTP_403_FORBIDDEN
@@ -235,26 +221,22 @@ class XqueueViewSet(viewsets.ViewSet):
         # pylint: disable=broad-exception-caught
         try:
             log.info("Attempting to set_score...")
-            set_score(str(submission_record.submission.uuid),
+            set_score(str(external_grader.submission.uuid),
                       points_earned,
-                      1
+                      external_grader.points_possible
                       )
-            log.info(f"=====> Saving score {score_msg}")
-            submission_record.grader_reply = score_msg
-            submission_record.status_time = timezone.now()
-            submission_record.update_status('retired')
-            submission_record.save()
+            external_grader.grader_reply = score_msg
+            external_grader.save()
+            external_grader.update_status('retired')
             log.info("Successfully updated submission score for submission %s", submission_id)
 
-        except Exception as e:
-            log.error(f"Error when execute set_score: {e}")
+        except Exception:
+            log.exception("Error when execute set_score")
             # Keep track of how many times we've failed to set_score a grade for this submission
-            submission_record.num_failures += 1
-            if submission_record.num_failures > 30:
-                submission_record.status = "failed"
+            if external_grader.num_failures >= 30:
+                external_grader.update_status('failed')
             else:
-                submission_record.status = "pending"
-            submission_record.save()
+                external_grader.update_status('retry')
 
         return Response(self.compose_reply(success=True, content=''))
 

@@ -357,43 +357,9 @@ class TestExternalGraderDetail(TestCase):
         self.assertEqual(self.external_grader_detail.num_failures, 0)
 
         # Transition to failed status should increment counter
-        self.external_grader_detail.update_status('failed')
-        self.assertEqual(self.external_grader_detail.num_failures, 1)
-
-        # Return to pending
-        self.external_grader_detail.update_status('pending')
-
-        # Another failure should increment counter again
-        self.external_grader_detail.update_status('failed')
-        self.assertEqual(self.external_grader_detail.num_failures, 2)
-
-    def test_is_processable(self):
-        """Test the is_processable property."""
-        # New records should not be processable immediately
-        self.assertFalse(self.external_grader_detail.is_processable)
-
-        # Set status_time to past the processing window
-        past_time = now() - timedelta(minutes=61)
-        self.external_grader_detail.status_time = past_time
-        self.external_grader_detail.save()
-
-        # Should now be processable
-        self.assertTrue(self.external_grader_detail.is_processable)
-
-        # Failed records should also be processable after window
-        self.external_grader_detail.update_status('failed')
-
-        # Need to manually set the time again since update_status resets it
-        self.external_grader_detail.status_time = now() - timedelta(minutes=61)
-        self.external_grader_detail.save()
-
-        self.assertTrue(self.external_grader_detail.is_processable)
-
-        # Retired records should never be processable
-        self.external_grader_detail.update_status('pending')
         self.external_grader_detail.update_status('pulled')
-        self.external_grader_detail.update_status('retired')
-        self.assertFalse(self.external_grader_detail.is_processable)
+        self.external_grader_detail.update_status('retry')
+        self.assertEqual(self.external_grader_detail.num_failures, 1)
 
     def test_status_time_updates(self):
         """Test that status_time updates with status changes."""
@@ -427,16 +393,6 @@ class TestExternalGraderDetail(TestCase):
         # Can't go from pulled to pending
         with self.assertRaises(ValueError):
             self.external_grader_detail.update_status('pending')
-
-    def test_failure_count_increment(self):
-        """Test failure count increases properly"""
-        initial_failures = self.external_grader_detail.num_failures
-
-        # Update to failed status
-        self.external_grader_detail.update_status('failed')
-
-        # Check failure count increased
-        self.assertEqual(self.external_grader_detail.num_failures, initial_failures + 1)
 
     def test_clean_new_instance(self):
         """Test clean method for new instances (no pk assigned yet)"""

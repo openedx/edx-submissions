@@ -609,7 +609,15 @@ class ExternalGraderDetail(models.Model):
         PULLED = 'pulled', 'Pulled'
         RETIRED = 'retired', 'Retired'
         FAILED = 'failed', 'Failed'
+        RETRY = 'retry', 'Retry'
 
+    VALID_TRANSITIONS = {
+        'pending': ['pulled'],
+        'pulled': ['retired', 'failed', 'retry'],
+        'retry': ['retired', 'pulled'],
+        'failed': ['pending'],
+        'retired': []
+    }
     submission = models.OneToOneField(
         Submission,
         on_delete=models.CASCADE,
@@ -617,6 +625,7 @@ class ExternalGraderDetail(models.Model):
     )
 
     queue_name = models.CharField(max_length=128)
+    queue_key = models.CharField(max_length=128, null=True)
     grader_file_name = models.CharField(max_length=128, default='')
     points_possible = models.PositiveIntegerField(default=1)
 
@@ -650,22 +659,25 @@ class ExternalGraderDetail(models.Model):
         ]
         ordering = ['-created_at']
 
+    def can_transition_to(self, new_status, current_status=None):
+        """Check if the transition to new_status is valid."""
+        from_status = current_status if current_status is not None else self.status
+        return new_status in self.VALID_TRANSITIONS.get(from_status, [])
+
     @transaction.atomic
-    def update_status(self, new_status, grader_reply=''):
+    def update_status(self, new_status):
         """
         Update status and timestamp atomically
         """
+        if not self.can_transition_to(new_status):
+            raise ValueError(f"Invalid status transition from {self.status} to {new_status}")
+
         self.status = new_status
         self.status_time = now()
 
-        if new_status == 'failed':
+        if new_status in ('retry', 'failed'):
             self.num_failures += 1
-            self.grader_reply = grader_reply
-            self.save(update_fields=['status', 'status_time', 'num_failures', "grader_reply"])
-
-        elif new_status == 'retired':
-            self.grader_reply = grader_reply
-            self.save(update_fields=['status', 'status_time', 'grader_reply'])
+            self.save(update_fields=['status', 'status_time', 'num_failures'])
 
         elif new_status == 'pulled':
             pullkey = str(uuid.uuid4())

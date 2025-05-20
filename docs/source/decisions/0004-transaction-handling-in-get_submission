@@ -1,0 +1,33 @@
+Improving Transaction Handling in Get Submission
+================================================
+
+Status
+------
+
+**Provisional** *2025-03-19*
+
+Context
+-------
+
+We identified a concurrency issue in the submission processing flow. Multiple instances of the xqueue watcher were processing the same transaction simultaneously, causing duplicate handling of submissions. Additionally, submissions remained stuck in the "pulled" state indefinitely when errors or unexpected interruptions occurred during processing.
+
+Decision
+--------
+
+We introduced a robust locking mechanism at the database level to prevent concurrent processing of the same submission. Specifically, we employed database row-level locking (`select_for_update(nowait=True)`) on submissions to ensure only one xqueue watcher instance can process a transaction at a time. Additionally, we implemented a timeout-based fallback, marking submissions in the "pulled" state as available again if they exceed a defined timeout period (5 minutes).
+
+Consequences
+------------
+
+Positive
+~~~~~~~~
+
+- Ensures data consistency by preventing duplicate transaction processing.
+- Implements automatic recovery for submissions stuck in the "pulled" state, improving overall system reliability.
+- Minimal impact on system performance due to efficient database-level locking.
+
+Negative
+~~~~~~~~
+
+- Slightly increased complexity in transaction handling logic.
+- Potential minor latency increase when contention occurs due to database locks.

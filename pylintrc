@@ -275,7 +275,7 @@ disable =
 	unspecified-encoding,
 	unused-wildcard-import,
 	use-maxsplit-arg,
-	
+
 	logging-fstring-interpolation,
 
 [REPORTS]

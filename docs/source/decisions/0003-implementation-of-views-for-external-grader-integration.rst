@@ -12,7 +12,7 @@ Context
 *******
 
 Following the creation of ExternalGraderDetail (ADR 1) and SubmissionFile (ADR 2) models, we need to implement the API
-endpoints that will allow external graders (XWatcher) to interact with the system. The current XQueue implementation
+endpoints that will allow external graders (xqueue-watcher) to interact with the system. The current XQueue implementation
 provides three critical endpoints that need to be replicated:
 
 1. Authentication Service:

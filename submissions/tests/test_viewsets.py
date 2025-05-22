@@ -230,7 +230,7 @@ class TestXqueueViewSet(APITestCase):
 
         self.external_grader.refresh_from_db()
         self.assertEqual(self.external_grader.num_failures, 1)
-        self.assertEqual(self.external_grader.status, 'retry')
+        self.assertEqual(self.external_grader.status, 'failed')
 
     def test_put_result_set_score_fail_30_times(self):
         """

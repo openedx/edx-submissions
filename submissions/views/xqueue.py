@@ -16,6 +16,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from submissions.api import get_files_for_grader, set_score
+from submissions.errors import SubmissionInternalError, SubmissionNotFoundError
 from submissions.models import ExternalGraderDetail
 
 log = logging.getLogger(__name__)
@@ -36,11 +37,12 @@ class XqueueViewSet(viewsets.ViewSet):
 
     Endpoints:
     - put_result: Endpoint for graders to submit their assessment results
+    - get_submission: Endpoint for fetch pending submissions
     - login: Endpoint for user authentication
     - logout: Endpoint for ending user sessions
     """
 
-    authentication_classes = [SessionAuthentication]
+    authentication_classes = [SessionAuthentication]  # Xqueue watcher auth method
 
     def get_permissions(self):
         """
@@ -218,25 +220,18 @@ class XqueueViewSet(viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        # pylint: disable=broad-exception-caught
         try:
             log.info("Attempting to set_score...")
             set_score(str(external_grader.submission.uuid),
                       points_earned,
                       external_grader.points_possible
                       )
-            external_grader.grader_reply = score_msg
-            external_grader.save()
-            external_grader.update_status('retired')
+            external_grader.update_status('retired', score_msg)
             log.info("Successfully updated submission score for submission %s", submission_id)
 
-        except Exception:
-            log.exception("Error when execute set_score")
-            # Keep track of how many times we've failed to set_score a grade for this submission
-            if external_grader.num_failures >= 30:
-                external_grader.update_status('failed')
-            else:
-                external_grader.update_status('retry')
+        except (SubmissionNotFoundError, DatabaseError, SubmissionInternalError) as e:
+            log.exception("Error when executing set_score: %s", type(e).__name__)
+            external_grader.update_status("failed", score_msg)
 
         return Response(self.compose_reply(success=True, content=''))
 

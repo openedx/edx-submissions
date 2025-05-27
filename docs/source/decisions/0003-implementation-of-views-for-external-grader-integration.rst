@@ -79,6 +79,50 @@ Key Benefits:
 
 This approach connects directly with the previously created data models for external graders and submission files, providing a complete end-to-end solution for the grading workflow.
 
+Administrative Interface Implementation
+***************************************
+
+The ExternalGraderDetailAdmin provides comprehensive monitoring and management capabilities:
+
+Status Management
+-----------------
+
+- Visual status badges with color coding (pending/yellow, pulled/blue, failed/red, retired/gray)
+- Bulk action to reset failed submissions to pending status
+- Status transition validation (only failed → pending allowed)
+- Read-only fields for data integrity
+
+Search and Filtering
+--------------------
+
+- Advanced search across queue names, pullkeys, grader files, and submission details
+- Filtered search including student_id, course_id, and item_id from related submissions
+- Optimized queryset with select_related for performance
+- List filters by status, queue_name, failures, and timestamps
+
+Information Display
+-------------------
+
+- Comprehensive submission information formatting (student, course, item details)
+- Failure count tracking for retry logic monitoring
+- Timestamp tracking for status changes and creation
+- Direct links to related submission records
+
+Security and Permissions
+------------------------
+
+- Read-only access for individual records (prevents accidental data modification)
+- Superuser-only deletion permissions
+- Change permissions enabled for bulk actions and viewing
+
+Operational Features
+--------------------
+
+- Error handling with user feedback messages for bulk operations
+- Database query optimization through select_related
+- Fieldset organization for logical information grouping
+- Integration with Django's admin messaging system
+
 Consequences
 ************
 
@@ -101,6 +145,13 @@ Positive:
    - Better monitoring capabilities
    - Improved error visibility
    - Automatic retry handling
+
+4. Administrative Interface:
+   - Comprehensive monitoring dashboard for external grader operations
+   - Bulk recovery operations for failed submissions
+   - Enhanced visibility into grading pipeline status
+   - Optimized database queries for large-scale operations
+   - User-friendly status indicators and search capabilities
 
 Negative:
 ---------

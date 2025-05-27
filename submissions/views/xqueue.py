@@ -126,7 +126,6 @@ class XqueueViewSet(viewsets.ViewSet):
                 .select_for_update(nowait=True)
                 .filter(
                     Q(queue_name=queue_name, status='pending') |
-                    Q(queue_name=queue_name, status='retry') |
                     Q(queue_name=queue_name, status='pulled', status_time__lt=timeout_threshold)
                 )
                 .select_related('submission')

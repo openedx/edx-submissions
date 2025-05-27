@@ -46,7 +46,7 @@ charset-normalizer==3.4.2
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/docs.txt
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
     #   requests
-click==8.2.0
+click==8.2.1
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
     #   click-log
@@ -60,7 +60,7 @@ code-annotations==2.3.0
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
     #   edx-lint
-coverage[toml]==7.8.0
+coverage[toml]==7.8.2
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
     #   pytest-cov
@@ -107,11 +107,11 @@ edx-lint==5.3.7
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
 factory-boy==3.3.3
     # via -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
-faker==37.1.0
+faker==37.3.0
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
     #   factory-boy
-freezegun==1.5.1
+freezegun==1.5.2
     # via -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
 idna==3.10
     # via
@@ -168,7 +168,7 @@ platformdirs==4.3.8
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
     #   pylint
-pluggy==1.5.0
+pluggy==1.6.0
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/test.txt
     #   pytest

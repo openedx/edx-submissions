@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
-cachetools==5.5.2
+cachetools==6.0.0
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
     #   tox
@@ -20,7 +20,7 @@ colorama==0.4.6
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
     #   tox
-coverage[toml]==7.8.0
+coverage[toml]==7.8.2
     # via coveralls
 coveralls==4.0.1
     # via -r requirements/ci.in
@@ -47,7 +47,7 @@ platformdirs==4.3.8
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
     #   tox
     #   virtualenv
-pluggy==1.5.0
+pluggy==1.6.0
     # via
     #   -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
     #   tox
@@ -57,7 +57,7 @@ pyproject-api==1.9.1
     #   tox
 requests==2.32.3
     # via coveralls
-tox==4.25.0
+tox==4.26.0
     # via -r /home/runner/work/edx-submissions/edx-submissions/requirements/tox.txt
 urllib3==2.2.3
     # via

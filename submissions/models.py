@@ -404,7 +404,7 @@ class Score(models.Model):
         """
         Retrieve the submission UUID associated with this score.
         If the score isn't associated with a submission (for example, if this is
-        a "reset" score or a a non-courseware item like "class participation"),
+        a "reset" score or a non-courseware item like "class participation"),
         then this will return None.
 
         Returns:
@@ -651,7 +651,7 @@ class ExternalGraderDetail(models.Model):
         ordering = ['-created_at']
 
     @transaction.atomic
-    def update_status(self, new_status, score_msg=''):
+    def update_status(self, new_status, grader_reply=''):
         """
         Update status and timestamp atomically
         """
@@ -660,11 +660,11 @@ class ExternalGraderDetail(models.Model):
 
         if new_status == 'failed':
             self.num_failures += 1
-            self.grader_reply = score_msg
+            self.grader_reply = grader_reply
             self.save(update_fields=['status', 'status_time', 'num_failures', "grader_reply"])
 
         elif new_status == 'retired':
-            self.grader_reply = score_msg
+            self.grader_reply = grader_reply
             self.save(update_fields=['status', 'status_time', 'grader_reply'])
 
         elif new_status == 'pulled':

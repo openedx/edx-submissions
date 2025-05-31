@@ -12,17 +12,18 @@ from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from submissions.api import get_files_for_grader, set_score
 from submissions.errors import SubmissionInternalError, SubmissionNotFoundError
 from submissions.models import ExternalGraderDetail
+from submissions.permissions import IsXQueueUser
 
 log = logging.getLogger(__name__)
 
 
-class XqueueViewSet(viewsets.ViewSet):
+class XQueueViewSet(viewsets.ViewSet):
     """
     A collection of services for xqueue-watcher interactions and authentication.
 
@@ -40,6 +41,18 @@ class XqueueViewSet(viewsets.ViewSet):
     - get_submission: Endpoint for fetch pending submissions
     - login: Endpoint for user authentication
     - logout: Endpoint for ending user sessions
+
+    HTTP Status Codes:
+    In contrast to previous implementations that always returned HTTP 200 status
+    codes and relied solely on the JSON response body to indicate success or failure,
+    this implementation returns HTTP status codes that more accurately reflect the
+    outcome of each request (such as 400, 401, 403, or 404 for error conditions).
+    This change improves API clarity and error handling.
+
+    NOTE: This viewset is intentionally re-building an API-compatible implementation for
+    xqueue-watcher. Some non-standard choices (such as response formats and status code
+    handling) are made to maintain compatibility with the legacy xqueue-watcher client.
+    For more context, see DEPR: https://github.com/openedx/public-engineering/issues/286.
     """
 
     authentication_classes = [SessionAuthentication]  # Xqueue watcher auth method
@@ -53,7 +66,7 @@ class XqueueViewSet(viewsets.ViewSet):
         if self.action == 'login':
             permission_classes = [AllowAny]
         else:
-            permission_classes = [IsAuthenticated]
+            permission_classes = [IsXQueueUser]
         return [permission() for permission in permission_classes]
 
     @action(detail=False, methods=['post'], url_name='login')
@@ -61,11 +74,11 @@ class XqueueViewSet(viewsets.ViewSet):
         """
         Endpoint for authenticating users and creating sessions.
         """
-        log.info(f"Login attempt with data: {request.data}")
 
         if 'username' not in request.data or 'password' not in request.data:
+            log.error('XQueue insufficient login info')
             return Response(
-                {'return_code': 1, 'content': 'Insufficient login info'},
+                self.compose_reply(False, 'Insufficient login info'),
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -75,18 +88,18 @@ class XqueueViewSet(viewsets.ViewSet):
             password=request.data['password']
         )
 
-        if user is not None:
-            login(request, user)
-            response = Response(
-                {'return_code': 0, 'content': 'Logged in'},
-                status=status.HTTP_200_OK
+        if user is None:
+            log.error('XQueue username or password incorrect')
+            return Response(
+                self.compose_reply(False, 'Incorrect login credentials'),
+                status=status.HTTP_401_UNAUTHORIZED
             )
 
-            return response
-
+        login(request, user)
+        log.info(f'XQueue user logged in {request.user.username}')
         return Response(
-            {'return_code': 1, 'content': 'Incorrect login credentials'},
-            status=status.HTTP_401_UNAUTHORIZED
+            self.compose_reply(True, 'Logged in'),
+            status=status.HTTP_200_OK
         )
 
     @action(detail=False, methods=['post'], url_name='logout')
@@ -114,68 +127,57 @@ class XqueueViewSet(viewsets.ViewSet):
         queue_name = request.query_params.get('queue_name')
 
         if not queue_name:
+            log.error("'get_submission' must provide parameter 'queue_name'")
             return Response(
                 self.compose_reply(False, "'get_submission' must provide parameter 'queue_name'"),
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         timeout_threshold = timezone.now() - timedelta(minutes=5)
-        try:
-            external_grader = (
-                ExternalGraderDetail.objects
-                .select_for_update(nowait=True)
-                .filter(
-                    Q(queue_name=queue_name, status='pending') |
-                    Q(queue_name=queue_name, status='pulled', status_time__lt=timeout_threshold)
-                )
-                .select_related('submission')
-                .order_by('status_time')
-                .first()
+        # DatabaseError handling was removed because with skip_locked=True, locking conflicts
+        # are avoided and this exception is no longer expected here.
+        external_grader = (
+            ExternalGraderDetail.objects
+            .select_for_update(skip_locked=True)
+            .filter(
+                Q(queue_name=queue_name, status='pending') |
+                Q(queue_name=queue_name, status='pulled', status_time__lt=timeout_threshold)
             )
-        except DatabaseError:
-            return Response(
-                self.compose_reply(False, "Submission already in process"),
-                status=status.HTTP_409_CONFLICT
-            )
+            .select_related('submission')
+            .order_by('status_time')
+            .first()
+        )
 
         if external_grader:
-            try:
-                if external_grader.status != "pulled":
-                    external_grader.update_status("pulled")
+            external_grader.update_status("pulled")
+            submission_data = {
+                "grader_payload": json.dumps({"grader": external_grader.grader_file_name}),
+                "student_info": json.dumps({
+                    "anonymous_student_id": str(external_grader.submission.student_item.student_id),
+                    "submission_time": str(int(external_grader.created_at.timestamp())),
+                    "random_seed": 1
+                }),
+                "student_response": external_grader.submission.answer
+            }
 
-                submission_data = {
-                    "grader_payload": json.dumps({"grader": external_grader.grader_file_name}),
-                    "student_info": json.dumps({
-                        "anonymous_student_id": str(external_grader.submission.student_item.student_id),
-                        "submission_time": str(int(external_grader.created_at.timestamp())),
-                        "random_seed": 1
-                    }),
-                    "student_response": external_grader.submission.answer
-                }
+            payload = {
+                'xqueue_header': json.dumps({
+                    'submission_id': external_grader.submission.id,
+                    'submission_key': external_grader.pullkey
+                }),
+                'xqueue_body': json.dumps(submission_data),
+                # Xqueue watcher expects this to be a JSON string
+                'xqueue_files': json.dumps(get_files_for_grader(external_grader))
+            }
 
-                payload = {
-                    'xqueue_header': json.dumps({
-                        'submission_id': external_grader.submission.id,
-                        'submission_key': external_grader.pullkey
-                    }),
-                    'xqueue_body': json.dumps(submission_data),
-                    'xqueue_files': json.dumps(get_files_for_grader(external_grader))
-                }
-
-                return Response(
-                    self.compose_reply(True, content=json.dumps(payload)),
-                    status=status.HTTP_200_OK
-                )
-
-            except ValueError as e:
-                return Response(
-                    self.compose_reply(False, f"Error processing submission: {str(e)}"),
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+            return Response(
+                self.compose_reply(True, content=json.dumps(payload)),
+                status=status.HTTP_200_OK
+            )
 
         return Response(
             self.compose_reply(False, f"Queue '{queue_name}' is empty"),
-            status=status.HTTP_404_NOT_FOUND
+            status=status.HTTP_200_OK
         )
 
     @action(detail=False, methods=['post'], url_name='put_result')
@@ -184,7 +186,7 @@ class XqueueViewSet(viewsets.ViewSet):
         """
         Endpoint for graders to post their results and update submission scores.
         """
-        (reply_valid, submission_id, submission_key, score_msg, points_earned) = (
+        (reply_valid, submission_id, submission_key, grader_reply, points_earned) = (
             self.validate_grader_reply(request.data))
 
         if not reply_valid:
@@ -196,15 +198,16 @@ class XqueueViewSet(viewsets.ViewSet):
             )
 
         try:
-            external_grader = ExternalGraderDetail.objects.select_for_update(
-                                                                        nowait=True).get(submission__id=submission_id)
+            external_grader = (
+                ExternalGraderDetail.objects.select_for_update(skip_locked=True).get(submission__id=submission_id)
+            )
         except ExternalGraderDetail.DoesNotExist:
             log.error(
                 "Grader submission_id refers to nonexistent entry in Submission DB: "
-                "grader: %s, submission_key: %s, score_msg: %s",
+                "submission_id: %s, submission_key: %s, grader_reply: %s",
                 submission_id,
                 submission_key,
-                score_msg
+                grader_reply
             )
             return Response(
                 self.compose_reply(False, 'Submission does not exist'),
@@ -212,8 +215,12 @@ class XqueueViewSet(viewsets.ViewSet):
             )
 
         if not external_grader.pullkey or submission_key != external_grader.pullkey:
-            log.error(f"Invalid pullkey: submission key from xwatcher {submission_key} "
-                      f"and submission key stored {external_grader.pullkey} are different")
+            log.error(
+                "Invalid pullkey for submission_id %s: received '%s', expected '%s'",
+                submission_id,
+                submission_key,
+                external_grader.pullkey
+            )
             return Response(
                 self.compose_reply(False, 'Incorrect key for submission'),
                 status=status.HTTP_403_FORBIDDEN
@@ -225,12 +232,12 @@ class XqueueViewSet(viewsets.ViewSet):
                       points_earned,
                       external_grader.points_possible
                       )
-            external_grader.update_status('retired', score_msg)
+            external_grader.update_status('retired', grader_reply)
             log.info("Successfully updated submission score for submission %s", submission_id)
 
         except (SubmissionNotFoundError, DatabaseError, SubmissionInternalError) as e:
             log.exception("Error when executing set_score: %s", type(e).__name__)
-            external_grader.update_status("failed", score_msg)
+            external_grader.update_status("failed", grader_reply)
 
         return Response(self.compose_reply(success=True, content=''))
 
@@ -239,7 +246,7 @@ class XqueueViewSet(viewsets.ViewSet):
         Validate the format of external grader reply.
 
         Returns:
-            tuple: (is_valid, submission_id, submission_key, score_msg)
+            tuple: (is_valid, submission_id, submission_key, grader_reply)
         """
         fail = (False, -1, '', '', '')
 
@@ -248,7 +255,7 @@ class XqueueViewSet(viewsets.ViewSet):
 
         try:
             header = external_reply['xqueue_header']
-            score_msg = external_reply['xqueue_body']
+            grader_reply = external_reply['xqueue_body']
         except KeyError:
             return fail
 
@@ -258,9 +265,11 @@ class XqueueViewSet(viewsets.ViewSet):
             return fail
 
         try:
-            score = json.loads(score_msg)
+            score = json.loads(grader_reply)
             points_earned = score.get("score")
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as e:
+            log.error("Failed to parse grader_reply as JSON or extract score: %s. Raw grader_reply: %s",
+                      str(e), grader_reply)
             return fail
 
         if not isinstance(header_dict, dict):
@@ -273,7 +282,7 @@ class XqueueViewSet(viewsets.ViewSet):
         submission_id = int(header_dict['submission_id'])
         submission_key = header_dict['submission_key']
 
-        return (True, submission_id, submission_key, score_msg, points_earned)
+        return (True, submission_id, submission_key, grader_reply, points_earned)
 
     def compose_reply(self, success, content):
         """

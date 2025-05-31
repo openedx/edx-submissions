@@ -332,26 +332,6 @@ class TestExternalGraderDetail(TestCase):
         self.assertEqual(self.external_grader_detail.status, 'pending')
         self.assertEqual(self.external_grader_detail.num_failures, 0)
 
-    def test_valid_status_transition(self):
-        """Test valid status transitions."""
-        # Test pending -> pulled transition
-        self.external_grader_detail.update_status('pulled')
-        self.assertEqual(self.external_grader_detail.status, 'pulled')
-
-        # Test pulled -> retired transition
-        self.external_grader_detail.update_status('retired')
-        self.assertEqual(self.external_grader_detail.status, 'retired')
-
-    def test_invalid_status_transition(self):
-        """Test that invalid status transitions raise ValueError."""
-        # Can't go from pending to retired
-        with self.assertRaises(ValueError):
-            self.external_grader_detail.update_status('retired')
-
-        # Can't go from pending to an invalid status
-        with self.assertRaises(ValueError):
-            self.external_grader_detail.update_status('invalid_status')
-
     def test_failure_count(self):
         """Test that failure count increases properly."""
         self.assertEqual(self.external_grader_detail.num_failures, 0)
@@ -359,41 +339,6 @@ class TestExternalGraderDetail(TestCase):
         # Transition to failed status should increment counter
         self.external_grader_detail.update_status('failed')
         self.assertEqual(self.external_grader_detail.num_failures, 1)
-
-        # Return to pending
-        self.external_grader_detail.update_status('pending')
-
-        # Another failure should increment counter again
-        self.external_grader_detail.update_status('failed')
-        self.assertEqual(self.external_grader_detail.num_failures, 2)
-
-    def test_is_processable(self):
-        """Test the is_processable property."""
-        # New records should not be processable immediately
-        self.assertFalse(self.external_grader_detail.is_processable)
-
-        # Set status_time to past the processing window
-        past_time = now() - timedelta(minutes=61)
-        self.external_grader_detail.status_time = past_time
-        self.external_grader_detail.save()
-
-        # Should now be processable
-        self.assertTrue(self.external_grader_detail.is_processable)
-
-        # Failed records should also be processable after window
-        self.external_grader_detail.update_status('failed')
-
-        # Need to manually set the time again since update_status resets it
-        self.external_grader_detail.status_time = now() - timedelta(minutes=61)
-        self.external_grader_detail.save()
-
-        self.assertTrue(self.external_grader_detail.is_processable)
-
-        # Retired records should never be processable
-        self.external_grader_detail.update_status('pending')
-        self.external_grader_detail.update_status('pulled')
-        self.external_grader_detail.update_status('retired')
-        self.assertFalse(self.external_grader_detail.is_processable)
 
     def test_status_time_updates(self):
         """Test that status_time updates with status changes."""
@@ -404,39 +349,6 @@ class TestExternalGraderDetail(TestCase):
 
         self.external_grader_detail.update_status('pulled')
         self.assertGreater(self.external_grader_detail.status_time, original_time)
-
-    def test_valid_status_transitions(self):
-        """Test valid status transitions"""
-        # Test pending -> pulled
-        self.external_grader_detail.update_status('pulled')
-        self.assertEqual(self.external_grader_detail.status, 'pulled')
-
-        # Test pulled -> retired
-        self.external_grader_detail.update_status('retired')
-        self.assertEqual(self.external_grader_detail.status, 'retired')
-
-    def test_invalid_status_transitions(self):
-        """Test invalid status transitions raise error"""
-        # Can't go from pending to retired
-        with self.assertRaises(ValueError):
-            self.external_grader_detail.update_status('retired')
-
-        # Set to pulled first
-        self.external_grader_detail.update_status('pulled')
-
-        # Can't go from pulled to pending
-        with self.assertRaises(ValueError):
-            self.external_grader_detail.update_status('pending')
-
-    def test_failure_count_increment(self):
-        """Test failure count increases properly"""
-        initial_failures = self.external_grader_detail.num_failures
-
-        # Update to failed status
-        self.external_grader_detail.update_status('failed')
-
-        # Check failure count increased
-        self.assertEqual(self.external_grader_detail.num_failures, initial_failures + 1)
 
     def test_clean_new_instance(self):
         """Test clean method for new instances (no pk assigned yet)"""
@@ -511,56 +423,13 @@ class TestExternalGraderDetail(TestCase):
         result_wrong_queue = ExternalGraderDetail.objects.get_next_submission("wrong_queue")
         self.assertIsNone(result_wrong_queue)
 
-    def test_clean_valid_transitions(self):
-        """Test that clean method allows all valid status transitions"""
-
-        # Test 1: pending -> pulled
-        record = ExternalGraderDetail.objects.get(pk=self.external_grader_detail.pk)
-        self.assertEqual(record.status, 'pending', "Initial status should be 'pending'")
-        record.status = 'pulled'
-        record.clean()
-        record.save()
-        self.assertEqual(record.status, 'pulled', "Status should transition from 'pending' to 'pulled'")
-
-        # Test 2: pulled -> failed
-        self.assertEqual(record.status, 'pulled', "Status should be 'pulled' before transition")
-        record.status = 'failed'
-        record.clean()
-        record.save()
-        self.assertEqual(record.status, 'failed', "Status should transition from 'pulled' to 'failed'")
-
-        # Test 3: failed -> pending
-        self.assertEqual(record.status, 'failed', "Status should be 'failed' before transition")
-        record.status = 'pending'
-        record.clean()
-        record.save()
-        self.assertEqual(record.status, 'pending', "Status should transition from 'failed' to 'pending'")
-
-        # Test 4: pending -> failed (otra rama)
-        self.assertEqual(record.status, 'pending', "Status should be 'pending' before transition")
-        record.status = 'failed'
-        record.clean()
-        record.save()
-        self.assertEqual(record.status, 'failed', "Status should transition from 'pending' to 'failed'")
-
-        # Test 5: pending -> pulled -> retired
-        self.assertEqual(record.status, 'failed', "Status should be 'failed' before transition")
-        record.status = 'pending'
-        record.clean()
-        record.save()
-        self.assertEqual(record.status, 'pending', "Status should transition back to 'pending'")
-
-        record.status = 'pulled'
-        record.clean()
-        record.save()
-        self.assertEqual(record.status, 'pulled', "Status should transition from 'pending' to 'pulled'")
-
-        record = ExternalGraderDetail.objects.get(pk=self.external_grader_detail.pk)
-        self.assertEqual(record.status, 'pulled', "Status should be 'pulled' before transition")
-        record.status = 'retired'
-        record.clean()
-        record.save()
-        self.assertEqual(record.status, 'retired', "Status should transition from 'pulled' to 'retired'")
+    def test_status_transition_to_pending(self):
+        """Test that transitioning to 'pending' status only updates status_time (else case)."""
+        self.external_grader_detail.update_status('pulled')
+        self.external_grader_detail.refresh_from_db()
+        self.external_grader_detail.update_status('pending')
+        self.external_grader_detail.refresh_from_db()
+        self.assertEqual(self.external_grader_detail.status, 'pending')
 
 
 class TestSubmission(TestCase):

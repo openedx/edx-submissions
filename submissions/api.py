@@ -15,6 +15,7 @@ from django.db import DatabaseError, IntegrityError, transaction
 # SubmissionError imported so that code importing this api has access
 from submissions.errors import (  # pylint: disable=unused-import
     ExternalGraderQueueEmptyError,
+    SubmissionError,
     SubmissionInternalError,
     SubmissionNotFoundError,
     SubmissionRequestError

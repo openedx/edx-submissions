@@ -60,7 +60,7 @@ code-annotations==2.3.0
     # via
     #   -r requirements/test.txt
     #   edx-lint
-coverage[toml]==7.10.5
+coverage[toml]==7.10.6
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -70,7 +70,7 @@ dill==0.4.0
     # via
     #   -r requirements/test.txt
     #   pylint
-django==4.2.23
+django==4.2.24
     # via
     #   -c requirements/common_constraints.txt
     #   -r requirements/base.txt
@@ -209,12 +209,12 @@ pylint-plugin-utils==0.9.0
     #   -r requirements/test.txt
     #   pylint-celery
     #   pylint-django
-pytest==8.4.1
+pytest==8.4.2
     # via
     #   -r requirements/test.txt
     #   pytest-cov
     #   pytest-django
-pytest-cov==6.2.1
+pytest-cov==7.0.0
     # via -r requirements/test.txt
 pytest-django==4.11.1
     # via -r requirements/test.txt
@@ -263,7 +263,7 @@ snowballstemmer==3.0.1
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   sphinx
-soupsieve==2.7
+soupsieve==2.8
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt

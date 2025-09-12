@@ -47,7 +47,7 @@ click-log==0.4.0
     # via edx-lint
 code-annotations==2.3.0
     # via edx-lint
-coverage[toml]==7.10.5
+coverage[toml]==7.10.6
     # via pytest-cov
 ddt==1.7.2
     # via -r requirements/test.in
@@ -161,11 +161,11 @@ pylint-plugin-utils==0.9.0
     # via
     #   pylint-celery
     #   pylint-django
-pytest==8.4.1
+pytest==8.4.2
     # via
     #   pytest-cov
     #   pytest-django
-pytest-cov==6.2.1
+pytest-cov==7.0.0
     # via -r requirements/test.in
 pytest-django==4.11.1
     # via -r requirements/test.in
@@ -206,7 +206,7 @@ snowballstemmer==3.0.1
     # via
     #   -r requirements/docs.txt
     #   sphinx
-soupsieve==2.7
+soupsieve==2.8
     # via
     #   -r requirements/docs.txt
     #   beautifulsoup4

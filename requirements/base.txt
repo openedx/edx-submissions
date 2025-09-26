@@ -4,9 +4,9 @@
 #
 #    make upgrade
 #
-asgiref==3.9.1
+asgiref==3.9.2
     # via django
-django==4.2.23
+django==4.2.24
     # via
     #   -c requirements/common_constraints.txt
     #   -r requirements/base.in
@@ -24,7 +24,7 @@ jsonfield==3.2.0
     # via -r requirements/base.in
 pytz==2025.2
     # via -r requirements/base.in
-pyyaml==6.0.2
+pyyaml==6.0.3
     # via edx-django-release-util
 six==1.17.0
     # via edx-django-release-util

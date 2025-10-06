@@ -142,6 +142,7 @@ class XQueueViewSet(viewsets.ViewSet):
             .select_for_update(skip_locked=True)
             .filter(
                 Q(queue_name=queue_name, status='pending') |
+                Q(queue_name=queue_name, status='retry') |
                 Q(queue_name=queue_name, status='pulled', status_time__lt=timeout_threshold)
             )
             .select_related('submission')
@@ -151,7 +152,8 @@ class XQueueViewSet(viewsets.ViewSet):
 
         if external_grader:
             try:
-                external_grader.update_status("pulled")
+                if external_grader.status != 'pulled':
+                    external_grader.update_status("pulled")
                 submission_data = {
                     "grader_payload": json.dumps({"grader": external_grader.grader_file_name}),
                     "student_info": json.dumps({
@@ -181,7 +183,7 @@ class XQueueViewSet(viewsets.ViewSet):
                     self.compose_reply(False, f"Error processing submission: {str(e)}"),
                     status=status.HTTP_400_BAD_REQUEST
                 )
-        
+
         return Response(
             self.compose_reply(False, f"Queue '{queue_name}' is empty"),
             status=status.HTTP_200_OK

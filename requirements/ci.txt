@@ -8,7 +8,7 @@ cachetools==6.2.0
     # via
     #   -r requirements/tox.txt
     #   tox
-certifi==2025.8.3
+certifi==2025.10.5
     # via requests
 chardet==5.2.0
     # via
@@ -57,7 +57,7 @@ pyproject-api==1.9.1
     #   tox
 requests==2.32.5
     # via coveralls
-tox==4.30.2
+tox==4.30.3
     # via -r requirements/tox.txt
 urllib3==2.5.0
     # via requests

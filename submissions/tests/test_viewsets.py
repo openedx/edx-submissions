@@ -9,7 +9,6 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.files.base import ContentFile
-from django.db import DatabaseError
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -246,7 +245,7 @@ class TestXqueueViewSet(APITestCase):
             'xqueue_body': json.dumps({'score': 1})
         }
 
-        with patch('submissions.api.set_score') as mock_set_score:
+        with patch('submissions.views.xqueue.set_score') as mock_set_score:
             mock_set_score.side_effect = Exception('Test error')
             response = self.client.post(self.url_put_result, payload, format='json')
 
@@ -266,7 +265,8 @@ class TestXqueueViewSet(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         for each in range(31):
-            with patch('submissions.api.set_score') as _:
+            with patch('submissions.views.xqueue.set_score') as mock_set_score:
+                mock_set_score.side_effect = Exception('Test error')  # Make it actually fail
                 self.external_grader.update_status('pulled')
                 payload = {
                     'xqueue_header': json.dumps({
@@ -435,23 +435,6 @@ class TestXqueueViewSet(APITestCase):
         expected_url = f'/test_queue/{test_uuid}'
         self.assertEqual(xqueue_files['test.txt'], expected_url)
 
-    def test_get_submission_db_error(self):
-        """Test DatabaseError handling when retrieving a submission."""
-        self.client.login(username='testuser', password='testpass')
-        queue_name = 'test_queue'
-
-        with patch(
-                'submissions.views.xqueue.ExternalGraderDetail.objects.select_for_update',
-                side_effect=DatabaseError("Simulated DB Error")
-        ):
-            response = self.client.get(self.get_submission_url, {'queue_name': queue_name})
-
-        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
-        self.assertEqual(
-            response.data,
-            self.viewset.compose_reply(False, "Submission already in process")
-        )
-
     def test_get_submission_already_pulled(self):
         """Test retrieving a submission that already has a 'pulled' status."""
         queue_name = 'test_queue'
@@ -470,3 +453,24 @@ class TestXqueueViewSet(APITestCase):
 
         self.external_grader.refresh_from_db()
         self.assertEqual(self.external_grader.status, 'pulled')
+
+    @patch('submissions.views.xqueue.get_files_for_grader')
+    def test_get_submission_value_error(self, mock_get_files):
+        """Test get_submission when processing raises ValueError."""
+        queue_name = 'test_queue'
+        self.client.login(username='testuser', password='testpass')
+
+        # Use the existing external grader from setUp and update its queue_name and status
+        self.external_grader.queue_name = queue_name
+        self.external_grader.status = 'pending'
+        self.external_grader.save()
+
+        # Mock get_files_for_grader to raise ValueError to test the exception handler
+        mock_get_files.side_effect = ValueError("File processing error")
+
+        response = self.client.get(self.get_submission_url, {'queue_name': queue_name})
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['return_code'], 1)
+        self.assertIn("Error processing submission", response.data['content'])
+        self.assertIn("File processing error", response.data['content'])

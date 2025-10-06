@@ -615,7 +615,7 @@ class ExternalGraderDetail(models.Model):
         'pending': ['pulled'],
         'pulled': ['retired', 'failed', 'retry'],
         'retry': ['retired', 'pulled'],
-        'failed': [],
+        'failed': ['pending'],
         'retired': []
     }
     submission = models.OneToOneField(
@@ -665,10 +665,13 @@ class ExternalGraderDetail(models.Model):
         return new_status in self.VALID_TRANSITIONS.get(from_status, [])
 
     @transaction.atomic
-    def update_status(self, new_status, grader_reply=''):  # pylint: disable=unused-argument
+    def update_status(self, new_status):
         """
         Update status and timestamp atomically
         """
+        if not self.can_transition_to(new_status):
+            raise ValueError(f"Invalid status transition from {self.status} to {new_status}")
+
         self.status = new_status
         self.status_time = now()
 

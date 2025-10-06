@@ -338,7 +338,7 @@ class TestExternalGraderDetail(TestCase):
 
         # Transition to failed status should increment counter
         self.external_grader_detail.update_status('pulled')
-        self.external_grader_detail.update_status('retry')
+        self.external_grader_detail.update_status('failed')
         self.assertEqual(self.external_grader_detail.num_failures, 1)
 
     def test_status_time_updates(self):
@@ -447,13 +447,13 @@ class TestExternalGraderDetail(TestCase):
         result_wrong_queue = ExternalGraderDetail.objects.get_next_submission("wrong_queue")
         self.assertIsNone(result_wrong_queue)
 
-    def test_status_transition_to_pending(self):
-        """Test that transitioning to 'pending' status only updates status_time (else case)."""
+    def test_status_transition_to_retired(self):
+        """Test that transitioning to 'retired' status only updates status_time (else case)."""
         self.external_grader_detail.update_status('pulled')
         self.external_grader_detail.refresh_from_db()
-        self.external_grader_detail.update_status('pending')
+        self.external_grader_detail.update_status('retired')
         self.external_grader_detail.refresh_from_db()
-        self.assertEqual(self.external_grader_detail.status, 'pending')
+        self.assertEqual(self.external_grader_detail.status, 'retired')
 
 
 class TestSubmission(TestCase):

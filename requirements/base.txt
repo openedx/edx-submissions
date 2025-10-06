@@ -6,24 +6,24 @@
 #
 asgiref==3.9.1
     # via django
-django==4.2.23
+django==4.2.25
     # via
-    #   -c requirements/common_constraints.txt
-    #   -r requirements/base.in
+    #   -c common_constraints.txt
+    #   -r base.in
     #   django-model-utils
     #   djangorestframework
     #   edx-django-release-util
     #   jsonfield
 django-model-utils==5.0.0
-    # via -r requirements/base.in
+    # via -r base.in
 djangorestframework==3.16.1
-    # via -r requirements/base.in
+    # via -r base.in
 edx-django-release-util==1.5.0
-    # via -r requirements/base.in
+    # via -r base.in
 jsonfield==3.2.0
-    # via -r requirements/base.in
+    # via -r base.in
 pytz==2025.2
-    # via -r requirements/base.in
+    # via -r base.in
 pyyaml==6.0.2
     # via edx-django-release-util
 six==1.17.0

@@ -12,7 +12,7 @@ alabaster==1.0.0
     # via
     #   -r requirements/docs.txt
     #   sphinx
-asgiref==3.9.1
+asgiref==3.10.0
     # via
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
@@ -26,11 +26,11 @@ babel==2.17.0
     #   -r requirements/docs.txt
     #   pydata-sphinx-theme
     #   sphinx
-beautifulsoup4==4.13.5
+beautifulsoup4==4.14.2
     # via
     #   -r requirements/docs.txt
     #   pydata-sphinx-theme
-certifi==2025.8.3
+certifi==2025.10.5
     # via
     #   -r requirements/docs.txt
     #   requests
@@ -38,7 +38,7 @@ charset-normalizer==3.4.3
     # via
     #   -r requirements/docs.txt
     #   requests
-click==8.2.1
+click==8.3.0
     # via
     #   click-log
     #   code-annotations
@@ -47,7 +47,7 @@ click-log==0.4.0
     # via edx-lint
 code-annotations==2.3.0
     # via edx-lint
-coverage[toml]==7.10.5
+coverage[toml]==7.10.7
     # via pytest-cov
 ddt==1.7.2
     # via -r requirements/test.in
@@ -83,11 +83,11 @@ edx-lint==5.3.7
     #   -r requirements/test.in
 factory-boy==3.3.3
     # via -r requirements/test.in
-faker==37.6.0
+faker==37.11.0
     # via factory-boy
 freezegun==1.5.5
     # via -r requirements/test.in
-idna==3.10
+idna==3.11
     # via
     #   -r requirements/docs.txt
     #   requests
@@ -97,7 +97,7 @@ imagesize==1.4.1
     #   sphinx
 iniconfig==2.1.0
     # via pytest
-isort==6.0.1
+isort==6.1.0
     # via
     #   -r requirements/test.in
     #   pylint
@@ -110,7 +110,7 @@ jsonfield==3.2.0
     # via
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
-markupsafe==3.0.2
+markupsafe==3.0.3
     # via
     #   -r requirements/docs.txt
     #   jinja2
@@ -124,7 +124,7 @@ packaging==25.0
     #   pydata-sphinx-theme
     #   pytest
     #   sphinx
-platformdirs==4.4.0
+platformdirs==4.5.0
     # via pylint
 pluggy==1.6.0
     # via
@@ -147,7 +147,7 @@ pygments==2.19.2
     #   pydata-sphinx-theme
     #   pytest
     #   sphinx
-pylint==3.3.8
+pylint==3.3.9
     # via
     #   edx-lint
     #   pylint-celery
@@ -161,11 +161,11 @@ pylint-plugin-utils==0.9.0
     # via
     #   pylint-celery
     #   pylint-django
-pytest==8.4.1
+pytest==8.4.2
     # via
     #   pytest-cov
     #   pytest-django
-pytest-cov==6.2.1
+pytest-cov==7.0.0
     # via -r requirements/test.in
 pytest-django==4.11.1
     # via -r requirements/test.in
@@ -179,7 +179,7 @@ pytz==2025.2
     # via
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
-pyyaml==6.0.2
+pyyaml==6.0.3
     # via
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
@@ -206,7 +206,7 @@ snowballstemmer==3.0.1
     # via
     #   -r requirements/docs.txt
     #   sphinx
-soupsieve==2.7
+soupsieve==2.8
     # via
     #   -r requirements/docs.txt
     #   beautifulsoup4

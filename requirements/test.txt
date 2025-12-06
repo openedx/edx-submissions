@@ -6,16 +6,16 @@
 #
 accessible-pygments==0.0.5
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   pydata-sphinx-theme
 alabaster==1.0.0
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 asgiref==3.10.0
     # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -r base.txt
+    #   -r docs.txt
     #   django
 astroid==3.3.11
     # via
@@ -25,22 +25,22 @@ attrs==25.4.0
     # via openedx-events
 babel==2.17.0
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   pydata-sphinx-theme
     #   sphinx
 beautifulsoup4==4.14.2
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   pydata-sphinx-theme
 certifi==2025.10.5
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   requests
 cffi==2.0.0
     # via pynacl
 charset-normalizer==3.4.3
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   requests
 click==8.3.0
     # via
@@ -55,13 +55,14 @@ code-annotations==2.3.0
 coverage[toml]==7.10.7
     # via pytest-cov
 ddt==1.7.2
-    # via -r requirements/test.in
+    # via -r test.in
 dill==0.4.0
     # via pylint
+django==4.2.25
     # via
-    #   -c requirements/common_constraints.txt
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -c common_constraints.txt
+    #   -r base.txt
+    #   -r docs.txt
     #   django-crum
     #   django-model-utils
     #   django-waffle
@@ -74,80 +75,81 @@ django-crum==0.7.9
     # via edx-django-utils
 django-model-utils==5.0.0
     # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -r base.txt
+    #   -r docs.txt
 django-waffle==5.0.0
     # via edx-django-utils
+djangorestframework==3.16.1
     # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -r base.txt
+    #   -r docs.txt
 dnspython==2.8.0
     # via pymongo
 docutils==0.21.2
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   pydata-sphinx-theme
     #   sphinx
 edx-ccx-keys==2.0.2
     # via openedx-events
 edx-django-release-util==1.5.0
     # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -r base.txt
+    #   -r docs.txt
 edx-django-utils==8.0.1
     # via openedx-events
 edx-lint==5.3.7
     # via
-    #   -c requirements/constraints.txt
-    #   -r requirements/test.in
+    #   -c constraints.txt
+    #   -r test.in
 edx-opaque-keys[django]==3.0.0
     # via
     #   edx-ccx-keys
     #   openedx-events
 factory-boy==3.3.3
-    # via -r requirements/test.in
+    # via -r test.in
 faker==37.11.0
     # via factory-boy
 fastavro==1.12.0
     # via openedx-events
 freezegun==1.5.5
-    # via -r requirements/test.in
+    # via -r test.in
 idna==3.10
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   requests
 imagesize==1.4.1
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 iniconfig==2.1.0
     # via pytest
 isort==6.1.0
     # via
-    #   -r requirements/test.in
+    #   -r test.in
     #   pylint
 jinja2==3.1.6
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   code-annotations
     #   sphinx
 jsonfield==3.2.0
     # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -r base.txt
+    #   -r docs.txt
 markupsafe==3.0.3
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   jinja2
 mccabe==0.7.0
     # via pylint
 mock==5.2.0
-    # via -r requirements/test.in
+    # via -r test.in
 openedx-events==10.2.0
-    # via -r requirements/test.in
+    # via -r test.in
 packaging==25.0
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   pydata-sphinx-theme
     #   pytest
     #   sphinx
@@ -159,21 +161,21 @@ pluggy==1.6.0
     #   pytest-cov
 pockets==0.9.1
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinxcontrib-napoleon
 psutil==7.1.0
     # via edx-django-utils
 pycodestyle==2.14.0
-    # via -r requirements/test.in
+    # via -r test.in
 pycparser==2.23
     # via cffi
 pydata-sphinx-theme==0.15.4
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx-book-theme
 pygments==2.19.2
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   accessible-pygments
     #   pydata-sphinx-theme
     #   pytest
@@ -201,37 +203,37 @@ pytest==8.4.2
     #   pytest-cov
     #   pytest-django
 pytest-cov==7.0.0
-    # via -r requirements/test.in
+    # via -r test.in
 pytest-django==4.11.1
-    # via -r requirements/test.in
+    # via -r test.in
 python-dateutil==2.9.0.post0
     # via
-    #   -r requirements/test.in
+    #   -r test.in
     #   freezegun
 python-slugify==8.0.4
     # via code-annotations
 pytz==2025.2
     # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -r base.txt
+    #   -r docs.txt
 pyyaml==6.0.3
     # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -r base.txt
+    #   -r docs.txt
     #   code-annotations
     #   edx-django-release-util
 requests==2.32.5
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 roman-numerals-py==3.1.0
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 six==1.17.0
     # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -r base.txt
+    #   -r docs.txt
     #   edx-ccx-keys
     #   edx-django-release-util
     #   edx-lint
@@ -240,49 +242,49 @@ six==1.17.0
     #   sphinxcontrib-napoleon
 snowballstemmer==3.0.1
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 soupsieve==2.8
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   beautifulsoup4
 sphinx==8.2.3
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   pydata-sphinx-theme
     #   sphinx-book-theme
 sphinx-book-theme==1.1.4
-    # via -r requirements/docs.txt
+    # via -r docs.txt
 sphinxcontrib-applehelp==2.0.0
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 sphinxcontrib-devhelp==2.0.0
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 sphinxcontrib-htmlhelp==2.1.0
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 sphinxcontrib-jsmath==1.0.1
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 sphinxcontrib-napoleon==0.7
-    # via -r requirements/docs.txt
+    # via -r docs.txt
 sphinxcontrib-qthelp==2.0.0
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 sphinxcontrib-serializinghtml==2.0.0
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   sphinx
 sqlparse==0.5.3
     # via
-    #   -r requirements/base.txt
-    #   -r requirements/docs.txt
+    #   -r base.txt
+    #   -r docs.txt
     #   django
 stevedore==5.5.0
     # via
@@ -295,15 +297,15 @@ tomlkit==0.13.3
     # via pylint
 typing-extensions==4.15.0
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   beautifulsoup4
     #   edx-opaque-keys
     #   pydata-sphinx-theme
 tzdata==2025.2
     # via faker
-urllib3==2.5.0
+urllib3==2.6.0
     # via
-    #   -r requirements/docs.txt
+    #   -r docs.txt
     #   requests
 
 # The following packages are considered to be unsafe in a requirements file:

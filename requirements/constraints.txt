@@ -14,6 +14,5 @@
 
 backports.zoneinfo;python_version<"3.9"
 
-# Temporary until we drop support for python 3.8
-# Upgrading causes quality error: AttributeError: module 'importlib.resources' has no attribute 'files'
-edx-lint<5.4
+# soupsieve==2.8.3 requires python3.12, so we pin it until we've dropped support for 3.11
+soupsieve==2.8

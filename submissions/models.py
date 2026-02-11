@@ -51,7 +51,7 @@ class AnonymizedUserIDField(models.CharField):
         super().__init__(*args, **kwargs)
 
     def deconstruct(self):
-        name, path, args, kwargs = super().deconstruct()
+        name, path, args, kwargs = super().deconstruct()  # pylint: disable=no-member
         del kwargs["max_length"]
         del kwargs["db_index"]
         return name, path, args, kwargs

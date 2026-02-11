@@ -12,37 +12,37 @@ alabaster==1.0.0
     # via
     #   -r requirements/docs.txt
     #   sphinx
-asgiref==3.10.0
+asgiref==3.11.1
     # via
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
     #   django
-astroid==3.3.11
+astroid==4.0.4
     # via
     #   pylint
     #   pylint-celery
 attrs==25.4.0
     # via openedx-events
-babel==2.17.0
+babel==2.18.0
     # via
     #   -r requirements/docs.txt
     #   pydata-sphinx-theme
     #   sphinx
-beautifulsoup4==4.14.2
+beautifulsoup4==4.14.3
     # via
     #   -r requirements/docs.txt
     #   pydata-sphinx-theme
-certifi==2025.10.5
+certifi==2026.1.4
     # via
     #   -r requirements/docs.txt
     #   requests
 cffi==2.0.0
     # via pynacl
-charset-normalizer==3.4.3
+charset-normalizer==3.4.4
     # via
     #   -r requirements/docs.txt
     #   requests
-click==8.3.0
+click==8.3.1
     # via
     #   click-log
     #   code-annotations
@@ -52,11 +52,11 @@ click-log==0.4.0
     # via edx-lint
 code-annotations==2.3.0
     # via edx-lint
-coverage[toml]==7.10.7
+coverage[toml]==7.13.4
     # via pytest-cov
 ddt==1.7.2
     # via -r requirements/test.in
-dill==0.4.0
+dill==0.4.1
     # via pylint
     # via
     #   -c requirements/common_constraints.txt
@@ -83,7 +83,7 @@ django-waffle==5.0.0
     #   -r requirements/docs.txt
 dnspython==2.8.0
     # via pymongo
-docutils==0.21.2
+docutils==0.22.4
     # via
     #   -r requirements/docs.txt
     #   pydata-sphinx-theme
@@ -96,23 +96,21 @@ edx-django-release-util==1.5.0
     #   -r requirements/docs.txt
 edx-django-utils==8.0.1
     # via openedx-events
-edx-lint==5.3.7
-    # via
-    #   -c requirements/constraints.txt
-    #   -r requirements/test.in
+edx-lint==5.6.0
+    # via -r requirements/test.in
 edx-opaque-keys[django]==3.0.0
     # via
     #   edx-ccx-keys
     #   openedx-events
 factory-boy==3.3.3
     # via -r requirements/test.in
-faker==37.11.0
+faker==40.4.0
     # via factory-boy
-fastavro==1.12.0
+fastavro==1.12.1
     # via openedx-events
 freezegun==1.5.5
     # via -r requirements/test.in
-idna==3.10
+idna==3.11
     # via
     #   -r requirements/docs.txt
     #   requests
@@ -120,9 +118,9 @@ imagesize==1.4.1
     # via
     #   -r requirements/docs.txt
     #   sphinx
-iniconfig==2.1.0
+iniconfig==2.3.0
     # via pytest
-isort==6.1.0
+isort==7.0.0
     # via
     #   -r requirements/test.in
     #   pylint
@@ -145,13 +143,13 @@ mock==5.2.0
     # via -r requirements/test.in
 openedx-events==10.2.0
     # via -r requirements/test.in
-packaging==25.0
+packaging==26.0
     # via
     #   -r requirements/docs.txt
     #   pydata-sphinx-theme
     #   pytest
     #   sphinx
-platformdirs==4.4.0
+platformdirs==4.5.1
     # via pylint
 pluggy==1.6.0
     # via
@@ -161,11 +159,11 @@ pockets==0.9.1
     # via
     #   -r requirements/docs.txt
     #   sphinxcontrib-napoleon
-psutil==7.1.0
+psutil==7.2.2
     # via edx-django-utils
 pycodestyle==2.14.0
     # via -r requirements/test.in
-pycparser==2.23
+pycparser==3.0
     # via cffi
 pydata-sphinx-theme==0.15.4
     # via
@@ -178,7 +176,7 @@ pygments==2.19.2
     #   pydata-sphinx-theme
     #   pytest
     #   sphinx
-pylint==3.3.9
+pylint==4.0.4
     # via
     #   edx-lint
     #   pylint-celery
@@ -186,17 +184,17 @@ pylint==3.3.9
     #   pylint-plugin-utils
 pylint-celery==0.3
     # via edx-lint
-pylint-django==2.6.1
+pylint-django==2.7.0
     # via edx-lint
 pylint-plugin-utils==0.9.0
     # via
     #   pylint-celery
     #   pylint-django
-pymongo==4.15.3
+pymongo==4.16.0
     # via edx-opaque-keys
-pynacl==1.6.0
+pynacl==1.6.2
     # via edx-django-utils
-pytest==8.4.2
+pytest==9.0.2
     # via
     #   pytest-cov
     #   pytest-django
@@ -224,7 +222,7 @@ requests==2.32.5
     # via
     #   -r requirements/docs.txt
     #   sphinx
-roman-numerals-py==3.1.0
+roman-numerals==4.1.0
     # via
     #   -r requirements/docs.txt
     #   sphinx
@@ -244,9 +242,10 @@ snowballstemmer==3.0.1
     #   sphinx
 soupsieve==2.8
     # via
+    #   -c requirements/constraints.txt
     #   -r requirements/docs.txt
     #   beautifulsoup4
-sphinx==8.2.3
+sphinx==9.0.4
     # via
     #   -r requirements/docs.txt
     #   pydata-sphinx-theme
@@ -279,19 +278,19 @@ sphinxcontrib-serializinghtml==2.0.0
     # via
     #   -r requirements/docs.txt
     #   sphinx
-sqlparse==0.5.3
+sqlparse==0.5.5
     # via
     #   -r requirements/base.txt
     #   -r requirements/docs.txt
     #   django
-stevedore==5.5.0
+stevedore==5.6.0
     # via
     #   code-annotations
     #   edx-django-utils
     #   edx-opaque-keys
 text-unidecode==1.3
     # via python-slugify
-tomlkit==0.13.3
+tomlkit==0.14.0
     # via pylint
 typing-extensions==4.15.0
     # via
@@ -299,9 +298,7 @@ typing-extensions==4.15.0
     #   beautifulsoup4
     #   edx-opaque-keys
     #   pydata-sphinx-theme
-tzdata==2025.2
-    # via faker
-urllib3==2.5.0
+urllib3==2.6.3
     # via
     #   -r requirements/docs.txt
     #   requests

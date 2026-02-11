@@ -147,7 +147,7 @@ faker==40.4.0
     # via
     #   -r requirements/test.txt
     #   factory-boy
-fastavro==1.12.0
+fastavro==1.12.1
     # via
     #   -r requirements/test.txt
     #   openedx-events
@@ -216,13 +216,13 @@ pockets==0.9.1
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   sphinxcontrib-napoleon
-psutil==7.1.0
+psutil==7.2.2
     # via
     #   -r requirements/test.txt
     #   edx-django-utils
 pycodestyle==2.14.0
     # via -r requirements/test.txt
-pycparser==2.23
+pycparser==3.0
     # via
     #   -r requirements/test.txt
     #   cffi
@@ -259,11 +259,11 @@ pylint-plugin-utils==0.9.0
     #   -r requirements/test.txt
     #   pylint-celery
     #   pylint-django
-pymongo==4.15.3
+pymongo==4.16.0
     # via
     #   -r requirements/test.txt
     #   edx-opaque-keys
-pynacl==1.6.0
+pynacl==1.6.2
     # via
     #   -r requirements/test.txt
     #   edx-django-utils

@@ -233,7 +233,7 @@ class TestExternalGraderDetailAdmin(TestCase):
         readonly_fields = self.admin.get_readonly_fields(request, None)
 
         # Should only include default readonly fields
-        expected_readonly = ['submission', 'pullkey', 'status_time', 'created_at']
+        expected_readonly = ['submission', 'pullkey', 'queue_key', 'status_time', 'created_at']
         self.assertEqual(readonly_fields, expected_readonly)
 
     def test_has_change_permission(self):

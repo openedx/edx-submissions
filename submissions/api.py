@@ -50,9 +50,10 @@ MAX_TOP_SUBMISSIONS = 100
 TOP_SUBMISSIONS_CACHE_TIMEOUT = 300
 
 
-def create_external_grader_detail(student_item_dict,
+def create_external_grader_detail(student_item_dict,  # pylint: disable=too-many-positional-arguments
                                   answer,
                                   queue_name: str,
+                                  queue_key,
                                   grader_file_name="",
                                   points_possible=1,
                                   **external_grader_additional_data
@@ -107,6 +108,7 @@ def create_external_grader_detail(student_item_dict,
         instance = ExternalGraderDetail.create_from_uuid(
             submission_uuid=submission_uuid,
             queue_name=queue_name,
+            queue_key=queue_key,
             grader_file_name=grader_file_name,
             points_possible=points_possible)
 

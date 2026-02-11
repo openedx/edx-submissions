@@ -879,7 +879,7 @@ class TestSubmissionsApi(TestCase):
                     api._get_or_create_student_item(STUDENT_ITEM)  # pylint: disable=protected-access
 
     def test_create_external_grader_detail(self):
-        external_grader_detail_data = {'queue_name': 'test_queue'}
+        external_grader_detail_data = {'queue_name': 'test_queue', 'queue_key': 'test_key'}
         external_grader_detail = api.create_external_grader_detail(STUDENT_ITEM, ANSWER_ONE,
                                                                    **external_grader_detail_data)
 
@@ -890,11 +890,11 @@ class TestSubmissionsApi(TestCase):
         self.assertEqual(external_grader_detail.queue_name, 'test_queue')
 
     def test_create_multiple_external_grader_detail(self):
-        external_grader_detail_data1 = {'queue_name': 'test_queue'}
+        external_grader_detail_data1 = {'queue_name': 'test_queue', 'queue_key': 'test_key'}
         external_grader_detail1 = api.create_external_grader_detail(STUDENT_ITEM, ANSWER_ONE,
                                                                     **external_grader_detail_data1)
 
-        external_grader_detail_data2 = {'queue_name': 'test_queue'}
+        external_grader_detail_data2 = {'queue_name': 'test_queue', 'queue_key': 'test_key'}
         external_grader_detail2 = api.create_external_grader_detail(SECOND_STUDENT_ITEM, ANSWER_ONE,
                                                                     **external_grader_detail_data2)
 
@@ -910,20 +910,25 @@ class TestSubmissionsApi(TestCase):
 
     def test_create_external_grader_detail_directly_missing_queue_name(self):
         with self.assertRaises(ExternalGraderQueueEmptyError):
-            api.create_external_grader_detail(STUDENT_ITEM, ANSWER_ONE, queue_name="")
+            api.create_external_grader_detail(STUDENT_ITEM, ANSWER_ONE, queue_name="", queue_key="test_key")
 
     def test_create_external_grader_detail_directly_database_error(self):
         with mock.patch.object(ExternalGraderDetail, 'create_from_uuid') as mock_create:
             mock_create.side_effect = DatabaseError("Database connection failed")
 
             with self.assertRaises(api.SubmissionInternalError):
-                api.create_external_grader_detail(STUDENT_ITEM, ANSWER_ONE, queue_name="test_queue")
+                api.create_external_grader_detail(
+                    STUDENT_ITEM, ANSWER_ONE, queue_name="test_queue", queue_key="test_key"
+                )
 
     def test_create_multiple_submission_external_grader_details(self):
-        external_grader_detail1 = api.create_external_grader_detail(STUDENT_ITEM, ANSWER_ONE, queue_name="shared_queue")
+        external_grader_detail1 = api.create_external_grader_detail(
+            STUDENT_ITEM, ANSWER_ONE, queue_name="shared_queue", queue_key="test_key"
+        )
 
-        external_grader_detail2 = api.create_external_grader_detail(SECOND_STUDENT_ITEM, ANSWER_TWO,
-                                                                    queue_name="shared_queue")
+        external_grader_detail2 = api.create_external_grader_detail(
+            SECOND_STUDENT_ITEM, ANSWER_TWO, queue_name="shared_queue", queue_key="test_key"
+        )
 
         submission1 = Submission.objects.get(uuid=external_grader_detail1.submission.uuid)
         self.assertEqual(external_grader_detail1.queue_name, 'shared_queue')
@@ -950,6 +955,7 @@ class TestSubmissionsApi(TestCase):
 
         event_data = {
             'queue_name': 'test_queue',
+            'queue_key': 'test_key',
             'files': {'test.txt': test_file}
         }
 
@@ -978,6 +984,7 @@ class TestSubmissionsApi(TestCase):
 
         external_grader_detail = {
             'queue_name': 'test_queue',
+            'queue_key': 'test_key',
             'files': test_files
         }
         external_grader_detail = api.create_external_grader_detail(STUDENT_ITEM, ANSWER_ONE, **external_grader_detail)
@@ -988,7 +995,9 @@ class TestSubmissionsApi(TestCase):
 
     def test_create_external_grader_detail_without_files(self):
         """Test creating a queue record without any files still works."""
-        external_grader_instance = api.create_external_grader_detail(STUDENT_ITEM, ANSWER_ONE, queue_name="test_queue")
+        external_grader_instance = api.create_external_grader_detail(
+            STUDENT_ITEM, ANSWER_ONE, queue_name="test_queue", queue_key="test_key"
+        )
         self.assertEqual(external_grader_instance.queue_name, 'test_queue')
         self.assertEqual(external_grader_instance.files.count(), 0)
 
@@ -1008,6 +1017,7 @@ class TestExternalGraderFileProcessing(TestCase):
         }
         self.answer = "test answer"
         self.queue_name = "test_queue"
+        self.queue_key = "test_key"
 
     def test_create_external_grader_with_files(self):
         """Test processing files within create_external_grader_detail."""
@@ -1024,6 +1034,7 @@ class TestExternalGraderFileProcessing(TestCase):
             student_item_dict=self.student_item_dict,
             answer=self.answer,
             queue_name=self.queue_name,
+            queue_key=self.queue_key,
             files=files_dict
         )
 
@@ -1046,6 +1057,7 @@ class TestExternalGraderFileProcessing(TestCase):
             student_item_dict=self.student_item_dict,
             answer=self.answer,
             queue_name=self.queue_name,
+            queue_key=self.queue_key,
             files={"test.txt": FileObjWithFileAttr()}
         )
 
@@ -1076,6 +1088,7 @@ class TestExternalGraderFileProcessing(TestCase):
             student_item_dict=self.student_item_dict,
             answer=self.answer,
             queue_name=self.queue_name,
+            queue_key=self.queue_key,
             files=files_dict
         )
 
@@ -1105,6 +1118,7 @@ class TestExternalGraderFileProcessing(TestCase):
             student_item_dict=self.student_item_dict,
             answer=self.answer,
             queue_name=self.queue_name,
+            queue_key=self.queue_key,
             files=files_dict
         )
 

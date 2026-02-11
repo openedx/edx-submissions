@@ -171,6 +171,7 @@ class ExternalGraderDetailAdmin(admin.ModelAdmin):
         'id',
         'submission_info',
         'queue_name',
+        'queue_key',
         'status_badge',
         'num_failures',
         'status_time',
@@ -187,6 +188,7 @@ class ExternalGraderDetailAdmin(admin.ModelAdmin):
 
     search_fields = [
         'queue_name',
+        'queue_key',
         'pullkey',
         'grader_file_name',
         'grader_reply',
@@ -201,6 +203,7 @@ class ExternalGraderDetailAdmin(admin.ModelAdmin):
     readonly_fields = [
         'submission',
         'pullkey',
+        'queue_key',
         'status_time',
         'created_at',
     ]
@@ -302,6 +305,7 @@ class ExternalGraderDetailAdmin(admin.ModelAdmin):
         search_q = (
             # Default search fields
             Q(queue_name__icontains=search_term) |
+            Q(queue_key__icontains=search_term) |
             Q(pullkey__icontains=search_term) |
             Q(grader_file_name__icontains=search_term) |
             Q(grader_reply__icontains=search_term) |
@@ -336,7 +340,7 @@ class ExternalGraderDetailAdmin(admin.ModelAdmin):
             'fields': ('submission',)
         }),
         ('Queue Details', {
-            'fields': ('queue_name', 'grader_file_name', 'points_possible')
+            'fields': ('queue_name', 'queue_key', 'grader_file_name', 'points_possible')
         }),
         ('Status Information', {
             'fields': ('status', 'num_failures', 'pullkey', 'grader_reply')

@@ -32,7 +32,7 @@ beautifulsoup4==4.14.3
     # via
     #   -r requirements/docs.txt
     #   pydata-sphinx-theme
-certifi==2026.2.25
+certifi==2026.4.22
     # via
     #   -r requirements/docs.txt
     #   requests
@@ -42,7 +42,7 @@ charset-normalizer==3.4.7
     # via
     #   -r requirements/docs.txt
     #   requests
-click==8.3.2
+click==8.3.3
     # via
     #   click-log
     #   code-annotations
@@ -104,13 +104,13 @@ edx-opaque-keys[django]==4.0.0
     #   openedx-events
 factory-boy==3.3.3
     # via -r requirements/test.in
-faker==40.13.0
+faker==40.15.0
     # via factory-boy
-fastavro==1.12.1
+fastavro==1.12.2
     # via openedx-events
 freezegun==1.5.5
     # via -r requirements/test.in
-idna==3.11
+idna==3.13
     # via
     #   -r requirements/docs.txt
     #   requests
@@ -143,7 +143,7 @@ mock==5.2.0
     # via -r requirements/test.in
 openedx-events==10.2.0
     # via -r requirements/test.in
-packaging==26.0
+packaging==26.2
     # via
     #   -r requirements/docs.txt
     #   pytest
@@ -189,7 +189,7 @@ pylint-plugin-utils==0.9.0
     # via
     #   pylint-celery
     #   pylint-django
-pymongo==4.16.0
+pymongo==4.17.0
     # via edx-opaque-keys
 pynacl==1.6.2
     # via edx-django-utils

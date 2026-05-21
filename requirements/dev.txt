@@ -153,7 +153,7 @@ fastavro==1.12.2
     #   openedx-events
 freezegun==1.5.5
     # via -r requirements/test.txt
-idna==3.14
+idna==3.15
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt

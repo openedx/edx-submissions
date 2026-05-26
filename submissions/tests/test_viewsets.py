@@ -482,7 +482,7 @@ class TestXqueueViewSet(APITestCase):
         self.assertIn("Unable to serialize submission payload", response.data['content'])
 
     @patch('submissions.api.set_score')
-    def test_put_result_succeeds_without_csrf_token(self, mock_set_score):
+    def test_put_result_succeeds_without_csrf_token(self, _mock_set_score):
         """
         Verify that put_result succeeds without a CSRF token even when the test
         client has CSRF checks enabled.

@@ -18,7 +18,7 @@ babel==2.18.0
     #   sphinx
 beautifulsoup4==4.14.3
     # via pydata-sphinx-theme
-certifi==2026.4.22
+certifi==2026.5.20
     # via requests
 charset-normalizer==3.4.7
     # via requests
@@ -40,7 +40,7 @@ docutils==0.22.4
     #   sphinx
 edx-django-release-util==1.5.0
     # via -r requirements/base.txt
-idna==3.15
+idna==3.16
     # via requests
 imagesize==2.0.0
     # via sphinx
@@ -67,7 +67,7 @@ pyyaml==6.0.3
     # via
     #   -r requirements/base.txt
     #   edx-django-release-util
-requests==2.34.0
+requests==2.34.2
     # via sphinx
 roman-numerals==4.1.0
     # via sphinx
@@ -77,7 +77,7 @@ six==1.17.0
     #   edx-django-release-util
     #   pockets
     #   sphinxcontrib-napoleon
-snowballstemmer==3.0.1
+snowballstemmer==3.1.0
     # via sphinx
 soupsieve==2.8
     # via

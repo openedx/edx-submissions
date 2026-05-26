@@ -12,12 +12,12 @@ from django.utils import timezone
 from openedx_events.learning.data import ExternalGraderScoreData
 from openedx_events.learning.signals import EXTERNAL_GRADER_SCORE_SUBMITTED
 from rest_framework import status, viewsets
-from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from submissions.api import get_files_for_grader, set_score
+from submissions.authentication import CsrfExemptSessionAuthentication
 from submissions.models import ExternalGraderDetail
 from submissions.permissions import IsXQueueUser
 
@@ -59,7 +59,7 @@ class XQueueViewSet(viewsets.ViewSet):
     For more context, see DEPR: https://github.com/openedx/public-engineering/issues/286.
     """
 
-    authentication_classes = [SessionAuthentication]  # Xqueue watcher auth method
+    authentication_classes = [CsrfExemptSessionAuthentication]
 
     def get_permissions(self):
         """

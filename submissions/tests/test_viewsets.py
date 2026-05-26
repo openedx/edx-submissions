@@ -13,21 +13,16 @@ from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import AllowAny
 from rest_framework.test import APITestCase
 
+from submissions.authentication import CsrfExemptSessionAuthentication
 from submissions.models import ExternalGraderDetail, SubmissionFile
 from submissions.permissions import IsXQueueUser
 from submissions.tests.factories import ExternalGraderDetailFactory, SubmissionFactory
 from submissions.views.xqueue import MAX_SCORE_UPDATE_RETRIES, XQueueViewSet
 
 User = get_user_model()
-
-
-class CsrfExemptSessionAuthentication(SessionAuthentication):
-    def enforce_csrf(self, request):
-        return  # Bypass CSRF checks for testing
 
 
 @override_settings(ROOT_URLCONF='submissions.urls')

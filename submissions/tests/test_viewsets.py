@@ -14,7 +14,7 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import AllowAny
-from rest_framework.test import APITestCase
+from rest_framework.test import APIClient, APITestCase
 
 from submissions.authentication import CsrfExemptSessionAuthentication
 from submissions.models import ExternalGraderDetail, SubmissionFile
@@ -480,3 +480,31 @@ class TestXqueueViewSet(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(response.data['return_code'], 1)
         self.assertIn("Unable to serialize submission payload", response.data['content'])
+
+    @patch('submissions.api.set_score')
+    def test_put_result_succeeds_without_csrf_token(self, mock_set_score):
+        """
+        Verify that put_result succeeds without a CSRF token even when the test
+        client has CSRF checks enabled.
+
+        DRF's SessionAuthentication normally enforces CSRF on authenticated POSTs.
+        This test confirms that CsrfExemptSessionAuthentication bypasses that check,
+        so xqueue-watcher can post results using only a session cookie.
+        """
+        csrf_client = APIClient(enforce_csrf_checks=True)
+        csrf_client.force_login(self.user)
+
+        self.external_grader.update_status('pulled')
+        self.external_grader.refresh_from_db()
+
+        payload = {
+            'xqueue_header': json.dumps({
+                'submission_id': self.submission.id,
+                'submission_key': self.external_grader.pullkey,
+            }),
+            'xqueue_body': json.dumps({'score': 1}),
+        }
+
+        response = csrf_client.post(self.url_put_result, payload, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

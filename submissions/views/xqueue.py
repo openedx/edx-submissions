@@ -7,17 +7,18 @@ from datetime import timedelta
 from django.contrib.auth import authenticate, login, logout
 from django.db import DatabaseError, transaction
 from django.db.models import Q
+from django.middleware.csrf import get_token
 from django.http import HttpResponse
 from django.utils import timezone
 from openedx_events.learning.data import ExternalGraderScoreData
 from openedx_events.learning.signals import EXTERNAL_GRADER_SCORE_SUBMITTED
 from rest_framework import status, viewsets
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from submissions.api import get_files_for_grader, set_score
-from submissions.authentication import CsrfExemptSessionAuthentication
 from submissions.models import ExternalGraderDetail
 from submissions.permissions import IsXQueueUser
 
@@ -59,7 +60,7 @@ class XQueueViewSet(viewsets.ViewSet):
     For more context, see DEPR: https://github.com/openedx/public-engineering/issues/286.
     """
 
-    authentication_classes = [CsrfExemptSessionAuthentication]
+    authentication_classes = [SessionAuthentication]
 
     def get_permissions(self):
         """
@@ -73,11 +74,27 @@ class XQueueViewSet(viewsets.ViewSet):
             permission_classes = [IsXQueueUser]
         return [permission() for permission in permission_classes]
 
-    @action(detail=False, methods=['post'], url_name='login')
+    @action(detail=False, methods=['get', 'post'], url_name='login')
     def login(self, request):
         """
         Endpoint for authenticating users and creating sessions.
+
+        GET: Sets the CSRF cookie so that xqueue-watcher can extract the token
+        before POSTing credentials.  Returns an empty success response.
+
+        POST: Authenticates the supplied username/password and opens a session.
         """
+
+        if request.method == 'GET':
+            # xqueue-watcher pre-fetches this URL to obtain a CSRF token.
+            # Calling get_token() ensures the csrftoken cookie is included in
+            # the response; the watcher then sends that value as the
+            # X-CSRFToken header in subsequent mutating requests.
+            get_token(request)
+            return Response(
+                self.compose_reply(True, ''),
+                status=status.HTTP_200_OK
+            )
 
         if 'username' not in request.data or 'password' not in request.data:
             log.error('XQueue insufficient login info')

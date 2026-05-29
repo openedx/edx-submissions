@@ -16,7 +16,6 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.test import APIClient, APITestCase
 
-from submissions.authentication import CsrfExemptSessionAuthentication
 from submissions.models import ExternalGraderDetail, SubmissionFile
 from submissions.permissions import IsXQueueUser
 from submissions.tests.factories import ExternalGraderDetailFactory, SubmissionFactory
@@ -34,8 +33,6 @@ class TestXqueueViewSet(APITestCase):
     def setUp(self):
         """Set up test data."""
         super().setUp()
-        self._orig_auth_classes = XQueueViewSet.authentication_classes
-        XQueueViewSet.authentication_classes = [CsrfExemptSessionAuthentication]
 
         # Ensure the 'xqueue' group exists and add the user to it
         xqueue_group, _ = Group.objects.get_or_create(name='xqueue')
@@ -62,7 +59,6 @@ class TestXqueueViewSet(APITestCase):
         self.viewset = XQueueViewSet()
 
     def tearDown(self):
-        XQueueViewSet.authentication_classes = self._orig_auth_classes
         super().tearDown()
 
     def api_login(self):
@@ -481,19 +477,50 @@ class TestXqueueViewSet(APITestCase):
         self.assertEqual(response.data['return_code'], 1)
         self.assertIn("Unable to serialize submission payload", response.data['content'])
 
-    @patch('submissions.api.set_score')
-    def test_put_result_succeeds_without_csrf_token(self, _mock_set_score):
+    def test_login_get_sets_csrf_cookie(self):
         """
-        Verify that put_result succeeds without a CSRF token even when the test
-        client has CSRF checks enabled.
+        Verify that a GET to the login endpoint returns a csrftoken cookie.
 
-        DRF's SessionAuthentication normally enforces CSRF on authenticated POSTs.
-        This test confirms that CsrfExemptSessionAuthentication bypasses that check,
-        so xqueue-watcher can post results using only a session cookie.
+        xqueue-watcher pre-fetches the login URL before POSTing credentials so
+        that it has a CSRF token to include in subsequent mutating requests.
+        Previously the endpoint only accepted POST, so the GET returned 405 and
+        no cookie was set, causing put_result to fail with 403.
+        """
+        response = self.client.get(self.url_login)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('csrftoken', response.cookies)
+
+    @patch('submissions.api.set_score')
+    def test_xqueue_watcher_csrf_flow(self, _mock_set_score):
+        """
+        Verify the full xqueue-watcher CSRF flow works end-to-end with standard
+        SessionAuthentication (no CSRF bypass needed).
+
+        Steps:
+        1. GET login to obtain the CSRF cookie.
+        2. POST credentials to log in (CSRF is not enforced for unauthenticated
+           requests, so no token is needed here).
+        3. POST put_result with session cookie + X-CSRFToken header.
+
+        enforce_csrf_checks=True confirms that step 3 passes only when the
+        correct CSRF token is present — proving xqueue-watcher can operate
+        without any CSRF exemption in the production code.
         """
         csrf_client = APIClient(enforce_csrf_checks=True)
-        csrf_client.force_login(self.user)
 
+        # Step 1: GET login to obtain the CSRF cookie.
+        response = csrf_client.get(self.url_login)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        csrf_token = response.cookies['csrftoken'].value
+
+        # Step 2: POST credentials to log in.
+        response = csrf_client.post(
+            self.url_login,
+            {'username': 'testuser', 'password': 'testpass'},
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Step 3: POST put_result with session and CSRF token.
         self.external_grader.update_status('pulled')
         self.external_grader.refresh_from_db()
 
@@ -505,6 +532,11 @@ class TestXqueueViewSet(APITestCase):
             'xqueue_body': json.dumps({'score': 1}),
         }
 
-        response = csrf_client.post(self.url_put_result, payload, format='json')
+        response = csrf_client.post(
+            self.url_put_result,
+            payload,
+            format='json',
+            HTTP_X_CSRFTOKEN=csrf_token,
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

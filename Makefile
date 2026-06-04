@@ -83,7 +83,7 @@ diff_cover: test ## Generate diff coverage report
 	diff-cover coverage.xml
 
 test_quality: ## Run Quality checks
-	pylint submissions
+	DJANGO_SETTINGS_MODULE=settings pylint submissions
 	isort --check-only submissions manage.py setup.py settings.py --skip migrations
 	pycodestyle . --config=pycodestyle
 

@@ -517,6 +517,10 @@ class TestXqueueViewSet(APITestCase):
             {"username": "testuser", "password": "testpass"},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # django.contrib.auth.login() calls rotate_token(), which issues a new
+        # CSRF secret.  Re-read the token from the login response so that step 3
+        # sends the current token, not the now-stale one from step 1.
+        csrf_token = response.cookies["csrftoken"].value
 
         # Step 3: POST put_result with session and CSRF token.
         self.external_grader.update_status("pulled")

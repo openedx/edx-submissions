@@ -40,7 +40,7 @@ beautifulsoup4==4.14.3
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   pydata-sphinx-theme
-certifi==2026.4.22
+certifi==2026.5.20
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -54,7 +54,7 @@ charset-normalizer==3.4.7
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   requests
-click==8.3.3
+click==8.4.1
     # via
     #   -r requirements/test.txt
     #   click-log
@@ -143,7 +143,7 @@ edx-opaque-keys[django]==4.0.0
     #   openedx-events
 factory-boy==3.3.3
     # via -r requirements/test.txt
-faker==40.15.0
+faker==40.19.1
     # via
     #   -r requirements/test.txt
     #   factory-boy
@@ -153,7 +153,7 @@ fastavro==1.12.2
     #   openedx-events
 freezegun==1.5.5
     # via -r requirements/test.txt
-idna==3.15
+idna==3.16
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -295,7 +295,7 @@ pyyaml==6.0.3
     #   -r requirements/test.txt
     #   code-annotations
     #   edx-django-release-util
-requests==2.34.0
+requests==2.34.2
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -316,7 +316,7 @@ six==1.17.0
     #   pockets
     #   python-dateutil
     #   sphinxcontrib-napoleon
-snowballstemmer==3.0.1
+snowballstemmer==3.1.0
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -377,7 +377,7 @@ sqlparse==0.5.5
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   django
-stevedore==5.7.0
+stevedore==5.8.0
     # via
     #   -r requirements/test.txt
     #   code-annotations

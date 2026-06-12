@@ -28,7 +28,7 @@ babel==2.18.0
     #   -r requirements/docs.txt
     #   pydata-sphinx-theme
     #   sphinx
-beautifulsoup4==4.14.3
+beautifulsoup4==4.15.0
     # via
     #   -r requirements/docs.txt
     #   pydata-sphinx-theme
@@ -52,7 +52,7 @@ click-log==0.4.0
     # via edx-lint
 code-annotations==3.0.0
     # via edx-lint
-coverage[toml]==7.14.0
+coverage[toml]==7.14.1
     # via pytest-cov
 ddt==1.7.2
     # via -r requirements/test.in
@@ -104,13 +104,13 @@ edx-opaque-keys[django]==4.0.0
     #   openedx-events
 factory-boy==3.3.3
     # via -r requirements/test.in
-faker==40.19.1
+faker==40.23.0
     # via factory-boy
 fastavro==1.12.2
     # via openedx-events
 freezegun==1.5.5
     # via -r requirements/test.in
-idna==3.16
+idna==3.18
     # via
     #   -r requirements/docs.txt
     #   requests
@@ -148,7 +148,7 @@ packaging==26.2
     #   -r requirements/docs.txt
     #   pytest
     #   sphinx
-platformdirs==4.9.6
+platformdirs==4.10.0
     # via pylint
 pluggy==1.6.0
     # via
@@ -235,7 +235,7 @@ six==1.17.0
     #   pockets
     #   python-dateutil
     #   sphinxcontrib-napoleon
-snowballstemmer==3.1.0
+snowballstemmer==3.1.1
     # via
     #   -r requirements/docs.txt
     #   sphinx

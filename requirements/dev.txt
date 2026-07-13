@@ -35,26 +35,26 @@ babel==2.18.0
     #   -r requirements/test.txt
     #   pydata-sphinx-theme
     #   sphinx
-beautifulsoup4==4.14.3
+beautifulsoup4==4.15.0
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   pydata-sphinx-theme
-certifi==2026.5.20
+certifi==2026.6.17
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   requests
-cffi==2.0.0
+cffi==2.1.0
     # via
     #   -r requirements/test.txt
     #   pynacl
-charset-normalizer==3.4.7
+charset-normalizer==3.4.9
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   requests
-click==8.4.1
+click==8.4.2
     # via
     #   -r requirements/test.txt
     #   click-log
@@ -69,7 +69,7 @@ code-annotations==3.0.0
     # via
     #   -r requirements/test.txt
     #   edx-lint
-coverage[toml]==7.14.0
+coverage[toml]==7.15.0
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -79,7 +79,7 @@ dill==0.4.1
     # via
     #   -r requirements/test.txt
     #   pylint
-django==5.2.14
+django==5.2.16
     # via
     #   -c requirements/common_constraints.txt
     #   -r requirements/base.txt
@@ -143,7 +143,7 @@ edx-opaque-keys[django]==4.0.0
     #   openedx-events
 factory-boy==3.3.3
     # via -r requirements/test.txt
-faker==40.19.1
+faker==40.28.1
     # via
     #   -r requirements/test.txt
     #   factory-boy
@@ -153,7 +153,7 @@ fastavro==1.12.2
     #   openedx-events
 freezegun==1.5.5
     # via -r requirements/test.txt
-idna==3.16
+idna==3.18
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -201,7 +201,7 @@ packaging==26.2
     #   -r requirements/test.txt
     #   pytest
     #   sphinx
-platformdirs==4.9.6
+platformdirs==4.10.0
     # via
     #   -r requirements/test.txt
     #   pylint
@@ -238,7 +238,7 @@ pygments==2.20.0
     #   pydata-sphinx-theme
     #   pytest
     #   sphinx
-pylint==4.0.5
+pylint==4.0.6
     # via
     #   -r requirements/test.txt
     #   edx-lint
@@ -249,7 +249,7 @@ pylint-celery==0.3
     # via
     #   -r requirements/test.txt
     #   edx-lint
-pylint-django==2.7.0
+pylint-django==2.8.0
     # via
     #   -r requirements/test.txt
     #   edx-lint
@@ -266,7 +266,7 @@ pynacl==1.6.2
     # via
     #   -r requirements/test.txt
     #   edx-django-utils
-pytest==9.0.3
+pytest==9.1.1
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -316,7 +316,7 @@ six==1.17.0
     #   pockets
     #   python-dateutil
     #   sphinxcontrib-napoleon
-snowballstemmer==3.1.0
+snowballstemmer==3.1.1
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
@@ -377,7 +377,7 @@ sqlparse==0.5.5
     #   -r requirements/docs.txt
     #   -r requirements/test.txt
     #   django
-stevedore==5.8.0
+stevedore==5.9.0
     # via
     #   -r requirements/test.txt
     #   code-annotations
@@ -392,7 +392,7 @@ tomlkit==0.15.0
     #   -r requirements/test.txt
     #   edx-lint
     #   pylint
-typing-extensions==4.15.0
+typing-extensions==4.16.0
     # via
     #   -r requirements/docs.txt
     #   -r requirements/test.txt

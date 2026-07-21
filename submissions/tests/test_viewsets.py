@@ -360,6 +360,36 @@ class TestXqueueViewSet(APITestCase):
         self.assertEqual(score.points_earned, 7)
         self.assertEqual(score.points_possible, 10)
 
+    def test_put_result_missing_score_skips_scaling(self):
+        """
+        A grader reply with no "score" key parses to points_earned=None.
+        put_result must not try to scale None by points_possible (that
+        would raise TypeError) -- it should leave it as None and let the
+        existing set_score() failure handling take over, same as any other
+        invalid score value.
+        """
+        self.client.login(username="testuser", password="testpass")
+        response = self.client.post(self.url_status)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.external_grader.update_status("pulled")
+
+        payload = {
+            "xqueue_header": json.dumps(
+                {
+                    "submission_id": self.submission.id,
+                    "submission_key": self.external_grader.pullkey,
+                }
+            ),
+            "xqueue_body": json.dumps({}),
+        }
+
+        response = self.client.post(self.url_put_result, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.external_grader.refresh_from_db()
+        self.assertEqual(self.external_grader.num_failures, 1)
+        self.assertEqual(self.external_grader.status, "retry")
+
     def test_login_success(self):
         """Test successful login"""
         data = {"username": "testuser", "password": "testpass"}

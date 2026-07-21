@@ -17,7 +17,7 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.test import APIClient, APITestCase
 
-from submissions.models import ExternalGraderDetail, SubmissionFile
+from submissions.models import ExternalGraderDetail, Score, SubmissionFile
 from submissions.permissions import IsXQueueUser
 from submissions.tests.factories import ExternalGraderDetailFactory, SubmissionFactory
 from submissions.views.xqueue import MAX_SCORE_UPDATE_RETRIES, XQueueViewSet
@@ -318,6 +318,47 @@ class TestXqueueViewSet(APITestCase):
         self.assertEqual(response_data, self.viewset.compose_reply(True, ""))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_put_result_scales_fractional_score_to_points_earned(self):
+        """
+        Graders report a 0.0-1.0 pass-ratio (e.g. tests_passed / tests_total),
+        not an absolute point count. put_result must scale that fraction by
+        points_possible before handing it to set_score(), which requires an
+        integer. Regression test for a bug where the raw fraction was passed
+        straight through, causing set_score() to reject every submission
+        (correct or not) for any problem worth more than 1 point.
+        """
+        external_grader = ExternalGraderDetailFactory(
+            submission=SubmissionFactory(),
+            pullkey="fractional_pull_key",
+            status="pulled",
+            queue_name="test_queue",
+            num_failures=0,
+            points_possible=10,
+        )
+
+        payload = {
+            "xqueue_header": json.dumps(
+                {
+                    "submission_id": external_grader.submission.id,
+                    "submission_key": "fractional_pull_key",
+                }
+            ),
+            "xqueue_body": json.dumps({"score": 0.7}),
+        }
+
+        self.client.login(username="testuser", password="testpass")
+        response = self.client.post(self.url_put_result, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = json.loads(response.content)
+        self.assertEqual(response_data, self.viewset.compose_reply(True, ""))
+
+        score = Score.objects.filter(
+            student_item=external_grader.submission.student_item
+        ).latest("created_at")
+        self.assertEqual(score.points_earned, 7)
+        self.assertEqual(score.points_possible, 10)
 
     def test_login_success(self):
         """Test successful login"""

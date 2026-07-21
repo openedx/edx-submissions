@@ -297,6 +297,14 @@ class XQueueViewSet(viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        # `points_earned` from the grader is a 0.0-1.0 pass-ratio fraction (see
+        # xqueue-watcher's grader_support.entrypoint), not an absolute point count.
+        # Scale it by the problem's points_possible and round to the nearest
+        # integer to match set_score()'s integer point contract; otherwise
+        # ScoreSerializer rejects it and every submission fails.
+        if points_earned is not None:
+            points_earned = round(points_earned * external_grader.points_possible)
+
         # pylint: disable=broad-exception-caught
         submission_context = {
             "submission_id": submission_id,

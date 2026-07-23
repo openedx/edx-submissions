@@ -308,6 +308,17 @@ class XQueueViewSet(viewsets.ViewSet):
         }
 
         try:
+            # `points_earned` from the grader is a 0.0-1.0 pass-ratio fraction (see
+            # xqueue-watcher's grader_support.entrypoint), not an absolute point count.
+            # Scale it by the problem's points_possible and round to the nearest
+            # integer to match set_score()'s integer point contract; otherwise
+            # ScoreSerializer rejects it and every submission fails. Do this inside
+            # the try block: validate_grader_reply() does not enforce points_earned
+            # to be numeric, so a malformed grader reply must hit the same
+            # retry/failure handling as a set_score() failure, not a raw 500.
+            if points_earned is not None:
+                points_earned = round(points_earned * external_grader.points_possible)
+
             log.info(
                 "Attempting to record score for submission %(submission_id)s "
                 "(course=%(course_id)s, item=%(item_id)s, user=%(user_id)s)",

@@ -8,7 +8,7 @@ accessible-pygments==0.0.5
     # via pydata-sphinx-theme
 alabaster==1.0.0
     # via sphinx
-asgiref==3.11.1
+asgiref==3.12.1
     # via
     #   -r requirements/base.txt
     #   django
@@ -16,13 +16,13 @@ babel==2.18.0
     # via
     #   pydata-sphinx-theme
     #   sphinx
-beautifulsoup4==4.14.3
+beautifulsoup4==4.15.0
     # via pydata-sphinx-theme
-certifi==2026.5.20
+certifi==2026.7.22
     # via requests
-charset-normalizer==3.4.7
+charset-normalizer==3.4.9
     # via requests
-django==5.2.14
+django==5.2.16
     # via
     #   -c requirements/common_constraints.txt
     #   -r requirements/base.txt
@@ -40,12 +40,14 @@ docutils==0.22.4
     #   sphinx
 edx-django-release-util==1.5.0
     # via -r requirements/base.txt
-idna==3.16
+idna==3.18
     # via requests
 imagesize==2.0.0
     # via sphinx
 jinja2==3.1.6
-    # via sphinx
+    # via
+    #   pydata-sphinx-theme
+    #   sphinx
 jsonfield==3.2.0
     # via -r requirements/base.txt
 markupsafe==3.0.3
@@ -54,21 +56,23 @@ packaging==26.2
     # via sphinx
 pockets==0.9.1
     # via sphinxcontrib-napoleon
-pydata-sphinx-theme==0.16.1
+pydata-sphinx-theme==0.20.0
     # via sphinx-book-theme
 pygments==2.20.0
     # via
     #   accessible-pygments
     #   pydata-sphinx-theme
     #   sphinx
-pytz==2026.2
+pytz==2026.3.post1
     # via -r requirements/base.txt
 pyyaml==6.0.3
     # via
     #   -r requirements/base.txt
     #   edx-django-release-util
 requests==2.34.2
-    # via sphinx
+    # via
+    #   pydata-sphinx-theme
+    #   sphinx
 roman-numerals==4.1.0
     # via sphinx
 six==1.17.0
@@ -77,7 +81,7 @@ six==1.17.0
     #   edx-django-release-util
     #   pockets
     #   sphinxcontrib-napoleon
-snowballstemmer==3.1.0
+snowballstemmer==3.1.1
     # via sphinx
 soupsieve==2.8
     # via
@@ -88,7 +92,7 @@ sphinx==9.1.0
     #   -r requirements/docs.in
     #   pydata-sphinx-theme
     #   sphinx-book-theme
-sphinx-book-theme==1.2.0
+sphinx-book-theme==1.4.0
     # via -r requirements/docs.in
 sphinxcontrib-applehelp==2.0.0
     # via sphinx
@@ -108,9 +112,7 @@ sqlparse==0.5.5
     # via
     #   -r requirements/base.txt
     #   django
-typing-extensions==4.15.0
-    # via
-    #   beautifulsoup4
-    #   pydata-sphinx-theme
+typing-extensions==4.16.0
+    # via beautifulsoup4
 urllib3==2.7.0
     # via requests

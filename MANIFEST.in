@@ -1,7 +1,6 @@
 # Exclude development, test, and documentation folders
 prune .github
 prune docs
-prune tests
 
 # Exclude root level configuration and build files
 exclude Makefile

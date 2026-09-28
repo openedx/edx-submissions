@@ -39,7 +39,7 @@ jobs:
     - name: Install Python dependencies
       run: |
         uv sync --group test
-        uv pip install --no-binary mysqlclient mysqlclient
+        uv pip install --no-binary mysqlclient
 
     - name: Initiate Services
       run: |

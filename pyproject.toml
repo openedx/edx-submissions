@@ -140,7 +140,7 @@ uv_constraints = [
 
 [tool.coverage.run]
 branch = true
-source = ["submissions"]
+source_pkgs = ["submissions"]
 omit = [
     "*/migrations/*",
 ]

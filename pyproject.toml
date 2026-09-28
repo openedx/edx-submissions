@@ -1,0 +1,158 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm>8.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "edx-submissions"
+description = "An API for creating submissions and scores."
+requires-python = ">=3.12"
+license = "AGPL-3.0"
+license-files = ["LICENSE*"]
+authors = [
+    {name = "Open edX Project", email = "oscm@openedx.org"},
+]
+classifiers = [
+    'Development Status :: 3 - Alpha',
+    'Framework :: Django',
+    'Framework :: Django :: 4.2',
+    'Framework :: Django :: 5.2',
+    'Intended Audience :: Developers',
+    'Natural Language :: English',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.12',
+]
+keywords = [
+    "Python",
+    "edx",
+]
+
+dynamic = ["readme", "version"]
+
+dependencies = [
+    "Django",
+    "django-model-utils",
+    "jsonfield",
+    "pytz",
+    "djangorestframework",
+    "edx-django-release-util",
+]
+
+[project.urls]
+Homepage = "https://github.com/openedx/edx-submissions"
+Repository = "https://github.com/openedx/edx-submissions"
+
+[dependency-groups]
+test-base = [
+    "ddt",
+    "edx-lint",
+    "factory_boy>=2.8.1",
+    "freezegun>=0.3.11",
+    "isort",
+    "mock",
+    "pycodestyle>=2.5.0",
+    "pytest-cov",
+    "pytest-django",
+    "python-dateutil>=2.8.0",
+    "openedx-events==10.2.0",
+]
+test = [
+    {include-group = "test-base"},
+    "Django>=5.2,<6.0",
+    "djangorestframework",
+]
+django42-drf315 = [
+    {include-group = "test-base"},
+    "Django>=4.2,<5.0",
+    "djangorestframework<3.16",
+]
+django42-drflatest = [
+    {include-group = "test-base"},
+    "Django>=4.2,<5.0",
+    "djangorestframework",
+]
+django52-drf315 = [
+    {include-group = "test-base"},
+    "Django>=5.2,<6.0",
+    "djangorestframework<3.16",
+]
+quality = [
+    {include-group = "test"},
+    "edx-lint",
+    "isort",
+    "pycodestyle",
+]
+doc = [
+    {include-group = "test"},
+    "Sphinx",
+    "sphinx-book-theme",
+    "sphinxcontrib-napoleon",
+]
+ci = [
+    "tox",
+    "tox-uv",
+]
+dev = [
+    {include-group = "quality"},
+    {include-group = "ci"},
+    {include-group = "doc"},
+    "coveralls",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.rst"], content-type = "text/x-rst"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = [
+    "*.html",
+]
+
+[tool.semantic_release]
+build_command = "pip install build && SETUPTOOLS_SCM_PRETEND_VERSION=$NEW_VERSION python -m build"
+
+[tool.setuptools_scm]
+version_scheme = 'only-version'
+local_scheme = 'no-local-version'
+fallback_version = "0.0.0.dev0"
+
+[tool.uv]
+conflicts = [
+    [{group = "test"}, {group = "django42-drf315"}, {group = "django42-drflatest"}, {group = "django52-drf315"}],
+]
+constraint-dependencies = [
+    "Django<6.0",
+    "elasticsearch<7.14.0",
+    "social-auth-app-django<6.0.0",
+    "social-auth-core<5.0.0",
+    "pip<26.2.1",
+    "edx-lint==6.1.0",
+]
+
+[tool.edx_lint]
+uv_constraints = [
+    "edx-lint==6.1.0",  # Date: 2026-09-24 — pin to version used on master; 6.2.0 introduces new pylint checks (W5150, I0021) that fail on existing code
+]
+
+[tool.coverage.run]
+branch = true
+source_pkgs = ["submissions"]
+omit = [
+    "*/migrations/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.isort]
+multi_line_output = 3
+line_length = 120
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "settings"
+addopts = "--cov submissions --cov-report term-missing --cov-report xml"
+norecursedirs = ".* docs requirements"

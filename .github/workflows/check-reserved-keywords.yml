@@ -12,16 +12,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-    - name: setup python
-      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+    - name: Install uv
+      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v6.5.0
       with:
-        python-version: 3.12
+        enable-cache: true
+        python-version: "3.12"
 
-    - name: Install pip
-      run: pip install -r requirements/pip.txt
-
-    - name: Install Dependencies
-      run: pip install -r requirements/dev.txt
+    - name: Install CI dependencies
+      run: uv sync --group ci
 
     - name: Check Keywords
-      run: make check_keywords
+      run: uv run tox -e check_keywords

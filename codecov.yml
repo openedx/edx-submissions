@@ -1,0 +1,10 @@
+coverage:
+  status:
+    patch:
+      default:
+        # src/ layout migration moves all files; Codecov treats moved lines as
+        # new additions and checks their patch coverage against the project
+        # target. Use auto so the check measures relative to the base branch
+        # rather than a fixed threshold, avoiding false failures on rename PRs.
+        target: auto
+        threshold: 5%

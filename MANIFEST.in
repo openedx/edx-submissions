@@ -8,3 +8,8 @@ exclude Makefile
 exclude conftest.py
 exclude .gitignore
 exclude tox.ini
+
+# Exclude test/coverage artifacts
+prune htmlcov
+global-exclude .coverage
+global-exclude coverage.xml

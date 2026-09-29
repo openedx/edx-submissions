@@ -45,7 +45,7 @@ class StudentItemAdminMixin:
             'admin:submissions_studentitem_change',
             args=[obj.student_item.id]
         )
-        return format_html(f'<a href="{url}">{obj.student_item.id}</a>')
+        return format_html('<a href="{}">{}</a>', url, obj.student_item.id)
 
 
 @admin.register(StudentItem)
@@ -148,7 +148,7 @@ class ScoreSummaryAdmin(admin.ModelAdmin, StudentItemAdminMixin):
         url = reverse(
             'admin:submissions_score_change', args=[score_summary.highest.id]
         )
-        return format_html(f'<a href="{url}">{score_summary.highest}</a>')
+        return format_html('<a href="{}">{}</a>', url, score_summary.highest)
 
     @admin.display(
         description='Latest'
@@ -158,7 +158,7 @@ class ScoreSummaryAdmin(admin.ModelAdmin, StudentItemAdminMixin):
         url = reverse(
             'admin:submissions_score_change', args=[score_summary.latest.id]
         )
-        return format_html(f'<a href="{url}">{score_summary.latest}</a>')
+        return format_html('<a href="{}">{}</a>', url, score_summary.latest)
 
 
 @admin.register(ExternalGraderDetail)

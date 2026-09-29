@@ -3,16 +3,24 @@ Tests for admin.
 """
 from unittest import mock
 
+from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.backends.db import SessionStore
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
+from django.urls import path
 
-from submissions.admin import ExternalGraderDetailAdmin
-from submissions.models import ExternalGraderDetail, StudentItem, Submission
+from submissions.admin import ExternalGraderDetailAdmin, ScoreSummaryAdmin, SubmissionAdmin
+from submissions.models import ExternalGraderDetail, Score, ScoreSummary, StudentItem, Submission
 
 User = get_user_model()
+
+# URLconf used by TestAdminLinkColumns so reverse('admin:...') resolves; the
+# project's root urls.py registers no admin routes.
+urlpatterns = [
+    path('admin/', admin.site.urls),
+]
 
 
 class TestExternalGraderDetailAdmin(TestCase):
@@ -340,3 +348,63 @@ class TestExternalGraderDetailAdmin(TestCase):
         request = self._get_request(add_session=False)
         self.assertEqual(request.user, self.user)
         self.assertFalse(hasattr(request, 'session'))
+
+
+@override_settings(ROOT_URLCONF=__name__)
+class TestAdminLinkColumns(TestCase):
+    """
+    Test the format_html link columns on the submission/score admins.
+    """
+
+    def setUp(self):
+        """Set up a student item, submission, and scores."""
+        self.student_item = StudentItem.objects.create(
+            student_id="link_student",
+            course_id="link_course",
+            item_id="link_item",
+        )
+        self.submission = Submission.objects.create(
+            student_item=self.student_item,
+            answer="answer",
+            attempt_number=1,
+        )
+        # Creating a Score triggers the post_save signal that builds the
+        # ScoreSummary with highest/latest set to this score.
+        self.score = Score.objects.create(
+            student_item=self.student_item,
+            submission=self.submission,
+            points_earned=8,
+            points_possible=10,
+        )
+        self.score_summary = ScoreSummary.objects.get(student_item=self.student_item)
+
+        site = AdminSite()
+        self.submission_admin = SubmissionAdmin(Submission, site)
+        self.score_summary_admin = ScoreSummaryAdmin(ScoreSummary, site)
+
+    def test_student_item_id_link(self):
+        """student_item_id renders the student_item change-page anchor."""
+        result = self.submission_admin.student_item_id(self.submission)
+        expected = (
+            f'<a href="/admin/submissions/studentitem/{self.student_item.id}/change/">'
+            f'{self.student_item.id}</a>'
+        )
+        self.assertEqual(result, expected)
+
+    def test_highest_link(self):
+        """highest_link renders the highest-score change-page anchor (score shown as points_earned/points_possible)."""
+        result = self.score_summary_admin.highest_link(self.score_summary)
+        expected = (
+            f'<a href="/admin/submissions/score/{self.score_summary.highest.id}/change/">'
+            f'8/10</a>'
+        )
+        self.assertEqual(result, expected)
+
+    def test_latest_link(self):
+        """latest_link renders the latest-score change-page anchor (score shown as points_earned/points_possible)."""
+        result = self.score_summary_admin.latest_link(self.score_summary)
+        expected = (
+            f'<a href="/admin/submissions/score/{self.score_summary.latest.id}/change/">'
+            f'8/10</a>'
+        )
+        self.assertEqual(result, expected)

@@ -3,6 +3,7 @@
 # Stdlib imports
 import copy
 import datetime
+import warnings
 from unittest import mock
 
 # Third party imports
@@ -295,6 +296,26 @@ class TestSubmissionsApi(TestCase):
 
         with self.assertRaises(api.SubmissionInternalError):
             api.get_submission_and_student(sub_model.uuid)
+
+    def test_load_json_string_answer_that_looks_like_invalid_json(self):
+        # A valid JSON string answer and an invalid raw value both load as a
+        # JSONString, so the answer's type alone cannot tell them apart.
+        submission = api.create_submission(STUDENT_ITEM, '}')
+        cache.clear()
+
+        self.assertEqual(api.get_submission(submission['uuid'])['answer'], '}')
+
+    @ddt.data(ANSWER_ONE, ANSWER_DICT)
+    def test_get_submission_leaves_warning_filters_alone(self, answer):
+        # warnings.filters is process-wide, so changing it here turns warnings
+        # raised on other request threads into exceptions.
+        submission = api.create_submission(STUDENT_ITEM, answer)
+        cache.clear()
+        filters_before = list(warnings.filters)
+
+        api.get_submission(submission['uuid'])
+
+        self.assertEqual(warnings.filters, filters_before)
 
     @mock.patch.object(StudentItemSerializer, 'save')
     def test_create_student_item_validation(self, mock_save):

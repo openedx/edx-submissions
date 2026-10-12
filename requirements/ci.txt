@@ -6,13 +6,13 @@
 #
 annotated-doc==0.0.5
     # via typer
-cachetools==7.2.0
+cachetools==7.2.1
     # via
     #   -r requirements/tox.txt
     #   tox
 certifi==2026.7.22
     # via requests
-charset-normalizer==3.5.1
+charset-normalizer==3.5.2
     # via requests
 colorama==0.4.6
     # via
@@ -26,7 +26,7 @@ distlib==0.4.3
     # via
     #   -r requirements/tox.txt
     #   virtualenv
-filelock==4.0.6
+filelock==4.1.1
     # via
     #   -r requirements/tox.txt
     #   python-discovery
@@ -43,7 +43,8 @@ packaging==26.3
     #   -r requirements/tox.txt
     #   pyproject-api
     #   tox
-platformdirs==4.12.1
+    #   virtualenv
+platformdirs==4.13.0
     # via
     #   -r requirements/tox.txt
     #   tox
@@ -54,11 +55,11 @@ pluggy==1.6.0
     #   tox
 pygments==2.21.0
     # via rich
-pyproject-api==1.11.2
+pyproject-api==1.11.5
     # via
     #   -r requirements/tox.txt
     #   tox
-python-discovery==1.6.1
+python-discovery==1.6.2
     # via
     #   -r requirements/tox.txt
     #   tox
@@ -73,9 +74,9 @@ tomli-w==1.2.0
     # via
     #   -r requirements/tox.txt
     #   tox
-tox==4.64.4
+tox==4.65.4
     # via -r requirements/tox.txt
-typer==0.27.2
+typer==0.27.3
     # via coveralls
 typing-extensions==4.16.0
     # via
@@ -83,7 +84,7 @@ typing-extensions==4.16.0
     #   tox
 urllib3==2.8.0
     # via requests
-virtualenv==21.13.0
+virtualenv==21.14.7
     # via
     #   -r requirements/tox.txt
     #   tox

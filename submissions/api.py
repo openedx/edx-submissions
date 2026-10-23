@@ -5,7 +5,6 @@ Public interface for the submissions app.
 import itertools
 import logging
 import operator
-import warnings
 from uuid import UUID
 
 from django.conf import settings
@@ -23,6 +22,7 @@ from submissions.errors import (  # pylint: disable=unused-import
 from submissions.models import (
     DELETED,
     ExternalGraderDetail,
+    InvalidJSONString,
     Score,
     ScoreAnnotation,
     ScoreSummary,
@@ -349,12 +349,11 @@ def get_submission(submission_uuid, read_replica=False):
         return cached_submission_data
 
     try:
-        # In previous versions of jsonfield, an error was raised whenever invalid json value was spotted,
-        # in version 3.1.0, this is changed and now a RuntimeWarning is emitted, so catching that warning
-        # to keep the endpoint response format consistent to previous version
-        warnings.filterwarnings('error')
-
         submission = _get_submission_model(submission_uuid, read_replica)
+        # Before jsonfield 3.1.0 an invalid JSON answer raised on load; keep
+        # raising SubmissionInternalError for it as callers expect.
+        if isinstance(submission.answer, InvalidJSONString):
+            raise ValueError(f"invalid JSON answer for submission {submission_uuid}")
         submission_data = SubmissionSerializer(submission).data
         cache.set(cache_key, submission_data)
     except Submission.DoesNotExist as error:
@@ -362,15 +361,12 @@ def get_submission(submission_uuid, read_replica=False):
         raise SubmissionNotFoundError(
             f"No submission matching uuid {submission_uuid}"
         ) from error
-    except (Exception, RuntimeWarning) as exc:
+    except Exception as exc:
         # Something very unexpected has just happened (like DB misconfig)
         # or an invalid json value is found in JSONField (submission.answer)
         err_msg = f"Could not get submission due to error: {exc}"
         logger.exception(err_msg)
         raise SubmissionInternalError(err_msg) from exc
-    finally:
-        # Switching filterwarnings back to its default behaviour
-        warnings.filterwarnings('default')
 
     logger.info("Get submission %s", submission_uuid)
     return submission_data

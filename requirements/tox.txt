@@ -10,7 +10,7 @@ colorama==0.4.6
     # via tox
 distlib==0.4.3
     # via virtualenv
-filelock==4.1.1
+filelock==4.2.1
     # via
     #   python-discovery
     #   tox
@@ -35,7 +35,7 @@ python-discovery==1.6.2
 tomli-w==1.2.0
     # via tox
 tox==4.65.4
-    # via -r requirements/tox.in
+    # via -r tox.in
 typing-extensions==4.16.0
     # via tox
 virtualenv==21.14.7

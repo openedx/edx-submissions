@@ -8,7 +8,7 @@ accessible-pygments==0.0.5
     # via pydata-sphinx-theme
 alabaster==1.0.0
     # via sphinx
-asgiref==3.12.1
+asgiref==3.13.0
     # via
     #   -r requirements/base.txt
     #   django
@@ -18,7 +18,7 @@ babel==2.18.0
     #   sphinx
 beautifulsoup4==4.15.0
     # via pydata-sphinx-theme
-certifi==2026.7.22
+certifi==2026.10.23
     # via requests
 charset-normalizer==3.5.2
     # via requests
@@ -83,9 +83,9 @@ six==1.17.0
     #   sphinxcontrib-napoleon
 snowballstemmer==3.1.1
     # via sphinx
-soupsieve==3.0.3
+soupsieve==3.0.4
     # via beautifulsoup4
-sphinx==9.1.0
+sphinx==9.1.1
     # via
     #   -r requirements/docs.in
     #   pydata-sphinx-theme
@@ -98,7 +98,7 @@ sphinxcontrib-devhelp==2.0.0
     # via sphinx
 sphinxcontrib-htmlhelp==2.1.0
     # via sphinx
-sphinxcontrib-jsmath==1.0.1
+sphinxcontrib-jsmath==2.0.0
     # via sphinx
 sphinxcontrib-napoleon==0.7
     # via -r requirements/docs.in

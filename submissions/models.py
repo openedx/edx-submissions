@@ -10,9 +10,11 @@ need to then generate a matching migration for it using:
 """
 
 import functools
+import json
 import logging
 import os
 import uuid
+import warnings
 from datetime import timedelta
 from uuid import uuid4
 
@@ -25,6 +27,8 @@ from django.dispatch import Signal, receiver
 from django.utils.module_loading import import_string
 from django.utils.timezone import now
 from jsonfield import JSONField
+from jsonfield.fields import INVALID_JSON_WARNING
+from jsonfield.json import JSONString, checked_loads
 from model_utils.models import TimeStampedModel
 
 from submissions.errors import DuplicateTeamSubmissionsError, TeamSubmissionInternalError, TeamSubmissionNotFoundError
@@ -37,6 +41,36 @@ score_set = Signal()
 
 # Signal to inform listeners that a score has been reset
 score_reset = Signal()
+
+
+class InvalidJSONString(JSONString):
+    """A stored answer that is not valid JSON, returned as the raw string."""
+
+
+class AnswerJSONField(JSONField):
+    """
+    JSONField that returns invalid JSON as an InvalidJSONString.
+
+    jsonfield returns both invalid JSON and valid JSON strings as a JSONString,
+    so without this marker the API cannot tell a corrupt answer apart without
+    changing the process-wide warning filters.
+    """
+
+    def from_db_value(self, value, expression, connection):
+        if value is None:
+            return None
+        try:
+            return checked_loads(value, **self.load_kwargs)
+        except json.JSONDecodeError:
+            warnings.warn(INVALID_JSON_WARNING.format(self, value), RuntimeWarning)
+            return InvalidJSONString(value)
+
+    def deconstruct(self):
+        # Only load behaviour differs, so keep the parent's path and avoid a
+        # migration (an AlterField that rebuilds the large submissions table on
+        # some backends).
+        name, _path, args, kwargs = super().deconstruct()
+        return name, "jsonfield.fields.JSONField", args, kwargs
 
 
 class AnonymizedUserIDField(models.CharField):
@@ -333,7 +367,7 @@ class Submission(models.Model):
     # replacement for TextField that performs JSON serialization/deserialization.
     # For backwards compatibility, we override the default database column
     # name so it continues to use `raw_answer`.
-    answer = JSONField(blank=True, dump_kwargs={'ensure_ascii': True}, db_column="raw_answer")
+    answer = AnswerJSONField(blank=True, dump_kwargs={'ensure_ascii': True}, db_column="raw_answer")
 
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=ACTIVE)
 

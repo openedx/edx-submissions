@@ -12,19 +12,20 @@ Purpose
 Getting Started with Development
 ********************************
 
-To install the ``submissions`` app, run these commands from the `edx-submissions` root directory:
+This project uses `uv <https://docs.astral.sh/uv/>`_; install it first.
+
+To install the ``submissions`` app and its development dependencies, run this from the `edx-submissions` root directory:
 
 .. code:: bash
 
-    pip install -e
+    make dev_requirements
 
 
 To run the test suite:
 
 .. code:: bash
 
-    pip install tox
-    tox # to run only a single environment, do e.g. tox -e py312-django42-drflatest
+    uv run tox # to run only a single environment, do e.g. uv run tox -e django42-drflatest
 
 
 To use a Django shell to test commands:
@@ -32,8 +33,8 @@ To use a Django shell to test commands:
 .. code:: bash
 
     make dev_requirements
-    python manage.py migrate
-    python manage.py shell --settings=settings
+    uv run python manage.py migrate
+    uv run python manage.py shell --settings=settings
     >>> from submissions.serializers import StudentItemSerializer
     >>> <other commands...>
 

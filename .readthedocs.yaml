@@ -19,4 +19,7 @@ build:
 # Optionally install extra requirements required to build your docs
 python:
   install:
-  - requirements: requirements/docs.txt
+  - method: uv
+    command: sync
+    groups:
+    - doc

@@ -12,7 +12,7 @@ To install the ``submissions`` app:
 
 .. code:: bash
 
-    python setup.py install
+    pip install edx-submissions
 
 
 API Documentation

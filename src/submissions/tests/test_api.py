@@ -1001,6 +1001,33 @@ class TestSubmissionsApi(TestCase):
         self.assertEqual(external_grader_instance.queue_name, 'test_queue')
         self.assertEqual(external_grader_instance.files.count(), 0)
 
+    def test_create_external_grader_detail_stores_grader_options(self):
+        """The lang, hide_output, and skip_grader grader_payload options are stored."""
+        external_grader_detail = api.create_external_grader_detail(
+            STUDENT_ITEM,
+            ANSWER_ONE,
+            queue_name="test_queue",
+            queue_key="test_key",
+            grader_file_name="grader.py",
+            lang="es",
+            hide_output=True,
+            skip_grader=True,
+        )
+        external_grader_detail.refresh_from_db()
+        self.assertEqual(external_grader_detail.lang, "es")
+        self.assertTrue(external_grader_detail.hide_output)
+        self.assertTrue(external_grader_detail.skip_grader)
+
+    def test_create_external_grader_detail_grader_option_defaults(self):
+        """Callers that don't pass the grader options get xqueue-watcher's defaults."""
+        external_grader_detail = api.create_external_grader_detail(
+            STUDENT_ITEM, ANSWER_ONE, queue_name="test_queue", queue_key="test_key"
+        )
+        external_grader_detail.refresh_from_db()
+        self.assertEqual(external_grader_detail.lang, "")
+        self.assertFalse(external_grader_detail.hide_output)
+        self.assertFalse(external_grader_detail.skip_grader)
+
 
 class TestExternalGraderFileProcessing(TestCase):
     """

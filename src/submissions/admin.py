@@ -181,6 +181,8 @@ class ExternalGraderDetailAdmin(admin.ModelAdmin):
     list_filter = [
         'status',
         'queue_name',
+        'skip_grader',
+        'hide_output',
         'num_failures',
         'status_time',
         'created_at',

@@ -629,6 +629,21 @@ class ExternalGraderDetail(models.Model):
     grader_file_name = models.CharField(max_length=128, default='')
     points_possible = models.PositiveIntegerField(default=1)
 
+    # Options from the problem's <grader_payload>, besides "grader" (which is
+    # grader_file_name). These are the only other grader_payload keys that
+    # xqueue-watcher's built-in graders read, and get_submission sends them back
+    # in grader_payload. The defaults are what xqueue-watcher does when a key is
+    # missing, so rows created before these fields existed behave the same.
+    # See: https://github.com/openedx/edx-submissions/issues/390
+    #
+    # Language code for the grader's feedback, e.g. "es". Blank means the
+    # problem didn't set one, and the grader uses its default (English).
+    lang = models.CharField(max_length=32, blank=True, default='')
+    # Don't show the learner per-test results, including the expected output.
+    hide_output = models.BooleanField(default=False)
+    # Give full credit without running the learner's code.
+    skip_grader = models.BooleanField(default=False)
+
     status = models.CharField(
         max_length=20,
         choices=Status.choices,

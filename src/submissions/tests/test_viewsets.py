@@ -147,6 +147,60 @@ class TestXqueueViewSet(APITestCase):
         self.assertEqual(external_grader.pullkey, response_pullkey)
         self.assertIsNotNone(external_grader.status_time)
 
+    def _get_grader_payload_from_queue(self, queue_name):
+        """Pull the next submission from queue_name and return its parsed grader_payload."""
+        self.client.login(username="testuser", password="testpass")
+        response = self.client.get(self.get_submission_url, {"queue_name": queue_name})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["return_code"], 0)
+        content = json.loads(response.data["content"])
+        return json.loads(json.loads(content["xqueue_body"])["grader_payload"])
+
+    def test_get_submission_sends_grader_options(self):
+        """
+        The lang, hide_output, and skip_grader options from the problem's
+        grader_payload go back to the grader alongside "grader".
+        """
+        ExternalGraderDetailFactory(
+            queue_name="options_queue",
+            status="pending",
+            grader_file_name="output/grader.py",
+            lang="es",
+            hide_output=True,
+            skip_grader=True,
+        )
+
+        self.assertEqual(
+            self._get_grader_payload_from_queue("options_queue"),
+            {"grader": "output/grader.py", "lang": "es", "hide_output": True, "skip_grader": True},
+        )
+
+    def test_get_submission_omits_default_grader_options(self):
+        """
+        Options at their defaults (including on rows created before these fields
+        existed) are left out, so the grader_payload is the same as it was before.
+        """
+        ExternalGraderDetailFactory(
+            queue_name="defaults_queue",
+            status="pending",
+            grader_file_name="grader.py",
+        )
+
+        self.assertEqual(self._get_grader_payload_from_queue("defaults_queue"), {"grader": "grader.py"})
+
+    def test_get_grader_payload_includes_only_options_that_are_set(self):
+        """Each option is included on its own, only when the problem set it."""
+        cases = [
+            ({"lang": "es"}, {"grader": "grader.py", "lang": "es"}),
+            ({"hide_output": True}, {"grader": "grader.py", "hide_output": True}),
+            ({"skip_grader": True}, {"grader": "grader.py", "skip_grader": True}),
+        ]
+        get_grader_payload = XQueueViewSet._get_grader_payload  # pylint: disable=protected-access
+        for options, expected in cases:
+            with self.subTest(options=options):
+                external_grader = ExternalGraderDetail(grader_file_name="grader.py", **options)
+                self.assertEqual(get_grader_payload(external_grader), expected)
+
     def test_put_result_invalid_submission_id(self):
         """Test put_result with non-existent submission ID."""
         self.client.login(username="testuser", password="testpass")

@@ -53,7 +53,7 @@ diff_cover: test ## Generate diff coverage report
 
 test_quality: ## Run Quality checks
 	DJANGO_SETTINGS_MODULE=settings pylint src/submissions
-	isort --check-only src/submissions manage.py settings.py --skip migrations
+	isort --check-only src/submissions manage.py settings.py settings_mysql.py --skip migrations
 	pycodestyle .
 
 check_keywords: ## Scan the Django models in all installed apps in this project for restricted field names

@@ -89,6 +89,11 @@ ci = [
     "tox-uv",
     "coveralls",
 ]
+# Only for the MySQL migrations check in CI. Building mysqlclient needs the
+# MySQL client headers, so this isn't part of dev.
+mysql = [
+    "mysqlclient",
+]
 dev = [
     {include-group = "quality"},
     {include-group = "ci"},

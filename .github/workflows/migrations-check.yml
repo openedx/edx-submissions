@@ -1,4 +1,8 @@
-name: Migrations check on mysql8
+name: Check Django Migrations
+
+# Runs our migrations against MySQL, set up the same way as openedx-platform's
+# migrations check: a mysql service container with openedx-platform's default
+# database name and credentials. See settings_mysql.py.
 
 on:
   workflow_dispatch:
@@ -13,8 +17,27 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest ]
-        python-version: [ "3.12" ]
+        os: [ubuntu-latest]
+        python-version: ["3.12"]
+        mysql-version: ["8"]
+    services:
+      mysql:
+        image: mysql:${{ matrix.mysql-version }}
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_DATABASE: "edxapp"
+          MYSQL_USER: "edxapp001"
+          MYSQL_PASSWORD: "password"
+          MYSQL_RANDOM_ROOT_PASSWORD: true
+        # Ping over TCP, not the socket. On first start the image creates the
+        # database and user using a temporary server with networking turned off,
+        # so a socket ping can report healthy before MySQL accepts connections.
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
 
     steps:
     - name: Checkout repo
@@ -26,44 +49,28 @@ jobs:
         enable-cache: true
         python-version: "${{ matrix.python-version }}"
 
-    - name: Install system Packages
+    # mysqlclient has no Linux wheels, so uv builds it from source. Runner images
+    # may already have these along with their own mysql-server. --no-upgrade
+    # leaves those alone: upgrading the client pulls in a mysql-server upgrade,
+    # whose post-install script fails on ubuntu-26.04 runners.
+    - name: Install system packages
       run: |
         sudo apt-get update
-        sudo apt-get install -y libxmlsec1-dev
+        sudo apt-get install -y --no-upgrade libmysqlclient-dev mysql-client pkg-config
 
-    - name: Ubuntu and MySQL Versions
+    - name: Verify mysql db credentials
       run: |
-        lsb_release -a
-        mysql -V
+        mysql -h 127.0.0.1 -uedxapp001 -ppassword -e "select version();" edxapp
 
     - name: Install Python dependencies
-      run: uv sync --locked --group test
-
-    - name: Initiate Services
-      run: |
-        sudo /etc/init.d/mysql start
-
-    - name: Reset mysql password
-      run: |
-        cat <<EOF | mysql -h 127.0.0.1 -u root --password=root
-          UPDATE mysql.user SET authentication_string = null WHERE user = 'root';
-          FLUSH PRIVILEGES;
-        EOF
+      run: uv sync --locked --no-default-groups --group mysql
 
     - name: Run migrations
       env:
-        DB_ENGINE: django.db.backends.mysql
-        MYSQL_DATABASE: submissions_db
-        MYSQL_USER: root
-        MYSQL_ROOT_PASSWORD:
-        MYSQL_HOST: localhost
-        MYSQL_PORT: 3306
-      run: |
-        echo "CREATE DATABASE IF NOT EXISTS submissions_db;" | sudo mysql -u root
-        echo "Testing migrations."
-        if uv run --with mysqlclient --no-binary-package mysqlclient python ./manage.py makemigrations --dry-run | grep -q 'No changes detected'; then
-          echo "Migrations up to date."
-        else
-          echo "ERROR: Missing migration files for model changes. Run ./manage.py makemigrations"
-          exit 1
-        fi
+        DJANGO_SETTINGS_MODULE: settings_mysql
+      run: uv run --no-sync python manage.py migrate
+
+    - name: Check for missing migrations
+      env:
+        DJANGO_SETTINGS_MODULE: settings_mysql
+      run: uv run --no-sync python manage.py makemigrations --check --dry-run

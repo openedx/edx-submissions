@@ -32,6 +32,7 @@ dependencies = [
     "pytz",
     "djangorestframework",
     "edx-django-release-util",
+    "openedx-events>=10.1.0",  # 10.1.0 added EXTERNAL_GRADER_SCORE_SUBMITTED
 ]
 
 [project.urls]
@@ -50,7 +51,6 @@ test-base = [
     "pytest-cov",
     "pytest-django",
     "python-dateutil>=2.8.0",
-    "openedx-events==10.2.0",
 ]
 test = [
     {include-group = "test-base"},

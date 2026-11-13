@@ -56,6 +56,10 @@ def create_external_grader_detail(student_item_dict,  # pylint: disable=too-many
                                   queue_key,
                                   grader_file_name="",
                                   points_possible=1,
+                                  *,
+                                  lang="",
+                                  hide_output=False,
+                                  skip_grader=False,
                                   **external_grader_additional_data
                                   ):
     """
@@ -72,6 +76,20 @@ def create_external_grader_detail(student_item_dict,  # pylint: disable=too-many
         grader_file_name (str, optional): The name of the grader file. Defaults to "".
 
         points_possible (int, optional): The maximum possible points for this submission. Defaults to 1.
+
+        lang (str, optional): The "lang" key from the problem's grader_payload: a language code
+            (at most 32 characters) for the grader's feedback. Defaults to "", meaning the problem
+            didn't set one and the grader uses its own default.
+
+        hide_output (bool, optional): The "hide_output" key from the problem's grader_payload. If
+            True, the grader doesn't show the learner per-test results. Defaults to False.
+
+        skip_grader (bool, optional): The "skip_grader" key from the problem's grader_payload. If
+            True, the grader gives full credit without running the learner's code. Defaults to False.
+
+            The XQueue-compatible get_submission endpoint sends lang, hide_output, and skip_grader
+            back to the grader in grader_payload, leaving out any that are at their defaults. See
+            https://github.com/openedx/edx-submissions/issues/390
 
         external_grader_additional_data: Additional keyword arguments that may be used for the external grader.
             If a 'files' dictionary is included, files will be processed and stored as SubmissionFile objects.
@@ -110,7 +128,10 @@ def create_external_grader_detail(student_item_dict,  # pylint: disable=too-many
             queue_name=queue_name,
             queue_key=queue_key,
             grader_file_name=grader_file_name,
-            points_possible=points_possible)
+            points_possible=points_possible,
+            lang=lang,
+            hide_output=hide_output,
+            skip_grader=skip_grader)
 
         files_dict = external_grader_additional_data.get('files')
         if files_dict:

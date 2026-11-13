@@ -190,7 +190,7 @@ class XQueueViewSet(viewsets.ViewSet):
             try:
                 submission_data = {
                     "grader_payload": json.dumps(
-                        {"grader": external_grader.grader_file_name}
+                        self._get_grader_payload(external_grader)
                     ),
                     "student_info": json.dumps(
                         {
@@ -237,6 +237,28 @@ class XQueueViewSet(viewsets.ViewSet):
             self.compose_reply(False, f"Queue '{queue_name}' is empty"),
             status=status.HTTP_200_OK,
         )
+
+    @staticmethod
+    def _get_grader_payload(external_grader):
+        """
+        Return the grader_payload dict to send to the grader.
+
+        This has the grader_payload keys that xqueue-watcher's built-in graders
+        (JailedGrader and ContainerGrader) read: "grader", plus "lang",
+        "hide_output", and "skip_grader" if the problem set them. We leave out
+        any that are at their defaults, so the grader applies its own defaults,
+        the same as it does for a <grader_payload> that doesn't include them.
+
+        See: https://github.com/openedx/edx-submissions/issues/390
+        """
+        grader_payload = {"grader": external_grader.grader_file_name}
+        if external_grader.lang:
+            grader_payload["lang"] = external_grader.lang
+        if external_grader.hide_output:
+            grader_payload["hide_output"] = True
+        if external_grader.skip_grader:
+            grader_payload["skip_grader"] = True
+        return grader_payload
 
     @action(detail=False, methods=["post"], url_name="put_result")
     @transaction.atomic

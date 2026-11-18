@@ -4,8 +4,9 @@ Tests for XQueue API views.
 
 import json
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
@@ -146,6 +147,30 @@ class TestXqueueViewSet(APITestCase):
         self.assertEqual(external_grader.status, "pulled")
         self.assertEqual(external_grader.pullkey, response_pullkey)
         self.assertIsNotNone(external_grader.status_time)
+
+    def test_get_submission_student_info(self):
+        """
+        student_info has the anonymous student ID and the submission time in the
+        LMS's XQueue format (UTC, "%Y%m%d%H%M%S"), and no random_seed.
+        """
+        self.client.login(username="testuser", password="testpass")
+        external_grader = ExternalGraderDetailFactory(
+            queue_name="student_info_queue",
+            status="pending",
+            created_at=datetime(2026, 11, 17, 10, 30, 45, tzinfo=ZoneInfo("America/New_York")),
+        )
+
+        response = self.client.get(self.get_submission_url, {"queue_name": "student_info_queue"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = json.loads(response.data["content"])
+        student_info = json.loads(json.loads(content["xqueue_body"])["student_info"])
+        self.assertEqual(
+            student_info,
+            {
+                "anonymous_student_id": external_grader.submission.student_item.student_id,
+                "submission_time": "20261117153045",
+            },
+        )
 
     def _get_grader_payload_from_queue(self, queue_name):
         """Pull the next submission from queue_name and return its parsed grader_payload."""

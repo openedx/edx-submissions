@@ -2,7 +2,7 @@
 
 import json
 import logging
-from datetime import timedelta
+from datetime import UTC, timedelta
 
 from django.contrib.auth import authenticate, login, logout
 from django.db import DatabaseError, transaction
@@ -26,6 +26,10 @@ log = logging.getLogger(__name__)
 
 
 MAX_SCORE_UPDATE_RETRIES = 5
+
+# The format of student_info's "submission_time" (in UTC). This matches what the
+# LMS sends to XQueue (DATEFORMAT in xblocks-core's capa/xqueue_interface.py).
+SUBMISSION_TIME_FORMAT = "%Y%m%d%H%M%S"
 
 
 class XQueueViewSet(viewsets.ViewSet):
@@ -192,15 +196,17 @@ class XQueueViewSet(viewsets.ViewSet):
                     "grader_payload": json.dumps(
                         self._get_grader_payload(external_grader)
                     ),
+                    # The LMS also sends the problem's "random_seed", but we don't
+                    # store it. xqueue-watcher never reads student_info: its graders
+                    # pick their own random seed for each grading run.
                     "student_info": json.dumps(
                         {
                             "anonymous_student_id": str(
                                 external_grader.submission.student_item.student_id
                             ),
-                            "submission_time": str(
-                                int(external_grader.created_at.timestamp())
-                            ),
-                            "random_seed": 1,
+                            "submission_time": external_grader.created_at.astimezone(
+                                UTC
+                            ).strftime(SUBMISSION_TIME_FORMAT),
                         }
                     ),
                     "student_response": external_grader.submission.answer,
